@@ -1,0 +1,92 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { Minimize2 } from 'lucide-react'
+import { formatDuration } from '@/lib/utils'
+
+interface AmbientModeProps {
+  remaining: number
+  progress: number
+  isBreak: boolean
+  onExit: () => void
+}
+
+export default function AmbientMode({ remaining, progress, isBreak, onExit }: AmbientModeProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-background flex items-center justify-center"
+    >
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute w-[600px] h-[600px] rounded-full opacity-20 blur-[100px]"
+          style={{
+            background: isBreak
+              ? 'radial-gradient(circle, var(--color-success), transparent)'
+              : 'radial-gradient(circle, var(--color-accent), transparent)',
+          }}
+          animate={{
+            x: ['-30%', '30%', '-30%'],
+            y: ['-20%', '20%', '-20%'],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <motion.div
+          className="absolute right-0 bottom-0 w-[400px] h-[400px] rounded-full opacity-10 blur-[80px]"
+          style={{
+            background: 'radial-gradient(circle, var(--color-accent-light), transparent)',
+          }}
+          animate={{
+            x: ['20%', '-20%', '20%'],
+            y: ['20%', '-30%', '20%'],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 text-center">
+        <motion.span
+          key={remaining}
+          initial={{ scale: 1.02 }}
+          animate={{ scale: 1 }}
+          className="text-7xl md:text-9xl font-bold tabular-nums tracking-tighter"
+        >
+          {formatDuration(remaining)}
+        </motion.span>
+
+        <div className="mt-8 w-64 mx-auto">
+          <div className="h-1 bg-border rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{
+                backgroundColor: isBreak ? 'var(--color-success)' : 'var(--color-accent)',
+              }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <motion.button
+        onClick={onExit}
+        className="absolute top-6 right-6 text-muted hover:text-foreground p-2 z-10"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <Minimize2 className="w-5 h-5" />
+      </motion.button>
+    </motion.div>
+  )
+}
