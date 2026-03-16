@@ -4,12 +4,14 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 import MobileNav from './MobileNav'
+import ServiceWorkerRegistration from './ServiceWorkerRegistration'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (
     <div className="min-h-screen">
+      <ServiceWorkerRegistration />
       <Sidebar />
       <MobileNav />
       <main className="md:ml-64 min-h-screen pb-20 md:pb-0">

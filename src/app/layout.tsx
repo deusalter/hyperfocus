@@ -16,6 +16,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Hyperfocus — ADHD Productivity',
   description: 'A productivity app designed for ADHD brains. Focus timer, task management, and streaks.',
+  manifest: '/manifest.json',
+  themeColor: '#8b5cf6',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Hyperfocus',
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 }
 
 export default function RootLayout({
