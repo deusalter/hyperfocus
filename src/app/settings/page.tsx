@@ -1,0 +1,223 @@
+'use client'
+
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sun, Moon, Volume2, VolumeX, Clock, Trash2, AlertTriangle } from 'lucide-react'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { Settings } from '@/lib/types'
+import Button from '@/components/ui/Button'
+
+const defaultSettings: Settings = {
+  theme: 'dark',
+  defaultFocusDuration: 25,
+  soundEnabled: true,
+}
+
+export default function SettingsPage() {
+  const [settings, setSettings] = useLocalStorage<Settings>('hyperfocus-settings', defaultSettings)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+
+  const toggleTheme = () => {
+    const newTheme = settings.theme === 'dark' ? 'light' : 'dark'
+    setSettings({ ...settings, theme: newTheme })
+    document.documentElement.setAttribute('data-theme', newTheme)
+  }
+
+  const toggleSound = () => {
+    setSettings({ ...settings, soundEnabled: !settings.soundEnabled })
+  }
+
+  const setFocusDuration = (minutes: number) => {
+    setSettings({ ...settings, defaultFocusDuration: minutes })
+  }
+
+  const resetAllData = () => {
+    localStorage.removeItem('hyperfocus-tasks')
+    localStorage.removeItem('hyperfocus-sessions')
+    localStorage.removeItem('hyperfocus-settings')
+    setShowResetConfirm(false)
+    window.location.reload()
+  }
+
+  return (
+    <div>
+      <motion.h1
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-2xl font-bold mb-6"
+      >
+        Settings
+      </motion.h1>
+
+      <div className="space-y-4 max-w-lg">
+        {/* Theme */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass p-5"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {settings.theme === 'dark' ? (
+                <Moon className="w-5 h-5 text-accent" />
+              ) : (
+                <Sun className="w-5 h-5 text-warning" />
+              )}
+              <div>
+                <span className="text-sm font-medium block">Theme</span>
+                <span className="text-xs text-muted capitalize">{settings.theme} mode</span>
+              </div>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleTheme}
+              className="w-12 h-7 rounded-full relative transition-colors duration-300"
+              style={{
+                backgroundColor: settings.theme === 'dark' ? 'var(--color-accent)' : 'var(--color-border)',
+              }}
+            >
+              <motion.div
+                className="w-5 h-5 rounded-full bg-white absolute top-1"
+                animate={{ x: settings.theme === 'dark' ? 24 : 4 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Sound */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="glass p-5"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {settings.soundEnabled ? (
+                <Volume2 className="w-5 h-5 text-accent" />
+              ) : (
+                <VolumeX className="w-5 h-5 text-muted" />
+              )}
+              <div>
+                <span className="text-sm font-medium block">Sound Effects</span>
+                <span className="text-xs text-muted">{settings.soundEnabled ? 'On' : 'Off'}</span>
+              </div>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleSound}
+              className="w-12 h-7 rounded-full relative transition-colors duration-300"
+              style={{
+                backgroundColor: settings.soundEnabled ? 'var(--color-accent)' : 'var(--color-border)',
+              }}
+            >
+              <motion.div
+                className="w-5 h-5 rounded-full bg-white absolute top-1"
+                animate={{ x: settings.soundEnabled ? 24 : 4 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Default Focus Duration */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass p-5"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <Clock className="w-5 h-5 text-accent" />
+            <div>
+              <span className="text-sm font-medium block">Default Focus Duration</span>
+              <span className="text-xs text-muted">{settings.defaultFocusDuration} minutes</span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {[15, 25, 30, 45, 60].map((mins) => (
+              <button
+                key={mins}
+                onClick={() => setFocusDuration(mins)}
+                className={`flex-1 py-2 text-sm rounded-lg transition-colors ${
+                  settings.defaultFocusDuration === mins
+                    ? 'bg-accent/20 text-accent border border-accent/30'
+                    : 'bg-surface text-muted hover:text-foreground'
+                }`}
+              >
+                {mins}m
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Reset Data */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="glass p-5"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Trash2 className="w-5 h-5 text-danger" />
+              <div>
+                <span className="text-sm font-medium block">Reset All Data</span>
+                <span className="text-xs text-muted">Clear all tasks, sessions, and settings</span>
+              </div>
+            </div>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setShowResetConfirm(true)}
+            >
+              Reset
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Reset Confirmation Modal */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="glass w-full max-w-sm p-6 text-center"
+            >
+              <AlertTriangle className="w-10 h-10 text-warning mx-auto mb-3" />
+              <h3 className="text-lg font-semibold mb-2">Are you sure?</h3>
+              <p className="text-sm text-muted mb-6">
+                This will permanently delete all your tasks, focus sessions, streaks, and settings.
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => setShowResetConfirm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  className="flex-1"
+                  onClick={resetAllData}
+                >
+                  Delete Everything
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
