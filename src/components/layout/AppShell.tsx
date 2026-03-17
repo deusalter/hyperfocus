@@ -5,9 +5,11 @@ import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 import MobileNav from './MobileNav'
 import ServiceWorkerRegistration from './ServiceWorkerRegistration'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  useKeyboardShortcuts()
 
   return (
     <div className="min-h-screen">
