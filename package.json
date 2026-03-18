@@ -1,6 +1,7 @@
 {
   "name": "hyperfocus",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "ADHD-friendly productivity app with focus timer, task management, and streaks",
   "private": true,
   "scripts": {
     "dev": "next dev",
