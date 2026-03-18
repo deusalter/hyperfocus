@@ -7,11 +7,11 @@ import { LayoutDashboard, CheckSquare, Timer, BarChart3, Settings, Zap } from 'l
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-  { href: '/focus', label: 'Focus', icon: Timer },
-  { href: '/stats', label: 'Stats', icon: BarChart3 },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard, shortcut: 'D' },
+  { href: '/tasks', label: 'Tasks', icon: CheckSquare, shortcut: 'N' },
+  { href: '/focus', label: 'Focus', icon: Timer, shortcut: 'T' },
+  { href: '/stats', label: 'Stats', icon: BarChart3, shortcut: 'S' },
+  { href: '/settings', label: 'Settings', icon: Settings, shortcut: '' },
 ]
 
 export default function Sidebar() {
@@ -51,7 +51,12 @@ export default function Sidebar() {
                   />
                 )}
                 <Icon className="w-5 h-5 relative z-10" />
-                <span className="relative z-10">{item.label}</span>
+                <span className="relative z-10 flex-1">{item.label}</span>
+                {item.shortcut && (
+                  <kbd className="relative z-10 text-[10px] text-muted/50 bg-surface px-1.5 py-0.5 rounded font-mono">
+                    {item.shortcut}
+                  </kbd>
+                )}
               </motion.div>
             </Link>
           )
