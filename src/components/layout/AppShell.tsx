@@ -12,11 +12,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useKeyboardShortcuts()
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <div className="ambient-gradient fixed top-0 left-0 right-0 h-[400px] pointer-events-none opacity-50 z-0" />
       <ServiceWorkerRegistration />
       <Sidebar />
       <MobileNav />
-      <main className="md:ml-64 min-h-screen pb-20 md:pb-0">
+      <main className="md:ml-64 min-h-screen pb-20 md:pb-0 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
