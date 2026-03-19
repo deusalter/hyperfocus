@@ -59,11 +59,13 @@ export default function SettingsPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {settings.theme === 'dark' ? (
-                <Moon className="w-5 h-5 text-accent" />
-              ) : (
-                <Sun className="w-5 h-5 text-warning" />
-              )}
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${settings.theme === 'dark' ? 'bg-accent/10' : 'bg-warning/10'}`}>
+                {settings.theme === 'dark' ? (
+                  <Moon className="w-5 h-5 text-accent" />
+                ) : (
+                  <Sun className="w-5 h-5 text-warning" />
+                )}
+              </div>
               <div>
                 <span className="text-sm font-medium block">Theme</span>
                 <span className="text-xs text-muted capitalize">{settings.theme} mode</span>
@@ -98,11 +100,13 @@ export default function SettingsPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {settings.soundEnabled ? (
-                <Volume2 className="w-5 h-5 text-accent" />
-              ) : (
-                <VolumeX className="w-5 h-5 text-muted" />
-              )}
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${settings.soundEnabled ? 'bg-accent/10' : 'bg-surface'}`}>
+                {settings.soundEnabled ? (
+                  <Volume2 className="w-5 h-5 text-accent" />
+                ) : (
+                  <VolumeX className="w-5 h-5 text-muted" />
+                )}
+              </div>
               <div>
                 <span className="text-sm font-medium block">Sound Effects</span>
                 <span className="text-xs text-muted">{settings.soundEnabled ? 'On' : 'Off'}</span>
@@ -136,7 +140,9 @@ export default function SettingsPage() {
           className="glass p-5"
         >
           <div className="flex items-center gap-3 mb-3">
-            <Clock className="w-5 h-5 text-accent" />
+            <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-accent" />
+            </div>
             <div>
               <span className="text-sm font-medium block">Default Focus Duration</span>
               <span className="text-xs text-muted">{settings.defaultFocusDuration} minutes</span>
@@ -144,17 +150,26 @@ export default function SettingsPage() {
           </div>
           <div className="flex gap-2">
             {[15, 25, 30, 45, 60].map((mins) => (
-              <button
+              <motion.button
                 key={mins}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setFocusDuration(mins)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative ${
                   settings.defaultFocusDuration === mins
-                    ? 'bg-accent/20 text-accent border border-accent/30 shadow-sm shadow-accent/10'
+                    ? 'text-accent'
                     : 'bg-surface text-muted hover:text-foreground hover:bg-surface-hover border border-transparent'
                 }`}
               >
-                {mins}m
-              </button>
+                {settings.defaultFocusDuration === mins && (
+                  <motion.div
+                    layoutId="focusDuration"
+                    className="absolute inset-0 bg-accent/20 border border-accent/30 rounded-lg shadow-sm shadow-accent/10"
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                  />
+                )}
+                <span className="relative z-10">{mins}m</span>
+              </motion.button>
             ))}
           </div>
         </motion.div>
@@ -168,7 +183,9 @@ export default function SettingsPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Trash2 className="w-5 h-5 text-danger" />
+              <div className="w-9 h-9 rounded-xl bg-danger/10 flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-danger" />
+              </div>
               <div>
                 <span className="text-sm font-medium block">Reset All Data</span>
                 <span className="text-xs text-muted">Clear all tasks, sessions, and settings</span>
@@ -203,7 +220,9 @@ export default function SettingsPage() {
               className="glass w-full max-w-sm p-6 text-center shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <AlertTriangle className="w-10 h-10 text-warning mx-auto mb-3" />
+              <div className="w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-warning drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+              </div>
               <h3 className="text-lg font-semibold mb-2">Are you sure?</h3>
               <p className="text-sm text-muted mb-6">
                 This will permanently delete all your tasks, focus sessions, streaks, and settings.

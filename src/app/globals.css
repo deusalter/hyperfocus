@@ -163,9 +163,55 @@ body {
   color: white;
 }
 
+/* Light theme glass refinements */
+[data-theme="light"] .glass {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+    0 4px 16px -4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .glass:hover {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+    0 8px 24px -6px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .glass-static {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+    0 4px 16px -4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .glow {
+  box-shadow:
+    0 0 20px var(--color-accent-glow),
+    0 0 60px var(--color-accent-glow),
+    0 1px 0 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+/* Subtle divider utility */
+.divider-glow {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border-hover) 50%,
+    transparent
+  );
+}
+
 /* Smooth page-level transitions */
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
+  }
+}
+
+/* Reduced motion: disable decorative animations */
+@media (prefers-reduced-motion: reduce) {
+  .glass,
+  .glass:hover,
+  .glass-static {
+    transition: none;
   }
 }
