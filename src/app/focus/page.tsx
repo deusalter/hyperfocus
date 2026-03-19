@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Maximize2 } from 'lucide-react'
+import { Maximize2, ChevronDown } from 'lucide-react'
 import { useTimer } from '@/hooks/useTimer'
 import { useTasks } from '@/hooks/useTasks'
 import TimerDisplay from '@/components/focus/TimerDisplay'
@@ -57,8 +57,11 @@ export default function FocusPage() {
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowAmbient(true)}
-            className="text-muted hover:text-foreground p-2"
+            className="text-muted hover:text-foreground p-2 rounded-lg hover:bg-surface transition-colors"
+            title="Enter ambient mode"
           >
             <Maximize2 className="w-5 h-5" />
           </motion.button>
@@ -98,18 +101,21 @@ export default function FocusPage() {
                 <label className="text-xs text-muted uppercase tracking-wider block mb-2">
                   Working on
                 </label>
-                <select
-                  value={selectedTask}
-                  onChange={(e) => setSelectedTask(e.target.value)}
-                  className="w-full glass px-4 py-3 text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none"
-                >
-                  <option value="" className="bg-background">Just focusing</option>
-                  {incompleteTasks.map((task) => (
-                    <option key={task.id} value={task.id} className="bg-background">
-                      {task.title}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedTask}
+                    onChange={(e) => setSelectedTask(e.target.value)}
+                    className="w-full glass glass-input px-4 py-3 pr-10 text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none"
+                  >
+                    <option value="" className="bg-background">Just focusing</option>
+                    {incompleteTasks.map((task) => (
+                      <option key={task.id} value={task.id} className="bg-background">
+                        {task.title}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
               </motion.div>
             )}
 
