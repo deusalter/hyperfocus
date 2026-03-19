@@ -111,10 +111,10 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
             return (
               <line
                 key={i}
-                x1={size / 2 + innerR * Math.cos(angle)}
-                y1={size / 2 + innerR * Math.sin(angle)}
-                x2={size / 2 + outerR * Math.cos(angle)}
-                y2={size / 2 + outerR * Math.sin(angle)}
+                x1={viewBoxSize / 2 + innerR * Math.cos(angle)}
+                y1={viewBoxSize / 2 + innerR * Math.sin(angle)}
+                x2={viewBoxSize / 2 + outerR * Math.cos(angle)}
+                y2={viewBoxSize / 2 + outerR * Math.sin(angle)}
                 stroke="var(--color-border)"
                 strokeWidth={isMajor ? 1.5 : 0.5}
                 opacity={isMajor ? 0.4 : 0.15}
@@ -125,8 +125,8 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
 
           {/* Background track */}
           <circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={viewBoxSize / 2}
+            cy={viewBoxSize / 2}
             r={radius}
             fill="none"
             stroke="var(--color-border)"
@@ -136,8 +136,8 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
 
           {/* Progress arc */}
           <motion.circle
-            cx={size / 2}
-            cy={size / 2}
+            cx={viewBoxSize / 2}
+            cy={viewBoxSize / 2}
             r={radius}
             fill="none"
             stroke={`url(#${gradientId})`}
@@ -153,8 +153,8 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
           {/* Leading dot at the end of the progress arc */}
           {progress > 0 && progress < 100 && (
             <motion.circle
-              cx={size / 2 + radius * Math.cos(((progress / 100) * 360 - 90) * (Math.PI / 180))}
-              cy={size / 2 + radius * Math.sin(((progress / 100) * 360 - 90) * (Math.PI / 180))}
+              cx={viewBoxSize / 2 + radius * Math.cos(((progress / 100) * 360 - 90) * (Math.PI / 180))}
+              cy={viewBoxSize / 2 + radius * Math.sin(((progress / 100) * 360 - 90) * (Math.PI / 180))}
               r={strokeWidth / 2 + 2}
               fill={isBreak ? '#22c55e' : '#8b5cf6'}
               opacity={0.9}
