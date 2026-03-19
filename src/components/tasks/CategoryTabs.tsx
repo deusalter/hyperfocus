@@ -10,22 +10,22 @@ interface CategoryTabsProps {
   counts: Record<TaskCategory, number>
 }
 
-const categories: { key: TaskCategory; label: string }[] = [
-  { key: 'today', label: 'Today' },
-  { key: 'tomorrow', label: 'Tomorrow' },
-  { key: 'week', label: 'This Week' },
-  { key: 'someday', label: 'Someday' },
+const categories: { key: TaskCategory; label: string; shortLabel: string }[] = [
+  { key: 'today', label: 'Today', shortLabel: 'Today' },
+  { key: 'tomorrow', label: 'Tomorrow', shortLabel: 'Tmrw' },
+  { key: 'week', label: 'This Week', shortLabel: 'Week' },
+  { key: 'someday', label: 'Someday', shortLabel: 'Later' },
 ]
 
 export default function CategoryTabs({ active, onChange, counts }: CategoryTabsProps) {
   return (
-    <div className="flex gap-1 mb-4 p-1 glass rounded-xl overflow-x-auto scrollbar-none">
+    <div className="flex gap-0.5 sm:gap-1 mb-4 p-1 glass rounded-xl overflow-x-auto scrollbar-none">
       {categories.map((cat) => (
         <button
           key={cat.key}
           onClick={() => onChange(cat.key)}
           className={cn(
-            'relative px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap min-w-0 flex-1',
+            'relative px-2.5 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap min-w-0 flex-1',
             active === cat.key ? 'text-white' : 'text-muted hover:text-foreground'
           )}
         >
@@ -36,8 +36,9 @@ export default function CategoryTabs({ active, onChange, counts }: CategoryTabsP
               transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
             />
           )}
-          <span className="relative z-10 flex items-center justify-center gap-1.5">
-            {cat.label}
+          <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-1.5">
+            <span className="sm:hidden">{cat.shortLabel}</span>
+            <span className="hidden sm:inline">{cat.label}</span>
             <AnimatePresence mode="wait">
               {counts[cat.key] > 0 && (
                 <motion.span

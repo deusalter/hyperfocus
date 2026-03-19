@@ -129,7 +129,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
           x,
           borderLeft: `2px solid ${energyConfig[task.energyLevel].border}`,
         } : { x }}
-        className="glass flex items-center gap-3 px-4 py-3 group relative cursor-grab active:cursor-grabbing"
+        className="glass flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 group relative cursor-grab active:cursor-grabbing"
       >
         <AnimatedCheckbox
           checked={task.completed}
@@ -150,9 +150,9 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {task.timeEstimate && !task.completed && (
-            <span className="text-[10px] text-muted flex items-center gap-0.5 bg-surface px-1.5 py-0.5 rounded-md">
+            <span className="hidden sm:flex text-[10px] text-muted items-center gap-0.5 bg-surface px-1.5 py-0.5 rounded-md">
               <Clock className="w-3 h-3" />
               {task.timeEstimate}m
             </span>
@@ -161,11 +161,11 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
           {task.energyLevel && !task.completed && (
             <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-md flex items-center gap-0.5', energyConfig[task.energyLevel].classes)}>
               <Zap className="w-3 h-3" />
-              {energyConfig[task.energyLevel].label}
+              <span className="hidden sm:inline">{energyConfig[task.energyLevel].label}</span>
             </span>
           )}
 
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          <div className="hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
             {onMove && !task.completed && (
               <motion.button
                 whileHover={{ scale: 1.1 }}
