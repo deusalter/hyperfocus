@@ -17,17 +17,49 @@ export default function SessionHistory({ sessions }: SessionHistoryProps) {
     return (
       <div className="mt-8">
         <h3 className="text-sm font-semibold text-muted uppercase tracking-wider mb-3">Recent Sessions</h3>
-        <div className="glass p-8 text-center relative overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="glass p-8 text-center relative overflow-hidden"
+        >
           <div
             className="absolute inset-0 opacity-40 pointer-events-none"
             style={{
               background: 'radial-gradient(ellipse at 50% 0%, rgba(139, 92, 246, 0.06), transparent 70%)',
             }}
           />
-          <Timer className="w-8 h-8 text-muted/30 mx-auto mb-2 relative z-10" />
-          <p className="text-sm text-muted relative z-10">No sessions yet.</p>
-          <p className="text-xs text-muted/60 mt-1 relative z-10">Start your first focus session above!</p>
-        </div>
+          <motion.div
+            animate={{
+              y: [0, -5, 0],
+              scale: [1, 1.05, 1],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            className="mx-auto mb-3 relative z-10 w-fit"
+          >
+            <Timer className="w-8 h-8 text-muted/40" />
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-sm text-muted relative z-10"
+          >
+            No sessions yet.
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="text-xs text-muted/60 mt-1 relative z-10"
+          >
+            Start your first focus session above!
+          </motion.p>
+        </motion.div>
       </div>
     )
   }

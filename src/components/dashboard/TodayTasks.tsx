@@ -5,7 +5,7 @@ import { useTasks } from '@/hooks/useTasks'
 import AnimatedCheckbox from '@/components/ui/AnimatedCheckbox'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 
 export default function TodayTasks() {
   const { todayTasks, toggleTask, completedToday } = useTasks()
@@ -29,12 +29,30 @@ export default function TodayTasks() {
       </div>
 
       {displayTasks.length === 0 ? (
-        <div className="glass p-8 text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass p-8 text-center"
+        >
+          <motion.div
+            animate={{
+              y: [0, -5, 0],
+              rotate: [0, 5, -5, 0],
+            }}
+            transition={{
+              duration: 3.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            className="mx-auto mb-3 w-fit"
+          >
+            <Sparkles className="w-6 h-6 text-accent/50" />
+          </motion.div>
           <p className="text-muted text-sm">No tasks for today yet.</p>
           <p className="text-muted/60 text-xs mt-1">
             Use the quick capture above or press <kbd className="px-1.5 py-0.5 glass text-xs rounded">N</kbd> to add one.
           </p>
-        </div>
+        </motion.div>
       ) : (
         <div className="space-y-2">
           <AnimatePresence>

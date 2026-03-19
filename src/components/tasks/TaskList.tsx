@@ -1,6 +1,7 @@
 'use client'
 
-import { AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Inbox } from 'lucide-react'
 import TaskItem from './TaskItem'
 import { Task, TaskCategory } from '@/lib/types'
 
@@ -19,19 +20,49 @@ export default function TaskList({ tasks, onToggle, onDelete, onMove, onUpdate, 
 
   if (tasks.length === 0) {
     return (
-      <div className="glass p-12 text-center relative overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="glass p-12 text-center relative overflow-hidden"
+      >
         <div
           className="absolute inset-0 opacity-40 pointer-events-none"
           style={{
             background: 'radial-gradient(ellipse at 50% 0%, rgba(139, 92, 246, 0.06), transparent 70%)',
           }}
         />
-        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3 relative z-10">
-          <span className="text-accent text-lg">✦</span>
-        </div>
-        <p className="text-muted text-sm relative z-10">Nothing here yet.</p>
-        <p className="text-muted/60 text-xs mt-1 relative z-10">Add a task above to get started.</p>
-      </div>
+        <motion.div
+          animate={{
+            y: [0, -6, 0],
+            rotate: [0, 3, -3, 0],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4 relative z-10"
+        >
+          <Inbox className="w-6 h-6 text-accent/60" />
+        </motion.div>
+        <motion.p
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="text-muted text-sm font-medium relative z-10"
+        >
+          Nothing here yet.
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="text-muted/60 text-xs mt-1 relative z-10"
+        >
+          Add a task above to get started.
+        </motion.p>
+      </motion.div>
     )
   }
 
