@@ -18,9 +18,14 @@ export default function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 border-r border-border bg-background/50 backdrop-blur-xl z-40">
+    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 border-r border-border bg-background/60 backdrop-blur-2xl z-40">
       <div className="p-6 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-accent/25"
+          style={{
+            background: 'linear-gradient(135deg, var(--color-accent-light), var(--color-accent-dark))',
+          }}
+        >
           <Zap className="w-5 h-5 text-white" />
         </div>
         <span className="text-lg font-bold tracking-tight">Hyperfocus</span>
@@ -35,25 +40,30 @@ export default function Sidebar() {
             <Link key={item.href} href={item.href}>
               <motion.div
                 className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-200 relative',
+                  'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative',
                   isActive
                     ? 'text-white'
                     : 'text-muted hover:text-foreground hover:bg-surface'
                 )}
-                whileHover={{ x: 4 }}
+                whileHover={{ x: isActive ? 0 : 4 }}
                 whileTap={{ scale: 0.98 }}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeNav"
-                    className="absolute inset-0 bg-accent/15 border border-accent/20 rounded-xl"
+                    className="absolute inset-0 rounded-xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.1))',
+                      border: '1px solid rgba(139, 92, 246, 0.25)',
+                      boxShadow: '0 0 20px rgba(139, 92, 246, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                    }}
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
                   />
                 )}
-                <Icon className="w-5 h-5 relative z-10" />
+                <Icon className={cn('w-5 h-5 relative z-10', isActive && 'drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]')} />
                 <span className="relative z-10 flex-1">{item.label}</span>
                 {item.shortcut && (
-                  <kbd className="relative z-10 text-[10px] text-muted/50 bg-surface px-1.5 py-0.5 rounded font-mono">
+                  <kbd className="relative z-10 text-[10px] text-muted/50 bg-surface px-1.5 py-0.5 rounded font-mono border border-border-subtle">
                     {item.shortcut}
                   </kbd>
                 )}
@@ -63,7 +73,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 mx-3 mb-4 glass rounded-xl">
+      <div className="p-4 mx-3 mb-4 glass-static rounded-xl">
         <p className="text-xs text-muted">Built for brains that work differently.</p>
       </div>
     </aside>

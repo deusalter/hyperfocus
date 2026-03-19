@@ -18,7 +18,7 @@ export default function MobileNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-t border-border">
       <div className="flex items-center justify-around py-2 px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href
@@ -28,7 +28,7 @@ export default function MobileNav() {
             <Link key={item.href} href={item.href} className="relative">
               <motion.div
                 className={cn(
-                  'flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors duration-200',
+                  'flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200',
                   isActive ? 'text-accent' : 'text-muted'
                 )}
                 whileTap={{ scale: 0.9 }}
@@ -36,11 +36,18 @@ export default function MobileNav() {
                 {isActive && (
                   <motion.div
                     layoutId="activeMobileNav"
-                    className="absolute inset-0 bg-accent/10 rounded-xl"
+                    className="absolute inset-0 rounded-xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(124, 58, 237, 0.06))',
+                      boxShadow: '0 0 16px rgba(139, 92, 246, 0.08)',
+                    }}
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
                   />
                 )}
-                <Icon className="w-5 h-5 relative z-10" />
+                <Icon className={cn(
+                  'w-5 h-5 relative z-10 transition-all duration-200',
+                  isActive && 'drop-shadow-[0_0_6px_rgba(139,92,246,0.5)]'
+                )} />
                 <span className="text-[10px] font-medium relative z-10">{item.label}</span>
               </motion.div>
             </Link>
