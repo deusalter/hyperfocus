@@ -56,9 +56,9 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="glass mt-2 p-3 flex flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-muted" />
+            <div className="glass mt-2 p-3 space-y-2 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Zap className="w-3.5 h-3.5 text-muted shrink-0" />
                 {(['low', 'medium', 'high'] as EnergyLevel[]).map((level) => (
                   <button
                     key={level}
@@ -75,15 +75,15 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-muted" />
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
+                <Clock className="w-3.5 h-3.5 text-muted shrink-0" />
                 {(['today', 'tomorrow', 'week', 'someday'] as TaskCategory[]).map((cat) => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setCategory(cat)}
                     className={cn(
-                      'text-xs px-2 py-1 rounded-lg transition-colors capitalize',
+                      'text-xs px-2 py-1 rounded-lg transition-colors capitalize whitespace-nowrap',
                       category === cat ? 'bg-accent/20 text-accent' : 'text-muted hover:text-foreground bg-surface'
                     )}
                   >

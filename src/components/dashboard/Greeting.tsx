@@ -22,12 +22,12 @@ export default function Greeting() {
     >
       {/* Decorative gradient orb behind the greeting */}
       <div
-        className="absolute -top-12 -left-8 w-48 h-48 rounded-full pointer-events-none opacity-30 blur-[60px]"
+        className="absolute -top-8 -left-4 sm:-top-12 sm:-left-8 w-32 h-32 sm:w-48 sm:h-48 rounded-full pointer-events-none opacity-30 blur-[40px] sm:blur-[60px]"
         style={{
           background: 'radial-gradient(circle, var(--color-accent), transparent 70%)',
         }}
       />
-      <h1 className="text-3xl md:text-4xl font-bold tracking-tight relative z-10">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight relative z-10">
         {greeting}{' '}
         <motion.span
           className="inline-block text-shimmer"
