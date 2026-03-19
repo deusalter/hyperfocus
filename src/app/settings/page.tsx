@@ -100,7 +100,7 @@ export default function SettingsPage() {
             <motion.button
               role="switch"
               aria-checked={settings.theme === 'dark'}
-              aria-label="Dark mode"
+              aria-label={`Dark mode, currently ${settings.theme === 'dark' ? 'enabled' : 'disabled'}`}
               whileTap={{ scale: 0.95 }}
               onClick={toggleTheme}
               className="w-12 h-7 rounded-full relative transition-all duration-300"
@@ -144,7 +144,7 @@ export default function SettingsPage() {
             <motion.button
               role="switch"
               aria-checked={settings.soundEnabled}
-              aria-label="Sound effects"
+              aria-label={`Sound effects, currently ${settings.soundEnabled ? 'enabled' : 'disabled'}`}
               whileTap={{ scale: 0.95 }}
               onClick={toggleSound}
               className="w-12 h-7 rounded-full relative transition-all duration-300"
@@ -180,13 +180,15 @@ export default function SettingsPage() {
               <span className="text-xs text-muted">{settings.defaultFocusDuration} minutes</span>
             </div>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2" role="group" aria-label="Focus duration options">
             {[15, 25, 30, 45, 60].map((mins) => (
               <motion.button
                 key={mins}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setFocusDuration(mins)}
+                aria-pressed={settings.defaultFocusDuration === mins}
+                aria-label={`${mins} minutes`}
                 className={`py-2 text-sm font-medium rounded-lg transition-all duration-200 relative ${
                   settings.defaultFocusDuration === mins
                     ? 'text-accent'

@@ -60,13 +60,15 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
             className="overflow-hidden"
           >
             <div className="glass mt-2 p-3 space-y-2 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-2">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Zap className="w-3.5 h-3.5 text-muted shrink-0" />
+              <div className="flex items-center gap-1.5 sm:gap-2" role="group" aria-label="Energy level">
+                <Zap className="w-3.5 h-3.5 text-muted shrink-0" aria-hidden="true" />
                 {(['low', 'medium', 'high'] as EnergyLevel[]).map((level) => (
                   <button
                     key={level}
                     type="button"
                     onClick={() => setEnergy(energy === level ? undefined : level)}
+                    aria-pressed={energy === level}
+                    aria-label={`${level} energy`}
                     className={cn(
                       'text-xs px-2 py-1 rounded-lg transition-colors capitalize',
                       energy === level
@@ -78,13 +80,15 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
-                <Clock className="w-3.5 h-3.5 text-muted shrink-0" />
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none" role="group" aria-label="Category">
+                <Clock className="w-3.5 h-3.5 text-muted shrink-0" aria-hidden="true" />
                 {(['today', 'tomorrow', 'week', 'someday'] as TaskCategory[]).map((cat) => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setCategory(cat)}
+                    aria-pressed={category === cat}
+                    aria-label={cat === 'week' ? 'This Week' : cat}
                     className={cn(
                       'text-xs px-2 py-1 rounded-lg transition-colors capitalize whitespace-nowrap',
                       category === cat ? 'bg-accent/20 text-accent' : 'text-muted hover:text-foreground bg-surface'
