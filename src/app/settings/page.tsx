@@ -41,13 +41,14 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <motion.h1
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-2xl font-bold mb-6"
+        className="mb-6"
       >
-        Settings
-      </motion.h1>
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-sm text-muted mt-0.5">Customize your experience</p>
+      </motion.div>
 
       <div className="space-y-4 max-w-lg">
         {/* Theme */}

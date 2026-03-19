@@ -34,7 +34,11 @@ export default function Greeting() {
           ✦
         </span>
       </h1>
-      <p className="text-muted mt-1.5 text-sm tracking-wide">{date}</p>
+      <p className="text-muted mt-1.5 text-sm tracking-wide">
+        {date}
+        <span className="mx-2 text-border">·</span>
+        <span className="text-accent/70">Let&apos;s make it count</span>
+      </p>
     </motion.div>
   )
 }

@@ -49,7 +49,10 @@ export default function FocusPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between mb-6"
       >
-        <h1 className="text-2xl font-bold">Focus</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Focus</h1>
+          <p className="text-sm text-muted mt-0.5">Deep work starts here</p>
+        </div>
         {(isRunning || isPaused) && (
           <motion.button
             initial={{ opacity: 0 }}

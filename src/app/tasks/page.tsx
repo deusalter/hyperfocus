@@ -27,7 +27,12 @@ export default function TasksPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between mb-6"
       >
-        <h1 className="text-2xl font-bold">Tasks</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Tasks</h1>
+          <p className="text-sm text-muted mt-0.5">
+            {tasks.filter(t => !t.completed).length} remaining across all categories
+          </p>
+        </div>
         <BrainDump onDump={addBrainDumpTasks} />
       </motion.div>
 

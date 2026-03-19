@@ -24,13 +24,14 @@ export default function StatsPage() {
 
   return (
     <div>
-      <motion.h1
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-2xl font-bold mb-6"
+        className="mb-6"
       >
-        Stats
-      </motion.h1>
+        <h1 className="text-2xl font-bold">Stats</h1>
+        <p className="text-sm text-muted mt-0.5">Track your progress and growth</p>
+      </motion.div>
 
       <div className="space-y-4">
         <LevelBadge
