@@ -49,7 +49,7 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="glass noise-texture w-full max-w-lg p-6 shadow-2xl"
+              className="glass noise-texture w-full max-w-lg p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Buy groceries&#10;Email professor&#10;Finish assignment&#10;Call mom..."
-                className="w-full h-48 bg-surface rounded-xl p-4 text-sm text-foreground placeholder-muted/40 outline-none resize-none border border-border focus:border-accent/30 transition-colors"
+                className="w-full h-36 sm:h-48 bg-surface rounded-xl p-3 sm:p-4 text-sm text-foreground placeholder-muted/40 outline-none resize-none border border-border focus:border-accent/30 transition-colors"
                 autoFocus
               />
 

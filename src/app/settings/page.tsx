@@ -148,14 +148,14 @@ export default function SettingsPage() {
               <span className="text-xs text-muted">{settings.defaultFocusDuration} minutes</span>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
             {[15, 25, 30, 45, 60].map((mins) => (
               <motion.button
                 key={mins}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setFocusDuration(mins)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative ${
+                className={`py-2 text-sm font-medium rounded-lg transition-all duration-200 relative ${
                   settings.defaultFocusDuration === mins
                     ? 'text-accent'
                     : 'bg-surface text-muted hover:text-foreground hover:bg-surface-hover border border-transparent'
@@ -217,7 +217,7 @@ export default function SettingsPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className="glass w-full max-w-sm p-6 text-center shadow-2xl"
+              className="glass w-full max-w-sm p-5 sm:p-6 text-center shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-4">
