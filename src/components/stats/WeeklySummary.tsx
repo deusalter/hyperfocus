@@ -12,9 +12,30 @@ interface WeeklySummaryProps {
 
 export default function WeeklySummary({ totalTasks, totalMinutes, activeDays }: WeeklySummaryProps) {
   const stats = [
-    { label: 'Tasks Completed', value: totalTasks, icon: CheckCircle2, color: 'text-success' },
-    { label: 'Focus Time', value: formatMinutes(totalMinutes), icon: Timer, color: 'text-accent' },
-    { label: 'Active Days', value: `${activeDays}/7`, icon: Calendar, color: 'text-warning' },
+    {
+      label: 'Tasks Completed',
+      value: totalTasks,
+      icon: CheckCircle2,
+      color: 'text-success',
+      bg: 'bg-success/10',
+      glowColor: 'rgba(34, 197, 94, 0.4)',
+    },
+    {
+      label: 'Focus Time',
+      value: formatMinutes(totalMinutes),
+      icon: Timer,
+      color: 'text-accent',
+      bg: 'bg-accent/10',
+      glowColor: 'rgba(139, 92, 246, 0.4)',
+    },
+    {
+      label: 'Active Days',
+      value: `${activeDays}/7`,
+      icon: Calendar,
+      color: 'text-warning',
+      bg: 'bg-warning/10',
+      glowColor: 'rgba(245, 158, 11, 0.4)',
+    },
   ]
 
   return (
@@ -29,8 +50,10 @@ export default function WeeklySummary({ totalTasks, totalMinutes, activeDays }: 
           const Icon = stat.icon
           return (
             <div key={stat.label} className="text-center">
-              <Icon className={`w-5 h-5 ${stat.color} mx-auto mb-1`} />
-              <span className="text-lg font-bold block">{stat.value}</span>
+              <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mx-auto mb-2`}>
+                <Icon className={`w-5 h-5 ${stat.color}`} style={{ filter: `drop-shadow(0 0 6px ${stat.glowColor})` }} />
+              </div>
+              <span className="text-lg font-bold block tabular-nums">{stat.value}</span>
               <span className="text-[10px] text-muted">{stat.label}</span>
             </div>
           )

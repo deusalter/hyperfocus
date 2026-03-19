@@ -11,26 +11,33 @@ interface DailyChartProps {
 
 export default function DailyChart({ data, label, color, unit }: DailyChartProps) {
   const maxValue = Math.max(...data.map((d) => d.value), 1)
+  const total = data.reduce((sum, d) => sum + d.value, 0)
 
   return (
     <div className="glass p-5">
-      <h3 className="text-sm font-semibold text-muted uppercase tracking-wider mb-4">{label}</h3>
+      <div className="flex items-baseline justify-between mb-4">
+        <h3 className="text-sm font-semibold text-muted uppercase tracking-wider">{label}</h3>
+        <span className="text-xs font-medium tabular-nums" style={{ color }}>
+          {total}{unit} total
+        </span>
+      </div>
       <div className="flex items-end gap-2 h-32">
         {data.map((day, i) => {
           const height = (day.value / maxValue) * 100
           const isActive = day.value > 0
+          const isToday = i === data.length - 1
 
           return (
-            <div key={day.date} className="flex-1 flex flex-col items-center gap-1 group">
-              <span className="text-[10px] text-muted tabular-nums transition-colors group-hover:text-foreground">
-                {isActive ? `${day.value}${unit}` : ''}
+            <div key={day.date} className="flex-1 flex flex-col items-center gap-1 group cursor-default">
+              <span className="text-[10px] text-muted tabular-nums transition-all duration-200 opacity-0 group-hover:opacity-100 -translate-y-0.5 group-hover:translate-y-0">
+                {isActive ? `${day.value}${unit}` : '-'}
               </span>
               <div className="w-full flex items-end" style={{ height: '80px' }}>
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: `${Math.max(height, isActive ? 8 : 2)}%` }}
                   transition={{ duration: 0.6, delay: i * 0.06, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className="w-full rounded-t-lg transition-shadow duration-200"
+                  className="w-full rounded-t-lg transition-all duration-200 group-hover:brightness-125"
                   style={{
                     background: isActive
                       ? `linear-gradient(180deg, ${color}, ${color}CC)`
@@ -40,7 +47,9 @@ export default function DailyChart({ data, label, color, unit }: DailyChartProps
                   }}
                 />
               </div>
-              <span className="text-[10px] text-muted">{day.dayLabel}</span>
+              <span className={`text-[10px] transition-colors duration-200 ${isToday ? 'text-foreground font-medium' : 'text-muted'} group-hover:text-foreground`}>
+                {day.dayLabel}
+              </span>
             </div>
           )
         })}
