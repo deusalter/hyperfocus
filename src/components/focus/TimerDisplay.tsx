@@ -12,9 +12,9 @@ interface TimerDisplayProps {
 }
 
 export default function TimerDisplay({ remaining, progress, isRunning, isBreak }: TimerDisplayProps) {
-  const size = 280
+  const viewBoxSize = 280
   const strokeWidth = 8
-  const radius = (size - strokeWidth) / 2
+  const radius = (viewBoxSize - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (progress / 100) * circumference
   const gradientId = useId()
@@ -22,11 +22,10 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
   const outerGlowId = useId()
 
   const accentColor = isBreak ? 'rgba(34, 197, 94,' : 'rgba(139, 92, 246,'
-  const outerRingRadius = radius + 16
 
   return (
-    <div className="flex items-center justify-center py-8">
-      <div className="relative">
+    <div className="flex items-center justify-center py-6 sm:py-8">
+      <div className="relative w-[240px] h-[240px] sm:w-[280px] sm:h-[280px]">
         {/* Breathing outer glow ring — only when running */}
         <AnimatePresence>
           {isRunning && (
@@ -34,13 +33,11 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="absolute inset-0 flex items-center justify-center"
+              className="absolute inset-[-20px] sm:inset-[-20px] flex items-center justify-center"
             >
               <motion.div
-                className="absolute rounded-full"
+                className="absolute inset-0 rounded-full"
                 style={{
-                  width: size + 40,
-                  height: size + 40,
                   border: `1px solid ${accentColor} 0.12)`,
                   boxShadow: `0 0 40px ${accentColor} 0.08), inset 0 0 40px ${accentColor} 0.04)`,
                 }}
@@ -55,10 +52,8 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
                 }}
               />
               <motion.div
-                className="absolute rounded-full"
+                className="absolute inset-[-12px] rounded-full"
                 style={{
-                  width: size + 64,
-                  height: size + 64,
                   border: `1px solid ${accentColor} 0.06)`,
                 }}
                 animate={{
@@ -76,7 +71,7 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
           )}
         </AnimatePresence>
 
-        <svg width={size} height={size} className="-rotate-90">
+        <svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} className="-rotate-90 w-full h-full">
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
               {isBreak ? (
@@ -175,7 +170,7 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
             key={remaining}
             initial={{ scale: 1.03 }}
             animate={{ scale: 1 }}
-            className="text-5xl md:text-6xl font-bold tabular-nums tracking-tight"
+            className="text-4xl sm:text-5xl md:text-6xl font-bold tabular-nums tracking-tight"
             style={{
               textShadow: isRunning
                 ? isBreak

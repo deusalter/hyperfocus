@@ -22,7 +22,7 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute w-[600px] h-[600px] rounded-full opacity-20 blur-[100px]"
+          className="absolute w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] rounded-full opacity-20 blur-[60px] sm:blur-[100px]"
           style={{
             background: isBreak
               ? 'radial-gradient(circle, var(--color-success), transparent)'
@@ -39,7 +39,7 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
           }}
         />
         <motion.div
-          className="absolute right-0 bottom-0 w-[400px] h-[400px] rounded-full opacity-10 blur-[80px]"
+          className="absolute right-0 bottom-0 w-[200px] h-[200px] sm:w-[400px] sm:h-[400px] rounded-full opacity-10 blur-[40px] sm:blur-[80px]"
           style={{
             background: 'radial-gradient(circle, var(--color-accent-light), transparent)',
           }}
@@ -60,12 +60,12 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
           key={remaining}
           initial={{ scale: 1.02 }}
           animate={{ scale: 1 }}
-          className="text-7xl md:text-9xl font-bold tabular-nums tracking-tighter"
+          className="text-6xl sm:text-7xl md:text-9xl font-bold tabular-nums tracking-tighter"
         >
           {formatDuration(remaining)}
         </motion.span>
 
-        <div className="mt-8 w-64 mx-auto">
+        <div className="mt-6 sm:mt-8 w-48 sm:w-64 mx-auto">
           <div className="h-1 bg-border rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"
