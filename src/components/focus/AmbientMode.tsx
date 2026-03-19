@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Minimize2 } from 'lucide-react'
 import { formatDuration } from '@/lib/utils'
@@ -12,12 +13,38 @@ interface AmbientModeProps {
 }
 
 export default function AmbientMode({ remaining, progress, isBreak, onExit }: AmbientModeProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const exitButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Focus the exit button on mount and handle Escape key
+  useEffect(() => {
+    exitButtonRef.current?.focus()
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onExit()
+      }
+      // Trap focus within ambient mode (only one focusable element)
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        exitButtonRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onExit])
+
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-background flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Ambient focus mode — ${formatDuration(remaining)} remaining`}
     >
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden">
@@ -55,12 +82,16 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
         />
       </div>
 
-      <div className="relative z-10 text-center">
+      <div className="relative z-10 text-center" role="timer" aria-live="off" aria-atomic="true">
+        <span className="sr-only" aria-live="polite">
+          {formatDuration(remaining)} remaining
+        </span>
         <motion.span
           key={remaining}
           initial={{ scale: 1.02 }}
           animate={{ scale: 1 }}
           className="text-6xl sm:text-7xl md:text-9xl font-bold tabular-nums tracking-tighter"
+          aria-hidden="true"
         >
           {formatDuration(remaining)}
         </motion.span>
@@ -80,11 +111,12 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
       </div>
 
       <motion.button
+        ref={exitButtonRef}
         onClick={onExit}
-        className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted hover:text-foreground p-2 z-10"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted hover:text-foreground p-2 z-10 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded-lg"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        aria-label="Exit ambient mode"
+        aria-label="Exit ambient mode (Escape)"
       >
         <Minimize2 className="w-5 h-5" />
       </motion.button>
