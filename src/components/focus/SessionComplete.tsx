@@ -16,18 +16,26 @@ export default function SessionComplete({ isBreak, onStartBreak, onReset, onNewS
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="text-center py-8"
+      className="text-center py-8 relative"
     >
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: [0, 1.2, 1] }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="w-20 h-20 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-4"
+        className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+        style={{
+          background: isBreak
+            ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.08))'
+            : 'linear-gradient(135deg, rgba(167, 139, 250, 0.25), rgba(124, 58, 237, 0.1))',
+          boxShadow: isBreak
+            ? '0 0 30px rgba(34, 197, 94, 0.15)'
+            : '0 0 30px rgba(139, 92, 246, 0.2)',
+        }}
       >
         {isBreak ? (
-          <Coffee className="w-10 h-10 text-success" />
+          <Coffee className="w-10 h-10 text-success drop-shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
         ) : (
-          <PartyPopper className="w-10 h-10 text-accent" />
+          <PartyPopper className="w-10 h-10 text-accent drop-shadow-[0_0_8px_rgba(139,92,246,0.4)]" />
         )}
       </motion.div>
 
@@ -72,7 +80,7 @@ export default function SessionComplete({ isBreak, onStartBreak, onReset, onNewS
       {/* Celebration particles */}
       {!isBreak && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {Array.from({ length: 12 }).map((_, i) => (
+          {Array.from({ length: 16 }).map((_, i) => (
             <motion.div
               key={i}
               initial={{
@@ -81,19 +89,23 @@ export default function SessionComplete({ isBreak, onStartBreak, onReset, onNewS
                 scale: 0,
               }}
               animate={{
-                x: `${20 + Math.random() * 60}%`,
-                y: `${10 + Math.random() * 80}%`,
-                scale: [0, 1, 0],
+                x: `${15 + Math.random() * 70}%`,
+                y: `${5 + Math.random() * 90}%`,
+                scale: [0, 1.2, 0],
                 opacity: [0, 1, 0],
+                rotate: [0, Math.random() * 360],
               }}
               transition={{
-                duration: 1.5,
-                delay: 0.1 + i * 0.08,
+                duration: 2,
+                delay: 0.1 + i * 0.06,
                 ease: 'easeOut',
               }}
-              className="absolute w-2 h-2 rounded-full"
+              className="absolute rounded-full"
               style={{
-                backgroundColor: ['#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', '#22d3ee'][i % 5],
+                width: `${4 + Math.random() * 4}px`,
+                height: `${4 + Math.random() * 4}px`,
+                backgroundColor: ['#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', '#22d3ee', '#a78bfa'][i % 6],
+                boxShadow: `0 0 6px ${['#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', '#22d3ee', '#a78bfa'][i % 6]}66`,
               }}
             />
           ))}

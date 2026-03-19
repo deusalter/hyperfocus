@@ -71,13 +71,16 @@ export default function SettingsPage() {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={toggleTheme}
-              className="w-12 h-7 rounded-full relative transition-colors duration-300"
+              className="w-12 h-7 rounded-full relative transition-all duration-300"
               style={{
-                backgroundColor: settings.theme === 'dark' ? 'var(--color-accent)' : 'var(--color-border)',
+                background: settings.theme === 'dark'
+                  ? 'linear-gradient(135deg, var(--color-accent-light), var(--color-accent-dark))'
+                  : 'var(--color-border)',
+                boxShadow: settings.theme === 'dark' ? '0 0 12px rgba(139, 92, 246, 0.3)' : 'none',
               }}
             >
               <motion.div
-                className="w-5 h-5 rounded-full bg-white absolute top-1"
+                className="w-5 h-5 rounded-full bg-white absolute top-1 shadow-sm"
                 animate={{ x: settings.theme === 'dark' ? 24 : 4 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               />
@@ -107,13 +110,16 @@ export default function SettingsPage() {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={toggleSound}
-              className="w-12 h-7 rounded-full relative transition-colors duration-300"
+              className="w-12 h-7 rounded-full relative transition-all duration-300"
               style={{
-                backgroundColor: settings.soundEnabled ? 'var(--color-accent)' : 'var(--color-border)',
+                background: settings.soundEnabled
+                  ? 'linear-gradient(135deg, var(--color-accent-light), var(--color-accent-dark))'
+                  : 'var(--color-border)',
+                boxShadow: settings.soundEnabled ? '0 0 12px rgba(139, 92, 246, 0.3)' : 'none',
               }}
             >
               <motion.div
-                className="w-5 h-5 rounded-full bg-white absolute top-1"
+                className="w-5 h-5 rounded-full bg-white absolute top-1 shadow-sm"
                 animate={{ x: settings.soundEnabled ? 24 : 4 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               />
@@ -140,10 +146,10 @@ export default function SettingsPage() {
               <button
                 key={mins}
                 onClick={() => setFocusDuration(mins)}
-                className={`flex-1 py-2 text-sm rounded-lg transition-colors ${
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   settings.defaultFocusDuration === mins
-                    ? 'bg-accent/20 text-accent border border-accent/30'
-                    : 'bg-surface text-muted hover:text-foreground'
+                    ? 'bg-accent/20 text-accent border border-accent/30 shadow-sm shadow-accent/10'
+                    : 'bg-surface text-muted hover:text-foreground hover:bg-surface-hover border border-transparent'
                 }`}
               >
                 {mins}m
@@ -185,13 +191,16 @@ export default function SettingsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
+            onClick={() => setShowResetConfirm(false)}
           >
             <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              className="glass w-full max-w-sm p-6 text-center"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="glass w-full max-w-sm p-6 text-center shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             >
               <AlertTriangle className="w-10 h-10 text-warning mx-auto mb-3" />
               <h3 className="text-lg font-semibold mb-2">Are you sure?</h3>
