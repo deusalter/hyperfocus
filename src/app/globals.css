@@ -207,11 +207,141 @@ body {
   }
 }
 
+/* Noise texture overlay for premium glass feel */
+.noise-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+}
+
+[data-theme="light"] .noise-texture::before {
+  opacity: 0.02;
+}
+
+/* Glass highlight — accent-bordered card for key content */
+.glass-highlight {
+  background: linear-gradient(
+    135deg,
+    var(--color-surface) 0%,
+    var(--color-surface-elevated) 50%,
+    var(--color-surface) 100%
+  );
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 0 rgba(139, 92, 246, 0.05) inset,
+    0 4px 16px -4px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(139, 92, 246, 0.06);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-highlight:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow:
+    0 1px 0 0 rgba(139, 92, 246, 0.08) inset,
+    0 8px 24px -6px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(139, 92, 246, 0.1);
+}
+
+[data-theme="light"] .glass-highlight {
+  border-color: rgba(139, 92, 246, 0.15);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+    0 4px 16px -4px rgba(0, 0, 0, 0.08),
+    0 0 16px rgba(139, 92, 246, 0.06);
+}
+
+[data-theme="light"] .glass-highlight:hover {
+  border-color: rgba(139, 92, 246, 0.25);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+    0 8px 24px -6px rgba(0, 0, 0, 0.12),
+    0 0 24px rgba(139, 92, 246, 0.08);
+}
+
+/* Animated gradient border for focused inputs */
+@property --gradient-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.glass-input-animated:focus-within {
+  border-color: transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-image:
+    linear-gradient(var(--color-background), var(--color-background)),
+    linear-gradient(var(--gradient-angle), var(--color-accent-light), var(--color-accent-dark), var(--color-accent-light));
+  animation: gradient-rotate 3s linear infinite;
+  box-shadow:
+    0 0 0 3px rgba(139, 92, 246, 0.08),
+    0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+@keyframes gradient-rotate {
+  to {
+    --gradient-angle: 360deg;
+  }
+}
+
+/* Breathing animation for active elements */
+@keyframes breathe {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.02); }
+}
+
+.breathing {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Shimmer animation for text highlights */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-dark) 0%,
+    var(--color-accent-light) 25%,
+    var(--color-accent) 50%,
+    var(--color-accent-light) 75%,
+    var(--color-accent-dark) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
 /* Reduced motion: disable decorative animations */
 @media (prefers-reduced-motion: reduce) {
   .glass,
   .glass:hover,
   .glass-static {
     transition: none;
+  }
+
+  .breathing {
+    animation: none;
+  }
+
+  .text-shimmer {
+    animation: none;
+  }
+
+  .glass-input-animated:focus-within {
+    animation: none;
   }
 }

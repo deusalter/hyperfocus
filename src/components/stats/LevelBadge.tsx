@@ -17,7 +17,7 @@ export default function LevelBadge({ level, title, progress, totalMinutes, nextL
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass p-5 relative overflow-hidden"
+      className="glass-highlight noise-texture p-5 relative overflow-hidden"
     >
       <div
         className="absolute inset-0 opacity-30 pointer-events-none"

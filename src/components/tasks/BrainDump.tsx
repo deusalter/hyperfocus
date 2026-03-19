@@ -49,7 +49,7 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="glass w-full max-w-lg p-6"
+              className="glass noise-texture w-full max-w-lg p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
