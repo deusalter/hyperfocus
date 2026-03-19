@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Zap } from 'lucide-react'
+import { Plus, Zap, Sparkles } from 'lucide-react'
 import { useTasks } from '@/hooks/useTasks'
+import { useToast } from '@/components/ui/Toast'
 
 export default function QuickCapture() {
   const [value, setValue] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
   const { addTask } = useTasks()
+  const { toast } = useToast()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,6 +20,7 @@ export default function QuickCapture() {
     setValue('')
     setShowSuccess(true)
     setTimeout(() => setShowSuccess(false), 1500)
+    toast('Task captured', 'success', { duration: 2000 })
   }
 
   return (
@@ -29,7 +32,28 @@ export default function QuickCapture() {
     >
       <form onSubmit={handleSubmit} className="relative">
         <div className="glass glass-input glass-input-animated flex items-center gap-3 px-4 py-3">
-          <Plus className="w-5 h-5 text-muted shrink-0" />
+          <AnimatePresence mode="wait">
+            {showSuccess ? (
+              <motion.div
+                key="success-icon"
+                initial={{ scale: 0, rotate: -90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 90 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              >
+                <Sparkles className="w-5 h-5 text-success shrink-0" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="plus-icon"
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+              >
+                <Plus className="w-5 h-5 text-muted shrink-0" />
+              </motion.div>
+            )}
+          </AnimatePresence>
           <input
             type="text"
             value={value}

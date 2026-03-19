@@ -51,6 +51,13 @@ export function useTasks() {
     )
   }, [setTasks])
 
+  const restoreTask = useCallback((task: Task) => {
+    setTasks((prev) => {
+      if (prev.some((t) => t.id === task.id)) return prev
+      return [task, ...prev]
+    })
+  }, [setTasks])
+
   const reorderTasks = useCallback((reorderedTasks: Task[]) => {
     setTasks(reorderedTasks)
   }, [setTasks])
@@ -109,6 +116,7 @@ export function useTasks() {
     moveTask,
     reorderTasks,
     addBrainDumpTasks,
+    restoreTask,
     todayTasks,
     completedToday,
     tasksByCategory,
