@@ -55,7 +55,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass p-5"
+          className="glass p-4 sm:p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -96,7 +96,7 @@ export default function SettingsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="glass p-5"
+          className="glass p-4 sm:p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -137,7 +137,7 @@ export default function SettingsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass p-5"
+          className="glass p-4 sm:p-5"
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
@@ -148,7 +148,7 @@ export default function SettingsPage() {
               <span className="text-xs text-muted">{settings.defaultFocusDuration} minutes</span>
             </div>
           </div>
-          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
             {[15, 25, 30, 45, 60].map((mins) => (
               <motion.button
                 key={mins}
@@ -179,22 +179,23 @@ export default function SettingsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="glass p-5"
+          className="glass p-4 sm:p-5"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-danger/10 flex items-center justify-center">
                 <Trash2 className="w-5 h-5 text-danger" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-sm font-medium block">Reset All Data</span>
-                <span className="text-xs text-muted">Clear all tasks, sessions, and settings</span>
+                <span className="text-xs text-muted block truncate sm:whitespace-normal">Clear all tasks, sessions, and settings</span>
               </div>
             </div>
             <Button
               variant="danger"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
+              className="shrink-0"
             >
               Reset
             </Button>
