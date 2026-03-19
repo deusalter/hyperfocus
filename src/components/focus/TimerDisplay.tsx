@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { formatDuration } from '@/lib/utils'
 import { useId } from 'react'
 
@@ -19,10 +19,63 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
   const offset = circumference - (progress / 100) * circumference
   const gradientId = useId()
   const glowId = useId()
+  const outerGlowId = useId()
+
+  const accentColor = isBreak ? 'rgba(34, 197, 94,' : 'rgba(139, 92, 246,'
+  const outerRingRadius = radius + 16
 
   return (
     <div className="flex items-center justify-center py-8">
       <div className="relative">
+        {/* Breathing outer glow ring — only when running */}
+        <AnimatePresence>
+          {isRunning && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: size + 40,
+                  height: size + 40,
+                  border: `1px solid ${accentColor} 0.12)`,
+                  boxShadow: `0 0 40px ${accentColor} 0.08), inset 0 0 40px ${accentColor} 0.04)`,
+                }}
+                animate={{
+                  scale: [1, 1.03, 1],
+                  opacity: [0.5, 0.8, 0.5],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  width: size + 64,
+                  height: size + 64,
+                  border: `1px solid ${accentColor} 0.06)`,
+                }}
+                animate={{
+                  scale: [1, 1.02, 1],
+                  opacity: [0.3, 0.5, 0.3],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 0.5,
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <svg width={size} height={size} className="-rotate-90">
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -45,7 +98,37 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
+            <filter id={outerGlowId}>
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
+
+          {/* Decorative tick marks around the ring */}
+          {Array.from({ length: 60 }).map((_, i) => {
+            const angle = (i * 6 * Math.PI) / 180
+            const isMajor = i % 5 === 0
+            const innerR = radius - (isMajor ? 14 : 10)
+            const outerR = radius - 6
+            return (
+              <line
+                key={i}
+                x1={size / 2 + innerR * Math.cos(angle)}
+                y1={size / 2 + innerR * Math.sin(angle)}
+                x2={size / 2 + outerR * Math.cos(angle)}
+                y2={size / 2 + outerR * Math.sin(angle)}
+                stroke="var(--color-border)"
+                strokeWidth={isMajor ? 1.5 : 0.5}
+                opacity={isMajor ? 0.4 : 0.15}
+                strokeLinecap="round"
+              />
+            )
+          })}
+
+          {/* Background track */}
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -55,6 +138,8 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
             strokeWidth={strokeWidth - 2}
             opacity={0.5}
           />
+
+          {/* Progress arc */}
           <motion.circle
             cx={size / 2}
             cy={size / 2}
@@ -69,6 +154,20 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             filter={progress > 0 ? `url(#${glowId})` : undefined}
           />
+
+          {/* Leading dot at the end of the progress arc */}
+          {progress > 0 && progress < 100 && (
+            <motion.circle
+              cx={size / 2 + radius * Math.cos(((progress / 100) * 360 - 90) * (Math.PI / 180))}
+              cy={size / 2 + radius * Math.sin(((progress / 100) * 360 - 90) * (Math.PI / 180))}
+              r={strokeWidth / 2 + 2}
+              fill={isBreak ? '#22c55e' : '#8b5cf6'}
+              opacity={0.9}
+              filter={`url(#${outerGlowId})`}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+            />
+          )}
         </svg>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center">
