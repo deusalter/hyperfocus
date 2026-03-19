@@ -18,10 +18,11 @@ export default function MobileNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+    <nav aria-label="Main navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-50">
       {/* Gradient fade above the nav for seamless blending */}
       <div
         className="h-6 pointer-events-none"
+        aria-hidden="true"
         style={{
           background: 'linear-gradient(to bottom, transparent, var(--color-background))',
         }}
@@ -29,6 +30,7 @@ export default function MobileNav() {
       {/* Gradient top border accent */}
       <div
         className="h-px"
+        aria-hidden="true"
         style={{
           background: 'linear-gradient(90deg, transparent 5%, rgba(139, 92, 246, 0.3) 50%, transparent 95%)',
         }}
@@ -43,7 +45,7 @@ export default function MobileNav() {
             const Icon = item.icon
 
             return (
-              <Link key={item.href} href={item.href} className="relative">
+              <Link key={item.href} href={item.href} className="relative" aria-label={item.label} aria-current={isActive ? 'page' : undefined}>
                 <motion.div
                   className={cn(
                     'flex flex-col items-center gap-1 px-3.5 py-2 rounded-xl transition-all duration-200',
