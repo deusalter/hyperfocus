@@ -18,7 +18,7 @@ const presets = [
 
 export default function TimerPresets({ currentDuration, onSelect, disabled }: TimerPresetsProps) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-6">
+    <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-6">
       {presets.map((preset) => (
         <motion.button
           key={preset.label}
@@ -27,7 +27,7 @@ export default function TimerPresets({ currentDuration, onSelect, disabled }: Ti
           onClick={() => !disabled && onSelect(preset.seconds)}
           disabled={disabled}
           className={cn(
-            'relative px-4 py-2 text-sm font-medium rounded-xl transition-colors',
+            'relative px-3 sm:px-4 py-2 text-sm font-medium rounded-xl transition-colors',
             currentDuration === preset.seconds
               ? 'text-white'
               : 'text-muted hover:text-foreground',

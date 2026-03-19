@@ -81,7 +81,7 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
 
       <motion.button
         onClick={onExit}
-        className="absolute top-6 right-6 text-muted hover:text-foreground p-2 z-10"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted hover:text-foreground p-2 z-10"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >

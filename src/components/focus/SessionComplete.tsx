@@ -97,7 +97,7 @@ export default function SessionComplete({ isBreak, onStartBreak, onReset, onNewS
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="flex items-center justify-center gap-3 relative z-10"
+        className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 relative z-10"
       >
         {!isBreak && (
           <Button onClick={onStartBreak} variant="secondary">

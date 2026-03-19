@@ -29,17 +29,17 @@ export default function TimerControls({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-center gap-3"
+      className="flex items-center justify-center gap-2 sm:gap-3"
     >
       {!isRunning && !isPaused && (
-        <Button size="lg" onClick={onStart} className="min-w-[140px]">
+        <Button size="lg" onClick={onStart} className="min-w-[120px] sm:min-w-[140px]">
           <Play className="w-5 h-5" />
           Start Focus
         </Button>
       )}
 
       {isRunning && (
-        <Button size="lg" variant="secondary" onClick={onPause} className="min-w-[140px]">
+        <Button size="lg" variant="secondary" onClick={onPause} className="min-w-[120px] sm:min-w-[140px]">
           <Pause className="w-5 h-5" />
           Pause
         </Button>
@@ -47,7 +47,7 @@ export default function TimerControls({
 
       {isPaused && (
         <>
-          <Button size="lg" onClick={onResume} className="min-w-[120px]">
+          <Button size="lg" onClick={onResume} className="min-w-[100px] sm:min-w-[120px]">
             <Play className="w-5 h-5" />
             Resume
           </Button>
