@@ -39,6 +39,7 @@ const SNAP_POINT = -72
 
 export default function TaskItem({ task, onToggle, onDelete, onMove, showCategory }: TaskItemProps) {
   const [isRevealed, setIsRevealed] = useState(false)
+  const [showKeyboardActions, setShowKeyboardActions] = useState(false)
   const x = useMotionValue(0)
   const controls = useAnimation()
 
@@ -91,6 +92,18 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      e.preventDefault()
+      onDelete(task.id)
+    }
+    if (e.key === 'ArrowRight' && onMove && !task.completed) {
+      e.preventDefault()
+      onMove(task.id, nextCategory[task.category])
+    }
+  }
+
   return (
     <motion.div
       layout
@@ -131,6 +144,16 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
           borderLeft: `2px solid ${energyConfig[task.energyLevel].border}`,
         } : { x }}
         className="glass flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 group relative cursor-grab active:cursor-grabbing"
+        tabIndex={0}
+        role="listitem"
+        aria-label={`${task.completed ? 'Completed: ' : ''}${task.title}${task.energyLevel ? `, ${task.energyLevel} energy` : ''}. Press Delete to remove${onMove && !task.completed ? ', Right Arrow to move' : ''}`}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setShowKeyboardActions(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setShowKeyboardActions(false)
+          }
+        }}
       >
         <AnimatedCheckbox
           checked={task.completed}
@@ -167,7 +190,10 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
             </span>
           )}
 
-          <div className="hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          <div className={cn(
+            'flex items-center gap-1 transition-all duration-200',
+            showKeyboardActions ? 'opacity-100' : 'hidden sm:flex opacity-0 group-hover:opacity-100'
+          )}>
             {onMove && !task.completed && (
               <motion.button
                 whileHover={{ scale: 1.1 }}
