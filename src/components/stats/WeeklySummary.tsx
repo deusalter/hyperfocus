@@ -49,18 +49,18 @@ export default function WeeklySummary({ totalTasks, totalMinutes, activeDays }: 
       className="glass p-5"
     >
       <h3 className="text-sm font-semibold text-muted uppercase tracking-wider mb-4">This Week</h3>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
             <div key={stat.label} className="text-center">
-              <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mx-auto mb-2`}>
-                <Icon className={`w-5 h-5 ${stat.color}`} style={{ filter: `drop-shadow(0 0 6px ${stat.glowColor})` }} />
+              <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${stat.bg} flex items-center justify-center mx-auto mb-1.5 sm:mb-2`}>
+                <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`} style={{ filter: `drop-shadow(0 0 6px ${stat.glowColor})` }} />
               </div>
               {stat.numericValue !== null ? (
-                <AnimatedNumber value={stat.numericValue} className="text-lg font-bold block tabular-nums" />
+                <AnimatedNumber value={stat.numericValue} className="text-base sm:text-lg font-bold block tabular-nums" />
               ) : (
-                <span className="text-lg font-bold block tabular-nums">{stat.displayValue}</span>
+                <span className="text-base sm:text-lg font-bold block tabular-nums">{stat.displayValue}</span>
               )}
               <span className="text-[10px] text-muted">{stat.label}</span>
             </div>
