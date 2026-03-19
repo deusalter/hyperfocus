@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTasks } from '@/hooks/useTasks'
 import { useToast } from '@/components/ui/Toast'
 import AddTask from '@/components/tasks/AddTask'
@@ -10,11 +10,36 @@ import CategoryTabs from '@/components/tasks/CategoryTabs'
 import BrainDump from '@/components/tasks/BrainDump'
 import { Task, TaskCategory } from '@/lib/types'
 
+const categoryOrder: TaskCategory[] = ['today', 'tomorrow', 'week', 'someday']
+
+const contentVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 40 : -40,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -40 : 40,
+    opacity: 0,
+  }),
+}
+
 export default function TasksPage() {
   const [activeCategory, setActiveCategory] = useState<TaskCategory>('today')
+  const [direction, setDirection] = useState(0)
   const { tasksByCategory, addTask, toggleTask, deleteTask, moveTask, updateTask, addBrainDumpTasks, tasks, restoreTask } = useTasks()
   const { toast } = useToast()
   const deletedTaskRef = useRef<Task | null>(null)
+
+  const handleCategoryChange = useCallback((newCategory: TaskCategory) => {
+    const oldIndex = categoryOrder.indexOf(activeCategory)
+    const newIndex = categoryOrder.indexOf(newCategory)
+    setDirection(newIndex > oldIndex ? 1 : -1)
+    setActiveCategory(newCategory)
+  }, [activeCategory])
 
   const handleAddTask = useCallback((title: string, category?: TaskCategory) => {
     addTask(title, category)
@@ -69,14 +94,27 @@ export default function TasksPage() {
       </motion.div>
 
       <AddTask onAdd={handleAddTask} defaultCategory={activeCategory} />
-      <CategoryTabs active={activeCategory} onChange={setActiveCategory} counts={counts} />
-      <TaskList
-        tasks={tasksByCategory(activeCategory)}
-        onToggle={toggleTask}
-        onDelete={handleDeleteTask}
-        onMove={moveTask}
-        onUpdate={updateTask}
-      />
+      <CategoryTabs active={activeCategory} onChange={handleCategoryChange} counts={counts} />
+
+      <AnimatePresence mode="wait" custom={direction}>
+        <motion.div
+          key={activeCategory}
+          custom={direction}
+          variants={contentVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
+        >
+          <TaskList
+            tasks={tasksByCategory(activeCategory)}
+            onToggle={toggleTask}
+            onDelete={handleDeleteTask}
+            onMove={moveTask}
+            onUpdate={updateTask}
+          />
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }

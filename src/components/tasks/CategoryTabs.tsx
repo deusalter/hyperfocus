@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { TaskCategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -38,18 +38,25 @@ export default function CategoryTabs({ active, onChange, counts }: CategoryTabsP
           )}
           <span className="relative z-10 flex items-center justify-center gap-1.5">
             {cat.label}
-            {counts[cat.key] > 0 && (
-              <span
-                className={cn(
-                  'text-[10px] font-semibold min-w-[18px] h-[18px] rounded-full inline-flex items-center justify-center tabular-nums',
-                  active === cat.key
-                    ? 'bg-accent/30 text-white'
-                    : 'bg-surface-elevated text-muted'
-                )}
-              >
-                {counts[cat.key]}
-              </span>
-            )}
+            <AnimatePresence mode="wait">
+              {counts[cat.key] > 0 && (
+                <motion.span
+                  key={counts[cat.key]}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                  className={cn(
+                    'text-[10px] font-semibold min-w-[18px] h-[18px] rounded-full inline-flex items-center justify-center tabular-nums',
+                    active === cat.key
+                      ? 'bg-accent/30 text-white'
+                      : 'bg-surface-elevated text-muted'
+                  )}
+                >
+                  {counts[cat.key]}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </span>
         </button>
       ))}
