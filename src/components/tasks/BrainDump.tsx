@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, X, Sparkles } from 'lucide-react'
 import Button from '@/components/ui/Button'
@@ -13,6 +13,7 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [text, setText] = useState('')
   const [result, setResult] = useState<number | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   const handleDump = () => {
     if (!text.trim()) return
@@ -24,6 +25,48 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
       setIsOpen(false)
     }, 2000)
   }
+
+  const handleClose = useCallback(() => {
+    setIsOpen(false)
+  }, [])
+
+  // Trap focus within modal and handle Escape
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose()
+        return
+      }
+
+      if (e.key === 'Tab') {
+        const dialog = dialogRef.current
+        if (!dialog) return
+        const focusable = dialog.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, handleClose])
 
   return (
     <>
@@ -44,19 +87,25 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            onClick={handleClose}
           >
             <motion.div
+              ref={dialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="brain-dump-title"
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="glass noise-texture w-full max-w-lg p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Brain className="w-5 h-5 text-accent" />
-                  <h2 className="text-lg font-semibold">Brain Dump</h2>
+                  <h2 id="brain-dump-title" className="text-lg font-semibold">Brain Dump</h2>
                 </div>
-                <button onClick={() => setIsOpen(false)} className="text-muted hover:text-foreground">
+                <button onClick={handleClose} className="text-muted hover:text-foreground" aria-label="Close dialog">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -70,11 +119,12 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Buy groceries&#10;Email professor&#10;Finish assignment&#10;Call mom..."
                 className="w-full h-36 sm:h-48 bg-surface rounded-xl p-3 sm:p-4 text-sm text-foreground placeholder-muted/40 outline-none resize-none border border-border focus:border-accent/30 transition-colors"
+                aria-label="Brain dump thoughts, one per line"
                 autoFocus
               />
 
               <div className="flex items-center justify-between mt-4">
-                <span className="text-xs text-muted">
+                <span className="text-xs text-muted" aria-live="polite">
                   {text.split('\n').filter((l) => l.trim()).length} thoughts
                 </span>
 
@@ -85,6 +135,7 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
                       className="flex items-center gap-1 text-success text-sm font-medium"
+                      role="status"
                     >
                       <Sparkles className="w-4 h-4" />
                       {result} tasks created!

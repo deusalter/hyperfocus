@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sun, Moon, Volume2, VolumeX, Clock, Trash2, AlertTriangle } from 'lucide-react'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
@@ -16,6 +16,32 @@ const defaultSettings: Settings = {
 export default function SettingsPage() {
   const [settings, setSettings] = useLocalStorage<Settings>('hyperfocus-settings', defaultSettings)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const resetDialogRef = useRef<HTMLDivElement>(null)
+
+  // Handle Escape key for reset confirmation modal
+  useEffect(() => {
+    if (!showResetConfirm) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowResetConfirm(false)
+      if (e.key === 'Tab') {
+        const dialog = resetDialogRef.current
+        if (!dialog) return
+        const focusable = dialog.querySelectorAll<HTMLElement>('button')
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showResetConfirm])
 
   const toggleTheme = () => {
     const newTheme = settings.theme === 'dark' ? 'light' : 'dark'
@@ -72,6 +98,9 @@ export default function SettingsPage() {
               </div>
             </div>
             <motion.button
+              role="switch"
+              aria-checked={settings.theme === 'dark'}
+              aria-label="Dark mode"
               whileTap={{ scale: 0.95 }}
               onClick={toggleTheme}
               className="w-12 h-7 rounded-full relative transition-all duration-300"
@@ -113,6 +142,9 @@ export default function SettingsPage() {
               </div>
             </div>
             <motion.button
+              role="switch"
+              aria-checked={settings.soundEnabled}
+              aria-label="Sound effects"
               whileTap={{ scale: 0.95 }}
               onClick={toggleSound}
               className="w-12 h-7 rounded-full relative transition-all duration-300"
@@ -214,6 +246,11 @@ export default function SettingsPage() {
             onClick={() => setShowResetConfirm(false)}
           >
             <motion.div
+              ref={resetDialogRef}
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="reset-dialog-title"
+              aria-describedby="reset-dialog-desc"
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
@@ -224,8 +261,8 @@ export default function SettingsPage() {
               <div className="w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="w-8 h-8 text-warning drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Are you sure?</h3>
-              <p className="text-sm text-muted mb-6">
+              <h3 id="reset-dialog-title" className="text-lg font-semibold mb-2">Are you sure?</h3>
+              <p id="reset-dialog-desc" className="text-sm text-muted mb-6">
                 This will permanently delete all your tasks, focus sessions, streaks, and settings.
               </p>
               <div className="flex gap-3">
