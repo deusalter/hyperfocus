@@ -21,9 +21,20 @@ export default function Greeting() {
       className="mb-8"
     >
       <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-        {greeting} <span className="text-accent">✦</span>
+        {greeting}{' '}
+        <span
+          className="inline-block"
+          style={{
+            background: 'linear-gradient(135deg, var(--color-accent-light), var(--color-accent))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(0 0 12px rgba(139, 92, 246, 0.3))',
+          }}
+        >
+          ✦
+        </span>
       </h1>
-      <p className="text-muted mt-1 text-sm">{date}</p>
+      <p className="text-muted mt-1.5 text-sm tracking-wide">{date}</p>
     </motion.div>
   )
 }

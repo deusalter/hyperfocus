@@ -28,6 +28,8 @@ export default function QuickStats() {
       icon: CheckCircle2,
       color: 'text-success',
       bg: 'bg-success/10',
+      glowColor: 'var(--color-success-glow)',
+      gradientFrom: 'rgba(34, 197, 94, 0.08)',
     },
     {
       label: 'Focus Time',
@@ -35,6 +37,8 @@ export default function QuickStats() {
       icon: Timer,
       color: 'text-accent',
       bg: 'bg-accent/10',
+      glowColor: 'var(--color-accent-glow)',
+      gradientFrom: 'rgba(139, 92, 246, 0.08)',
     },
     {
       label: 'Day Streak',
@@ -42,6 +46,8 @@ export default function QuickStats() {
       icon: Flame,
       color: 'text-warning',
       bg: 'bg-warning/10',
+      glowColor: 'var(--color-warning-glow)',
+      gradientFrom: 'rgba(245, 158, 11, 0.08)',
     },
   ]
 
@@ -58,13 +64,19 @@ export default function QuickStats() {
           <motion.div
             key={stat.label}
             variants={item}
-            className="glass p-4 flex flex-col items-center text-center"
+            className="glass p-4 flex flex-col items-center text-center relative overflow-hidden"
           >
-            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-2`}>
+            <div
+              className="absolute inset-0 opacity-50 pointer-events-none"
+              style={{
+                background: `radial-gradient(ellipse at 50% 0%, ${stat.gradientFrom}, transparent 70%)`,
+              }}
+            />
+            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-2 relative z-10`}>
               <Icon className={`w-5 h-5 ${stat.color}`} />
             </div>
-            <span className="text-2xl font-bold">{stat.value}</span>
-            <span className="text-xs text-muted mt-0.5">{stat.label}</span>
+            <span className="text-2xl font-bold relative z-10 tabular-nums">{stat.value}</span>
+            <span className="text-xs text-muted mt-0.5 relative z-10">{stat.label}</span>
           </motion.div>
         )
       })}

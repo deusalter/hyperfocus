@@ -14,26 +14,38 @@ export default function StreakDisplay({ current, longest }: StreakDisplayProps) 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="glass p-5 text-center"
+        className="glass p-5 text-center relative overflow-hidden"
       >
-        <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-3">
-          <Flame className="w-6 h-6 text-warning" />
+        <div
+          className="absolute inset-0 opacity-40 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at 50% 20%, rgba(245, 158, 11, 0.1), transparent 70%)',
+          }}
+        />
+        <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-3 relative z-10">
+          <Flame className="w-6 h-6 text-warning drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
         </div>
-        <span className="text-3xl font-bold block">{current}</span>
-        <span className="text-xs text-muted">Current Streak</span>
+        <span className="text-3xl font-bold block tabular-nums relative z-10">{current}</span>
+        <span className="text-xs text-muted relative z-10">Current Streak</span>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
-        className="glass p-5 text-center"
+        className="glass p-5 text-center relative overflow-hidden"
       >
-        <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
-          <Trophy className="w-6 h-6 text-accent" />
+        <div
+          className="absolute inset-0 opacity-40 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at 50% 20%, rgba(139, 92, 246, 0.1), transparent 70%)',
+          }}
+        />
+        <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3 relative z-10">
+          <Trophy className="w-6 h-6 text-accent drop-shadow-[0_0_8px_rgba(139,92,246,0.4)]" />
         </div>
-        <span className="text-3xl font-bold block">{longest}</span>
-        <span className="text-xs text-muted">Longest Streak</span>
+        <span className="text-3xl font-bold block tabular-nums relative z-10">{longest}</span>
+        <span className="text-xs text-muted relative z-10">Longest Streak</span>
       </motion.div>
     </div>
   )
