@@ -71,7 +71,7 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
           )}
         </AnimatePresence>
 
-        <svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} className="-rotate-90 w-full h-full">
+        <svg viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} className="-rotate-90 w-full h-full" aria-hidden="true" role="img">
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
               {isBreak ? (
@@ -165,12 +165,17 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
           )}
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center" role="timer" aria-live="off" aria-atomic="true">
+          {/* Screen reader announcement — only announces at key intervals to avoid spam */}
+          <span className="sr-only" aria-live="polite">
+            {formatDuration(remaining)} remaining. {isBreak ? 'Break time' : isRunning ? 'Focusing' : 'Ready'}
+          </span>
           <motion.span
             key={remaining}
             initial={{ scale: 1.03 }}
             animate={{ scale: 1 }}
             className="text-4xl sm:text-5xl md:text-6xl font-bold tabular-nums tracking-tight"
+            aria-hidden="true"
             style={{
               textShadow: isRunning
                 ? isBreak
@@ -181,7 +186,7 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
           >
             {formatDuration(remaining)}
           </motion.span>
-          <span className="text-sm text-muted mt-1">
+          <span className="text-sm text-muted mt-1" aria-hidden="true">
             {isBreak ? 'Break Time' : isRunning ? 'Focusing...' : 'Ready'}
           </span>
 

@@ -19,6 +19,8 @@ export default function SessionComplete({ isBreak, onStartBreak, onReset, onNewS
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       className="text-center py-8 relative"
+      role="status"
+      aria-label={isBreak ? 'Break over! Ready to focus again?' : 'Session complete! Great work!'}
     >
       {/* Background glow */}
       <div
@@ -113,7 +115,7 @@ export default function SessionComplete({ isBreak, onStartBreak, onReset, onNewS
 
       {/* Celebration particles — two rings for depth */}
       {!isBreak && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           {Array.from({ length: 20 }).map((_, i) => {
             const color = celebrationColors[i % celebrationColors.length]
             const size = 3 + Math.random() * 5
