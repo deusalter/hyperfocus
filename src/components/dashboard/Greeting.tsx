@@ -18,23 +18,26 @@ export default function Greeting() {
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-8"
+      className="mb-8 relative"
     >
-      <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+      {/* Decorative gradient orb behind the greeting */}
+      <div
+        className="absolute -top-12 -left-8 w-48 h-48 rounded-full pointer-events-none opacity-30 blur-[60px]"
+        style={{
+          background: 'radial-gradient(circle, var(--color-accent), transparent 70%)',
+        }}
+      />
+      <h1 className="text-3xl md:text-4xl font-bold tracking-tight relative z-10">
         {greeting}{' '}
-        <span
-          className="inline-block"
-          style={{
-            background: 'linear-gradient(135deg, var(--color-accent-light), var(--color-accent))',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            filter: 'drop-shadow(0 0 12px rgba(139, 92, 246, 0.3))',
-          }}
+        <motion.span
+          className="inline-block text-shimmer"
+          animate={{ rotate: [0, 8, -8, 0] }}
+          transition={{ duration: 3, repeat: Infinity, repeatDelay: 5, ease: 'easeInOut' }}
         >
           ✦
-        </span>
+        </motion.span>
       </h1>
-      <p className="text-muted mt-1.5 text-sm tracking-wide">
+      <p className="text-muted mt-1.5 text-sm tracking-wide relative z-10">
         {date}
         <span className="mx-2 text-border">·</span>
         <span className="text-accent/70">Let&apos;s make it count</span>

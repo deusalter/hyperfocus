@@ -64,7 +64,7 @@ export default function QuickStats() {
           <motion.div
             key={stat.label}
             variants={item}
-            className="glass p-4 flex flex-col items-center text-center relative overflow-hidden"
+            className="glass noise-texture p-4 flex flex-col items-center text-center relative overflow-hidden"
           >
             <div
               className="absolute inset-0 opacity-50 pointer-events-none"
