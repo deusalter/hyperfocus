@@ -14,10 +14,10 @@ interface ButtonProps {
 }
 
 const variants = {
-  primary: 'bg-accent hover:bg-accent-dark text-white shadow-lg shadow-accent/20',
+  primary: 'bg-gradient-to-b from-accent-light to-accent-dark text-white shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:brightness-110',
   secondary: 'glass text-foreground hover:bg-surface-hover',
   ghost: 'text-muted hover:text-foreground hover:bg-surface',
-  danger: 'bg-danger/10 text-danger hover:bg-danger/20',
+  danger: 'bg-danger/10 text-danger hover:bg-danger/20 hover:shadow-lg hover:shadow-danger/10',
 }
 
 const sizes = {
@@ -43,7 +43,7 @@ export default function Button({
       type={type}
       disabled={disabled}
       className={cn(
-        'font-medium transition-colors duration-200 inline-flex items-center justify-center gap-2',
+        'font-medium transition-all duration-200 inline-flex items-center justify-center gap-2',
         variants[variant],
         sizes[size],
         disabled && 'opacity-50 cursor-not-allowed',

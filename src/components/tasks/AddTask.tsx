@@ -29,7 +29,7 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
   return (
     <div className="mb-4">
       <form onSubmit={handleSubmit}>
-        <div className="glass flex items-center gap-3 px-4 py-3 focus-within:border-accent/30 transition-colors">
+        <div className="glass glass-input flex items-center gap-3 px-4 py-3">
           <Plus className="w-5 h-5 text-muted shrink-0" />
           <input
             type="text"
