@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Flame, Trophy } from 'lucide-react'
+import AnimatedNumber from '@/components/ui/AnimatedNumber'
 
 interface StreakDisplayProps {
   current: number
@@ -27,14 +28,14 @@ export default function StreakDisplay({ current, longest }: StreakDisplayProps) 
         <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center mx-auto mb-3 relative z-10">
           <Flame className="w-6 h-6 text-warning drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
         </div>
-        <motion.span
-          className="text-3xl font-bold block tabular-nums relative z-10"
+        <motion.div
+          className="relative z-10"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {current}
-        </motion.span>
+          <AnimatedNumber value={current} className="text-3xl font-bold block tabular-nums" />
+        </motion.div>
         <span className="text-xs text-muted relative z-10">Current Streak</span>
         {current > 0 && (
           <motion.span
@@ -65,14 +66,14 @@ export default function StreakDisplay({ current, longest }: StreakDisplayProps) 
         <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-3 relative z-10">
           <Trophy className="w-6 h-6 text-accent drop-shadow-[0_0_8px_rgba(139,92,246,0.4)]" />
         </div>
-        <motion.span
-          className="text-3xl font-bold block tabular-nums relative z-10"
+        <motion.div
+          className="relative z-10"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          {longest}
-        </motion.span>
+          <AnimatedNumber value={longest} className="text-3xl font-bold block tabular-nums" />
+        </motion.div>
         <span className="text-xs text-muted relative z-10">Longest Streak</span>
         {longest > 0 && (
           <motion.span

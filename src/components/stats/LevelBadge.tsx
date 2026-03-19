@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Star } from 'lucide-react'
 import { formatMinutes } from '@/lib/utils'
+import AnimatedNumber from '@/components/ui/AnimatedNumber'
 
 interface LevelBadgeProps {
   level: number
@@ -36,7 +37,7 @@ export default function LevelBadge({ level, title, progress, totalMinutes, nextL
         </div>
         <div className="flex-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold">Level {level}</span>
+            <span className="text-2xl font-bold">Level <AnimatedNumber value={level} className="tabular-nums" /></span>
             <span className="text-sm text-accent font-medium">{title}</span>
           </div>
           <div className="mt-2">

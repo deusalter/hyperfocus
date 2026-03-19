@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, Timer, Flame } from 'lucide-react'
 import { useStats } from '@/hooks/useStats'
 import { formatMinutes } from '@/lib/utils'
+import AnimatedNumber from '@/components/ui/AnimatedNumber'
 
 const container = {
   hidden: { opacity: 0 },
@@ -24,7 +25,8 @@ export default function QuickStats() {
   const stats = [
     {
       label: 'Tasks Done',
-      value: todayCompletedTasks,
+      numericValue: todayCompletedTasks,
+      displayValue: null as string | null,
       icon: CheckCircle2,
       color: 'text-success',
       bg: 'bg-success/10',
@@ -33,7 +35,8 @@ export default function QuickStats() {
     },
     {
       label: 'Focus Time',
-      value: formatMinutes(todayFocusMinutes),
+      numericValue: null as number | null,
+      displayValue: formatMinutes(todayFocusMinutes),
       icon: Timer,
       color: 'text-accent',
       bg: 'bg-accent/10',
@@ -42,7 +45,8 @@ export default function QuickStats() {
     },
     {
       label: 'Day Streak',
-      value: streaks.current,
+      numericValue: streaks.current,
+      displayValue: null as string | null,
       icon: Flame,
       color: 'text-warning',
       bg: 'bg-warning/10',
@@ -75,7 +79,11 @@ export default function QuickStats() {
             <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-2 relative z-10`}>
               <Icon className={`w-5 h-5 ${stat.color}`} />
             </div>
-            <span className="text-2xl font-bold relative z-10 tabular-nums">{stat.value}</span>
+            {stat.numericValue !== null ? (
+              <AnimatedNumber value={stat.numericValue} className="text-2xl font-bold relative z-10 tabular-nums" />
+            ) : (
+              <span className="text-2xl font-bold relative z-10 tabular-nums">{stat.displayValue}</span>
+            )}
             <span className="text-xs text-muted mt-0.5 relative z-10">{stat.label}</span>
           </motion.div>
         )

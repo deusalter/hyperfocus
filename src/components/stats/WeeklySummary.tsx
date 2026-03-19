@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { CheckCircle2, Timer, Calendar } from 'lucide-react'
 import { formatMinutes } from '@/lib/utils'
+import AnimatedNumber from '@/components/ui/AnimatedNumber'
 
 interface WeeklySummaryProps {
   totalTasks: number
@@ -14,7 +15,8 @@ export default function WeeklySummary({ totalTasks, totalMinutes, activeDays }: 
   const stats = [
     {
       label: 'Tasks Completed',
-      value: totalTasks,
+      numericValue: totalTasks,
+      displayValue: null as string | null,
       icon: CheckCircle2,
       color: 'text-success',
       bg: 'bg-success/10',
@@ -22,7 +24,8 @@ export default function WeeklySummary({ totalTasks, totalMinutes, activeDays }: 
     },
     {
       label: 'Focus Time',
-      value: formatMinutes(totalMinutes),
+      numericValue: null as number | null,
+      displayValue: formatMinutes(totalMinutes),
       icon: Timer,
       color: 'text-accent',
       bg: 'bg-accent/10',
@@ -30,7 +33,8 @@ export default function WeeklySummary({ totalTasks, totalMinutes, activeDays }: 
     },
     {
       label: 'Active Days',
-      value: `${activeDays}/7`,
+      numericValue: null as number | null,
+      displayValue: `${activeDays}/7`,
       icon: Calendar,
       color: 'text-warning',
       bg: 'bg-warning/10',
@@ -53,7 +57,11 @@ export default function WeeklySummary({ totalTasks, totalMinutes, activeDays }: 
               <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mx-auto mb-2`}>
                 <Icon className={`w-5 h-5 ${stat.color}`} style={{ filter: `drop-shadow(0 0 6px ${stat.glowColor})` }} />
               </div>
-              <span className="text-lg font-bold block tabular-nums">{stat.value}</span>
+              {stat.numericValue !== null ? (
+                <AnimatedNumber value={stat.numericValue} className="text-lg font-bold block tabular-nums" />
+              ) : (
+                <span className="text-lg font-bold block tabular-nums">{stat.displayValue}</span>
+              )}
               <span className="text-[10px] text-muted">{stat.label}</span>
             </div>
           )
