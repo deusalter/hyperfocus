@@ -73,8 +73,18 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 mx-3 mb-4 glass-static rounded-xl">
-        <p className="text-xs text-muted">Built for brains that work differently.</p>
+      <div className="mx-3 mb-4">
+        <div className="divider-glow mb-4" />
+        <div className="glass-static noise-texture relative overflow-hidden p-4 rounded-xl">
+          <div
+            className="absolute inset-0 pointer-events-none opacity-30"
+            style={{
+              background: 'radial-gradient(ellipse at 30% 50%, rgba(139, 92, 246, 0.08), transparent 70%)',
+            }}
+          />
+          <p className="text-xs text-muted relative z-10">Built for brains that work differently.</p>
+          <p className="text-[10px] text-muted/40 mt-1.5 relative z-10 font-mono">v1.0.0</p>
+        </div>
       </div>
     </aside>
   )
