@@ -18,7 +18,7 @@ export default function LevelBadge({ level, title, progress, totalMinutes, nextL
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-highlight noise-texture p-5 relative overflow-hidden"
+      className="glass-highlight noise-texture p-4 sm:p-5 relative overflow-hidden"
     >
       <div
         className="absolute inset-0 opacity-30 pointer-events-none"
@@ -41,9 +41,9 @@ export default function LevelBadge({ level, title, progress, totalMinutes, nextL
             <span className="text-xs sm:text-sm text-accent font-medium">{title}</span>
           </div>
           <div className="mt-2">
-            <div className="flex items-center justify-between text-xs text-muted mb-1">
-              <span>{formatMinutes(totalMinutes)} total focus</span>
-              {progress < 100 && <span>{formatMinutes(nextLevelMinutes)} for next level</span>}
+            <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted mb-1 gap-2">
+              <span className="truncate">{formatMinutes(totalMinutes)} total focus</span>
+              {progress < 100 && <span className="truncate text-right">{formatMinutes(nextLevelMinutes)} next</span>}
             </div>
             <div className="h-2 bg-border rounded-full overflow-hidden">
               <motion.div

@@ -63,7 +63,7 @@ export default function TodayTasks() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10, height: 0 }}
-                className="glass flex items-center gap-3 px-4 py-3"
+                className="glass flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3"
               >
                 <AnimatedCheckbox
                   checked={task.completed}
@@ -71,7 +71,7 @@ export default function TodayTasks() {
                 />
                 <span
                   className={cn(
-                    'text-sm transition-all duration-300 flex-1',
+                    'text-sm transition-all duration-300 flex-1 min-w-0 truncate',
                     task.completed && 'line-through text-muted'
                   )}
                 >
@@ -80,7 +80,7 @@ export default function TodayTasks() {
                 {task.energyLevel && (
                   <span
                     className={cn(
-                      'text-[10px] font-medium px-2 py-0.5 rounded-full',
+                      'text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0',
                       task.energyLevel === 'low' && 'bg-energy-low/10 text-energy-low',
                       task.energyLevel === 'medium' && 'bg-energy-medium/10 text-energy-medium',
                       task.energyLevel === 'high' && 'bg-energy-high/10 text-energy-high'

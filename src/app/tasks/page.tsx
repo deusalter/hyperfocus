@@ -82,12 +82,13 @@ export default function TasksPage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between mb-6"
+        className="flex items-center justify-between gap-2 mb-6"
       >
-        <div>
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold">Tasks</h1>
-          <p className="text-sm text-muted mt-0.5">
-            {tasks.filter(t => !t.completed).length} remaining across all categories
+          <p className="text-xs sm:text-sm text-muted mt-0.5 truncate">
+            {tasks.filter(t => !t.completed).length} remaining
+            <span className="hidden sm:inline"> across all categories</span>
           </p>
         </div>
         <BrainDump onDump={handleBrainDump} />
