@@ -36,10 +36,17 @@ export default function CategoryTabs({ active, onChange, counts }: CategoryTabsP
               transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
             />
           )}
-          <span className="relative z-10">
+          <span className="relative z-10 flex items-center justify-center gap-1.5">
             {cat.label}
             {counts[cat.key] > 0 && (
-              <span className="ml-1.5 text-xs text-muted">
+              <span
+                className={cn(
+                  'text-[10px] font-semibold min-w-[18px] h-[18px] rounded-full inline-flex items-center justify-center tabular-nums',
+                  active === cat.key
+                    ? 'bg-accent/30 text-white'
+                    : 'bg-surface-elevated text-muted'
+                )}
+              >
                 {counts[cat.key]}
               </span>
             )}

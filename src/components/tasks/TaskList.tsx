@@ -19,9 +19,18 @@ export default function TaskList({ tasks, onToggle, onDelete, onMove, onUpdate, 
 
   if (tasks.length === 0) {
     return (
-      <div className="glass p-12 text-center">
-        <p className="text-muted text-sm">Nothing here yet.</p>
-        <p className="text-muted/60 text-xs mt-1">Add a task above to get started.</p>
+      <div className="glass p-12 text-center relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-40 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at 50% 0%, rgba(139, 92, 246, 0.06), transparent 70%)',
+          }}
+        />
+        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3 relative z-10">
+          <span className="text-accent text-lg">✦</span>
+        </div>
+        <p className="text-muted text-sm relative z-10">Nothing here yet.</p>
+        <p className="text-muted/60 text-xs mt-1 relative z-10">Add a task above to get started.</p>
       </div>
     )
   }
@@ -46,10 +55,14 @@ export default function TaskList({ tasks, onToggle, onDelete, onMove, onUpdate, 
 
       {completed.length > 0 && (
         <div className="mt-6">
-          <h3 className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">
-            Completed ({completed.length})
-          </h3>
-          <div className="space-y-2 opacity-60">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-px flex-1 bg-border" />
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">
+              Completed ({completed.length})
+            </h3>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+          <div className="space-y-2 opacity-50">
             <AnimatePresence>
               {completed.map((task) => (
                 <TaskItem

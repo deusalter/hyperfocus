@@ -15,16 +15,22 @@ interface TaskItemProps {
   showCategory?: boolean
 }
 
-const energyColors = {
-  low: 'bg-energy-low/10 text-energy-low',
-  medium: 'bg-energy-medium/10 text-energy-medium',
-  high: 'bg-energy-high/10 text-energy-high',
-}
-
-const energyBorderColors = {
-  low: 'var(--color-energy-low)',
-  medium: 'var(--color-energy-medium)',
-  high: 'var(--color-energy-high)',
+const energyConfig = {
+  low: {
+    classes: 'bg-energy-low/10 text-energy-low',
+    border: 'var(--color-energy-low)',
+    label: 'Low',
+  },
+  medium: {
+    classes: 'bg-energy-medium/10 text-energy-medium',
+    border: 'var(--color-energy-medium)',
+    label: 'Med',
+  },
+  high: {
+    classes: 'bg-energy-high/10 text-energy-high',
+    border: 'var(--color-energy-high)',
+    label: 'High',
+  },
 }
 
 export default function TaskItem({ task, onToggle, onDelete, onMove, showCategory }: TaskItemProps) {
@@ -51,7 +57,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
       transition={{ duration: 0.2 }}
       className="glass flex items-center gap-3 px-4 py-3 group relative overflow-hidden"
       style={task.energyLevel && !task.completed ? {
-        borderLeft: `2px solid ${energyBorderColors[task.energyLevel]}`,
+        borderLeft: `2px solid ${energyConfig[task.energyLevel].border}`,
       } : undefined}
     >
       <AnimatedCheckbox
@@ -73,40 +79,43 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
         )}
       </div>
 
-      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
-        {task.timeEstimate && (
-          <span className="text-[10px] text-muted flex items-center gap-0.5">
+      <div className="flex items-center gap-2">
+        {task.timeEstimate && !task.completed && (
+          <span className="text-[10px] text-muted flex items-center gap-0.5 bg-surface px-1.5 py-0.5 rounded-md">
             <Clock className="w-3 h-3" />
             {task.timeEstimate}m
           </span>
         )}
 
-        {task.energyLevel && (
-          <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full', energyColors[task.energyLevel])}>
-            <Zap className="w-3 h-3 inline" />
+        {task.energyLevel && !task.completed && (
+          <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-md flex items-center gap-0.5', energyConfig[task.energyLevel].classes)}>
+            <Zap className="w-3 h-3" />
+            {energyConfig[task.energyLevel].label}
           </span>
         )}
 
-        {onMove && !task.completed && (
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          {onMove && !task.completed && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onMove(task.id, nextCategory[task.category])}
+              className="text-muted hover:text-foreground p-1 rounded-lg hover:bg-surface transition-colors"
+              title={`Move to ${categoryLabels[nextCategory[task.category]]}`}
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </motion.button>
+          )}
+
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => onMove(task.id, nextCategory[task.category])}
-            className="text-muted hover:text-foreground p-1 rounded-lg hover:bg-surface transition-colors"
-            title={`Move to ${categoryLabels[nextCategory[task.category]]}`}
+            onClick={() => onDelete(task.id)}
+            className="text-muted hover:text-danger p-1 rounded-lg hover:bg-danger/10 transition-colors"
           >
-            <ChevronRight className="w-3.5 h-3.5" />
+            <Trash2 className="w-3.5 h-3.5" />
           </motion.button>
-        )}
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => onDelete(task.id)}
-          className="text-muted hover:text-danger p-1 rounded-lg hover:bg-danger/10 transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </motion.button>
+        </div>
       </div>
     </motion.div>
   )
