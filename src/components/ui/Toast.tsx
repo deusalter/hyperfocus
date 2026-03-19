@@ -60,7 +60,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       exit={{ opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15 } }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className={cn(
-        'glass relative overflow-hidden flex items-center gap-3 pl-4 pr-3 py-3 border-l-2 min-w-[260px] max-w-[360px]',
+        'glass relative overflow-hidden flex items-center gap-3 pl-4 pr-3 py-3 border-l-2 w-full md:min-w-[260px] md:max-w-[360px] md:w-auto',
         borderColors[toast.variant]
       )}
       style={{ boxShadow: `${glowColors[toast.variant]}, 0 8px 24px -6px rgba(0, 0, 0, 0.4)` }}
@@ -137,7 +137,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast, dismiss }}>
       {children}
-      <div className="fixed bottom-24 md:bottom-6 right-4 md:right-8 z-[60] flex flex-col gap-2 items-end pointer-events-none">
+      <div className="fixed bottom-[88px] md:bottom-6 left-4 right-4 md:left-auto md:right-8 z-[60] flex flex-col gap-2 items-stretch md:items-end pointer-events-none">
         <AnimatePresence mode="popLayout">
           {toasts.map((t) => (
             <div key={t.id} className="pointer-events-auto">
