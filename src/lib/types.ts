@@ -20,14 +20,6 @@ export interface FocusSession {
   completed: boolean
 }
 
-export interface UserStats {
-  totalFocusMinutes: number
-  currentStreak: number
-  longestStreak: number
-  level: number
-  lastActiveDate: string
-}
-
 export interface Settings {
   theme: 'dark' | 'light'
   defaultFocusDuration: number

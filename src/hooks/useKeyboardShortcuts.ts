@@ -36,9 +36,6 @@ export function useKeyboardShortcuts() {
           e.preventDefault()
           router.push('/stats')
           break
-        case '?':
-          // Could show a shortcuts help modal in the future
-          break
       }
     }
 
