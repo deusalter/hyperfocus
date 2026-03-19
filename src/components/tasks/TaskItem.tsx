@@ -21,6 +21,12 @@ const energyColors = {
   high: 'bg-energy-high/10 text-energy-high',
 }
 
+const energyBorderColors = {
+  low: 'var(--color-energy-low)',
+  medium: 'var(--color-energy-medium)',
+  high: 'var(--color-energy-high)',
+}
+
 export default function TaskItem({ task, onToggle, onDelete, onMove, showCategory }: TaskItemProps) {
   const categoryLabels: Record<TaskCategory, string> = {
     today: 'Today',
@@ -43,7 +49,10 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.2 }}
-      className="glass flex items-center gap-3 px-4 py-3 group"
+      className="glass flex items-center gap-3 px-4 py-3 group relative overflow-hidden"
+      style={task.energyLevel && !task.completed ? {
+        borderLeft: `2px solid ${energyBorderColors[task.energyLevel]}`,
+      } : undefined}
     >
       <AnimatedCheckbox
         checked={task.completed}
@@ -64,7 +73,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
         )}
       </div>
 
-      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
         {task.timeEstimate && (
           <span className="text-[10px] text-muted flex items-center gap-0.5">
             <Clock className="w-3 h-3" />
@@ -83,7 +92,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onMove(task.id, nextCategory[task.category])}
-            className="text-muted hover:text-foreground p-1"
+            className="text-muted hover:text-foreground p-1 rounded-lg hover:bg-surface transition-colors"
             title={`Move to ${categoryLabels[nextCategory[task.category]]}`}
           >
             <ChevronRight className="w-3.5 h-3.5" />
@@ -94,7 +103,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => onDelete(task.id)}
-          className="text-muted hover:text-danger p-1"
+          className="text-muted hover:text-danger p-1 rounded-lg hover:bg-danger/10 transition-colors"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </motion.button>
