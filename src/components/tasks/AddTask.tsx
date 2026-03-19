@@ -7,7 +7,7 @@ import { TaskCategory, EnergyLevel } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface AddTaskProps {
-  onAdd: (title: string, category?: TaskCategory) => void
+  onAdd: (title: string, category?: TaskCategory, energyLevel?: EnergyLevel) => void
   defaultCategory?: TaskCategory
 }
 
@@ -25,7 +25,7 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
       setTimeout(() => setShowError(false), 2000)
       return
     }
-    onAdd(value.trim(), category)
+    onAdd(value.trim(), category, energy)
     setValue('')
     setEnergy(undefined)
     setShowOptions(false)

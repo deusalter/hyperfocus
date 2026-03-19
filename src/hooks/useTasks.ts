@@ -2,19 +2,20 @@
 
 import { useCallback, useMemo } from 'react'
 import { useLocalStorage } from './useLocalStorage'
-import { Task, TaskCategory } from '@/lib/types'
+import { Task, TaskCategory, EnergyLevel } from '@/lib/types'
 import { generateId, getDayKey } from '@/lib/utils'
 
 export function useTasks() {
   const [tasks, setTasks] = useLocalStorage<Task[]>('hyperfocus-tasks', [])
 
-  const addTask = useCallback((title: string, category: TaskCategory = 'today') => {
+  const addTask = useCallback((title: string, category: TaskCategory = 'today', energyLevel?: EnergyLevel) => {
     const task: Task = {
       id: generateId(),
       title: title.trim(),
       category,
       completed: false,
       createdAt: new Date().toISOString(),
+      energyLevel,
       order: Date.now(),
     }
     setTasks((prev) => [task, ...prev])

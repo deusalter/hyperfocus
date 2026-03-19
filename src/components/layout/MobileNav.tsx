@@ -7,7 +7,7 @@ import { LayoutDashboard, CheckSquare, Timer, BarChart3, Settings } from 'lucide
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { href: '/', label: 'Home', icon: LayoutDashboard },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/focus', label: 'Focus', icon: Timer },
   { href: '/stats', label: 'Stats', icon: BarChart3 },

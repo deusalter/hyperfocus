@@ -8,7 +8,7 @@ import AddTask from '@/components/tasks/AddTask'
 import TaskList from '@/components/tasks/TaskList'
 import CategoryTabs from '@/components/tasks/CategoryTabs'
 import BrainDump from '@/components/tasks/BrainDump'
-import { Task, TaskCategory } from '@/lib/types'
+import { Task, TaskCategory, EnergyLevel } from '@/lib/types'
 
 const categoryOrder: TaskCategory[] = ['today', 'tomorrow', 'week', 'someday']
 
@@ -41,8 +41,8 @@ export default function TasksPage() {
     setActiveCategory(newCategory)
   }, [activeCategory])
 
-  const handleAddTask = useCallback((title: string, category?: TaskCategory) => {
-    addTask(title, category)
+  const handleAddTask = useCallback((title: string, category?: TaskCategory, energyLevel?: EnergyLevel) => {
+    addTask(title, category, energyLevel)
     toast('Task added', 'success', { duration: 2000 })
   }, [addTask, toast])
 
