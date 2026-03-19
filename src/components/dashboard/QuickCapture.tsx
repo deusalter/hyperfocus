@@ -5,20 +5,27 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Zap, Sparkles } from 'lucide-react'
 import { useTasks } from '@/hooks/useTasks'
 import { useToast } from '@/components/ui/Toast'
+import { cn } from '@/lib/utils'
 
 export default function QuickCapture() {
   const [value, setValue] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showError, setShowError] = useState(false)
   const { addTask } = useTasks()
   const { toast } = useToast()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!value.trim()) return
+    if (!value.trim()) {
+      setShowError(true)
+      setTimeout(() => setShowError(false), 2000)
+      return
+    }
 
     addTask(value.trim())
     setValue('')
     setShowSuccess(true)
+    setShowError(false)
     setTimeout(() => setShowSuccess(false), 1500)
     toast('Task captured', 'success', { duration: 2000 })
   }
@@ -31,7 +38,14 @@ export default function QuickCapture() {
       className="mb-6"
     >
       <form onSubmit={handleSubmit} className="relative">
-        <div className="glass glass-input glass-input-animated flex items-center gap-3 px-4 py-3">
+        <motion.div
+          className={cn(
+            'glass glass-input glass-input-animated flex items-center gap-3 px-4 py-3',
+            showError && 'ring-1 ring-danger/50'
+          )}
+          animate={showError ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+          transition={{ duration: 0.4 }}
+        >
           <AnimatePresence mode="wait">
             {showSuccess ? (
               <motion.div
@@ -57,9 +71,14 @@ export default function QuickCapture() {
           <input
             type="text"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              setValue(e.target.value)
+              if (showError) setShowError(false)
+            }}
             placeholder="Capture a thought... (press Enter)"
             aria-label="Quick capture a task"
+            aria-invalid={showError}
+            aria-describedby={showError ? 'quick-capture-error' : undefined}
             className="flex-1 bg-transparent text-foreground placeholder-muted/60 text-sm outline-none"
           />
           <AnimatePresence>
@@ -75,7 +94,21 @@ export default function QuickCapture() {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </motion.div>
+        <AnimatePresence>
+          {showError && (
+            <motion.p
+              id="quick-capture-error"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="text-xs text-danger mt-1.5 ml-1"
+              role="alert"
+            >
+              Type something to capture
+            </motion.p>
+          )}
+        </AnimatePresence>
       </form>
     </motion.div>
   )

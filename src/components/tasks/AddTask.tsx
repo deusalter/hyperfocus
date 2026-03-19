@@ -16,27 +16,45 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
   const [showOptions, setShowOptions] = useState(false)
   const [energy, setEnergy] = useState<EnergyLevel | undefined>()
   const [category, setCategory] = useState<TaskCategory>(defaultCategory)
+  const [showError, setShowError] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!value.trim()) return
+    if (!value.trim()) {
+      setShowError(true)
+      setTimeout(() => setShowError(false), 2000)
+      return
+    }
     onAdd(value.trim(), category)
     setValue('')
     setEnergy(undefined)
     setShowOptions(false)
+    setShowError(false)
   }
 
   return (
     <div className="mb-4">
       <form onSubmit={handleSubmit}>
-        <div className="glass glass-input glass-input-animated flex items-center gap-3 px-4 py-3">
+        <motion.div
+          className={cn(
+            'glass glass-input glass-input-animated flex items-center gap-3 px-4 py-3',
+            showError && 'ring-1 ring-danger/50'
+          )}
+          animate={showError ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+          transition={{ duration: 0.4 }}
+        >
           <Plus className="w-5 h-5 text-muted shrink-0" />
           <input
             type="text"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              setValue(e.target.value)
+              if (showError) setShowError(false)
+            }}
             placeholder="Add a task... (Enter to save)"
             aria-label="New task title"
+            aria-invalid={showError}
+            aria-describedby={showError ? 'add-task-error' : undefined}
             className="flex-1 bg-transparent text-foreground placeholder-muted/60 text-sm outline-none"
           />
           <button
@@ -48,7 +66,21 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
           >
             <ChevronDown className={cn('w-4 h-4 transition-transform', showOptions && 'rotate-180')} />
           </button>
-        </div>
+        </motion.div>
+        <AnimatePresence>
+          {showError && (
+            <motion.p
+              id="add-task-error"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="text-xs text-danger mt-1.5 ml-1"
+              role="alert"
+            >
+              Please enter a task name
+            </motion.p>
+          )}
+        </AnimatePresence>
       </form>
 
       <AnimatePresence>
