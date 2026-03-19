@@ -370,6 +370,16 @@ body {
   }
 }
 
+/* Hide scrollbar utility for horizontal scroll containers */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* Reduced motion: disable decorative animations */
 @media (prefers-reduced-motion: reduce) {
   .glass,

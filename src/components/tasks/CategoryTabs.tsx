@@ -19,13 +19,13 @@ const categories: { key: TaskCategory; label: string }[] = [
 
 export default function CategoryTabs({ active, onChange, counts }: CategoryTabsProps) {
   return (
-    <div className="flex gap-1 mb-4 p-1 glass rounded-xl overflow-x-auto">
+    <div className="flex gap-1 mb-4 p-1 glass rounded-xl overflow-x-auto scrollbar-none">
       {categories.map((cat) => (
         <button
           key={cat.key}
           onClick={() => onChange(cat.key)}
           className={cn(
-            'relative px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap flex-1',
+            'relative px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap min-w-0 flex-1',
             active === cat.key ? 'text-white' : 'text-muted hover:text-foreground'
           )}
         >

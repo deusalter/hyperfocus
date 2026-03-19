@@ -60,7 +60,7 @@ export default function QuickStats() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="grid grid-cols-3 gap-3 mb-6"
+      className="grid grid-cols-3 gap-2 sm:gap-3 mb-6"
     >
       {stats.map((stat) => {
         const Icon = stat.icon
@@ -68,7 +68,7 @@ export default function QuickStats() {
           <motion.div
             key={stat.label}
             variants={item}
-            className="glass noise-texture p-4 flex flex-col items-center text-center relative overflow-hidden"
+            className="glass noise-texture p-3 sm:p-4 flex flex-col items-center text-center relative overflow-hidden"
           >
             <div
               className="absolute inset-0 opacity-50 pointer-events-none"
@@ -76,15 +76,15 @@ export default function QuickStats() {
                 background: `radial-gradient(ellipse at 50% 0%, ${stat.gradientFrom}, transparent 70%)`,
               }}
             />
-            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-2 relative z-10`}>
-              <Icon className={`w-5 h-5 ${stat.color}`} />
+            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-1.5 sm:mb-2 relative z-10`}>
+              <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`} />
             </div>
             {stat.numericValue !== null ? (
-              <AnimatedNumber value={stat.numericValue} className="text-2xl font-bold relative z-10 tabular-nums" />
+              <AnimatedNumber value={stat.numericValue} className="text-xl sm:text-2xl font-bold relative z-10 tabular-nums" />
             ) : (
-              <span className="text-2xl font-bold relative z-10 tabular-nums">{stat.displayValue}</span>
+              <span className="text-xl sm:text-2xl font-bold relative z-10 tabular-nums">{stat.displayValue}</span>
             )}
-            <span className="text-xs text-muted mt-0.5 relative z-10">{stat.label}</span>
+            <span className="text-[10px] sm:text-xs text-muted mt-0.5 relative z-10">{stat.label}</span>
           </motion.div>
         )
       })}
