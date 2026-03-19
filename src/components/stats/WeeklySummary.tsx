@@ -46,7 +46,7 @@ export default function WeeklySummary({ totalTasks, totalMinutes, activeDays }: 
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass p-5"
+      className="glass p-4 sm:p-5"
     >
       <h3 className="text-sm font-semibold text-muted uppercase tracking-wider mb-4">This Week</h3>
       <div className="grid grid-cols-3 gap-2 sm:gap-4">

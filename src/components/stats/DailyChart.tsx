@@ -14,14 +14,14 @@ export default function DailyChart({ data, label, color, unit }: DailyChartProps
   const total = data.reduce((sum, d) => sum + d.value, 0)
 
   return (
-    <div className="glass p-5">
-      <div className="flex items-baseline justify-between mb-4">
-        <h3 className="text-sm font-semibold text-muted uppercase tracking-wider">{label}</h3>
-        <span className="text-xs font-medium tabular-nums" style={{ color }}>
+    <div className="glass p-4 sm:p-5">
+      <div className="flex items-baseline justify-between mb-3 sm:mb-4">
+        <h3 className="text-xs sm:text-sm font-semibold text-muted uppercase tracking-wider">{label}</h3>
+        <span className="text-[10px] sm:text-xs font-medium tabular-nums" style={{ color }}>
           {total}{unit} total
         </span>
       </div>
-      <div className="flex items-end gap-2 h-32">
+      <div className="flex items-end gap-1.5 sm:gap-2 h-28 sm:h-32">
         {data.map((day, i) => {
           const height = (day.value / maxValue) * 100
           const isActive = day.value > 0
@@ -32,7 +32,7 @@ export default function DailyChart({ data, label, color, unit }: DailyChartProps
               <span className="text-[10px] text-muted tabular-nums transition-all duration-200 opacity-0 group-hover:opacity-100 -translate-y-0.5 group-hover:translate-y-0">
                 {isActive ? `${day.value}${unit}` : '-'}
               </span>
-              <div className="w-full flex items-end" style={{ height: '80px' }}>
+              <div className="w-full flex items-end h-[60px] sm:h-[80px]">
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: `${Math.max(height, isActive ? 8 : 2)}%` }}

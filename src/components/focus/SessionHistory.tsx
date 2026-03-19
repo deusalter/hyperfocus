@@ -74,7 +74,7 @@ export default function SessionHistory({ sessions }: SessionHistoryProps) {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="glass flex items-center gap-3 px-4 py-3"
+            className="glass flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3"
             style={session.completed ? {
               borderLeft: '2px solid var(--color-success)',
             } : undefined}
@@ -85,14 +85,14 @@ export default function SessionHistory({ sessions }: SessionHistoryProps) {
               <XCircle className="w-4 h-4 text-muted shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <span className="text-sm block truncate">
+              <span className="text-xs sm:text-sm block truncate">
                 {session.taskTitle || 'Focus session'}
               </span>
-              <span className="text-xs text-muted">
+              <span className="text-[10px] sm:text-xs text-muted">
                 {format(parseISO(session.completedAt), 'MMM d, h:mm a')}
               </span>
             </div>
-            <span className="text-sm font-medium tabular-nums flex items-center gap-1" style={{
+            <span className="text-xs sm:text-sm font-medium tabular-nums flex items-center gap-1 shrink-0" style={{
               color: session.completed ? 'var(--color-success)' : 'var(--color-muted)',
             }}>
               <Clock className="w-3 h-3" />
