@@ -59,6 +59,7 @@ export default function QuickCapture() {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="Capture a thought... (press Enter)"
+            aria-label="Quick capture a task"
             className="flex-1 bg-transparent text-foreground placeholder-muted/60 text-sm outline-none"
           />
           <AnimatePresence>

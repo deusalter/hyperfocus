@@ -68,6 +68,7 @@ export default function TodayTasks() {
                 <AnimatedCheckbox
                   checked={task.completed}
                   onChange={() => toggleTask(task.id)}
+                  label={task.title}
                 />
                 <span
                   className={cn(

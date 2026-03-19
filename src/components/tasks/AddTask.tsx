@@ -36,12 +36,15 @@ export default function AddTask({ onAdd, defaultCategory = 'today' }: AddTaskPro
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="Add a task... (Enter to save)"
+            aria-label="New task title"
             className="flex-1 bg-transparent text-foreground placeholder-muted/60 text-sm outline-none"
           />
           <button
             type="button"
             onClick={() => setShowOptions(!showOptions)}
             className="text-muted hover:text-foreground transition-colors"
+            aria-label={showOptions ? 'Hide task options' : 'Show task options'}
+            aria-expanded={showOptions}
           >
             <ChevronDown className={cn('w-4 h-4 transition-transform', showOptions && 'rotate-180')} />
           </button>
