@@ -354,6 +354,22 @@ body {
   );
 }
 
+/* Button ripple effect */
+@keyframes button-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
 /* Reduced motion: disable decorative animations */
 @media (prefers-reduced-motion: reduce) {
   .glass,
@@ -376,5 +392,10 @@ body {
 
   .skeleton-shimmer {
     animation: none;
+  }
+
+  @keyframes button-ripple {
+    0% { transform: scale(1); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
   }
 }
