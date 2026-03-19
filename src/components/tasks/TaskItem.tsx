@@ -110,6 +110,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
           className="flex flex-col items-center gap-0.5 text-white"
           style={{ scale: deleteScale, rotate: deleteIconRotate }}
           whileTap={{ scale: 1.2 }}
+          aria-label={`Delete task: ${task.title}`}
         >
           <Trash2 className="w-5 h-5" />
           <span className="text-[9px] font-semibold uppercase tracking-wider">Delete</span>
@@ -134,6 +135,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
         <AnimatedCheckbox
           checked={task.completed}
           onChange={() => onToggle(task.id)}
+          label={task.title}
         />
 
         <div className="flex-1 min-w-0">
@@ -173,6 +175,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
                 onClick={() => onMove(task.id, nextCategory[task.category])}
                 className="text-muted hover:text-foreground p-1 rounded-lg hover:bg-surface transition-colors"
                 title={`Move to ${categoryLabels[nextCategory[task.category]]}`}
+                aria-label={`Move task to ${categoryLabels[nextCategory[task.category]]}`}
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </motion.button>
@@ -183,6 +186,7 @@ export default function TaskItem({ task, onToggle, onDelete, onMove, showCategor
               whileTap={{ scale: 0.9 }}
               onClick={() => onDelete(task.id)}
               className="text-muted hover:text-danger p-1 rounded-lg hover:bg-danger/10 transition-colors"
+              aria-label={`Delete task: ${task.title}`}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </motion.button>

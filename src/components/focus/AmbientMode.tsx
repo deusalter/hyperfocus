@@ -84,6 +84,7 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
         className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted hover:text-foreground p-2 z-10"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
+        aria-label="Exit ambient mode"
       >
         <Minimize2 className="w-5 h-5" />
       </motion.button>

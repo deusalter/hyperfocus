@@ -51,14 +51,14 @@ export default function TimerControls({
             <Play className="w-5 h-5" />
             Resume
           </Button>
-          <Button size="lg" variant="secondary" onClick={onReset}>
+          <Button size="lg" variant="secondary" onClick={onReset} aria-label="Reset timer">
             <RotateCcw className="w-5 h-5" />
           </Button>
         </>
       )}
 
       {(isRunning || isPaused) && elapsed > 0 && (
-        <Button size="lg" variant="ghost" onClick={onStop}>
+        <Button size="lg" variant="ghost" onClick={onStop} aria-label="Stop and save session">
           <Square className="w-4 h-4" />
         </Button>
       )}

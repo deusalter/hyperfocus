@@ -62,6 +62,7 @@ export default function FocusPage() {
             onClick={() => setShowAmbient(true)}
             className="text-muted hover:text-foreground p-2 rounded-lg hover:bg-surface transition-colors"
             title="Enter ambient mode"
+            aria-label="Enter ambient mode"
           >
             <Maximize2 className="w-5 h-5" />
           </motion.button>
@@ -98,11 +99,12 @@ export default function FocusPage() {
                 animate={{ opacity: 1 }}
                 className="mb-6"
               >
-                <label className="text-xs text-muted uppercase tracking-wider block mb-2">
+                <label htmlFor="focus-task-select" className="text-xs text-muted uppercase tracking-wider block mb-2">
                   Working on
                 </label>
                 <div className="relative">
                   <select
+                    id="focus-task-select"
                     value={selectedTask}
                     onChange={(e) => setSelectedTask(e.target.value)}
                     className="w-full glass glass-input px-4 py-3 pr-10 text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none"

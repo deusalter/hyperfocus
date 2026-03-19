@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 interface AnimatedCheckboxProps {
   checked: boolean
   onChange: () => void
+  label?: string
 }
 
 const sparkleColors = ['#8b5cf6', '#22c55e', '#a78bfa', '#34d399', '#f59e0b']
@@ -57,7 +58,7 @@ function Sparkles({ active }: { active: boolean }) {
   )
 }
 
-export default function AnimatedCheckbox({ checked, onChange }: AnimatedCheckboxProps) {
+export default function AnimatedCheckbox({ checked, onChange, label }: AnimatedCheckboxProps) {
   const [showSparkles, setShowSparkles] = useState(false)
 
   const handleChange = useCallback(() => {
@@ -70,6 +71,9 @@ export default function AnimatedCheckbox({ checked, onChange }: AnimatedCheckbox
 
   return (
     <motion.button
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={label ? `Mark "${label}" as ${checked ? 'incomplete' : 'complete'}` : (checked ? 'Mark as incomplete' : 'Mark as complete')}
       onClick={handleChange}
       className="relative w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0"
       style={{

@@ -55,6 +55,8 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
   return (
     <motion.div
       layout
+      role={toast.variant === 'error' ? 'alert' : 'status'}
+      aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15 } }}
@@ -87,6 +89,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         whileTap={{ scale: 0.9 }}
         onClick={() => onDismiss(toast.id)}
         className="text-muted hover:text-foreground transition-colors shrink-0 p-0.5"
+        aria-label="Dismiss notification"
       >
         <X className="w-3.5 h-3.5" />
       </motion.button>
