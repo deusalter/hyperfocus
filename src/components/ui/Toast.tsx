@@ -42,13 +42,6 @@ const borderColors: Record<ToastVariant, string> = {
   undo: 'border-l-warning',
 }
 
-const glowColors: Record<ToastVariant, string> = {
-  success: '0 0 20px rgba(34, 197, 94, 0.1)',
-  error: '0 0 20px rgba(239, 68, 68, 0.1)',
-  info: '0 0 20px rgba(139, 92, 246, 0.1)',
-  undo: '0 0 20px rgba(245, 158, 11, 0.1)',
-}
-
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   const duration = toast.duration ?? (toast.variant === 'undo' ? 5000 : 3000)
 
@@ -62,10 +55,10 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       exit={{ opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15 } }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className={cn(
-        'glass relative overflow-hidden flex items-center gap-3 pl-4 pr-3 py-3 border-l-2 w-full md:min-w-[260px] md:max-w-[360px] md:w-auto',
+        'glass-static relative overflow-hidden flex items-center gap-3 pl-4 pr-3 py-3 border-l-2 w-full md:min-w-[260px] md:max-w-[360px] md:w-auto',
         borderColors[toast.variant]
       )}
-      style={{ boxShadow: `${glowColors[toast.variant]}, 0 8px 24px -6px rgba(0, 0, 0, 0.4)` }}
+      style={{ boxShadow: '0 8px 24px -6px rgba(0, 0, 0, 0.5)' }}
     >
       {icons[toast.variant]}
       <span className="text-sm text-foreground flex-1">{toast.message}</span>
@@ -78,7 +71,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
             toast.onUndo?.()
             onDismiss(toast.id)
           }}
-          className="text-xs font-semibold text-warning hover:text-warning/80 px-2 py-1 rounded-lg bg-warning/10 transition-colors shrink-0"
+          className="text-xs font-semibold text-warning hover:text-foreground px-2 py-1 rounded-lg border border-warning/30 hover:border-warning/60 transition-colors shrink-0"
         >
           Undo
         </motion.button>

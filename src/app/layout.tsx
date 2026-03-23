@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import './globals.css'
 import AppShell from '@/components/layout/AppShell'
 import { ToastProvider } from '@/components/ui/Toast'
@@ -14,9 +14,16 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+const instrumentSerif = Instrument_Serif({
+  variable: '--font-instrument-serif',
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+})
+
 export const metadata: Metadata = {
   title: 'Hyperfocus — ADHD Productivity',
-  description: 'A productivity app designed for ADHD brains. Focus timer, task management, and streaks.',
+  description: 'A quiet, focused productivity app for ADHD brains. Capture thoughts, run focus sessions, build streaks.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -26,7 +33,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#8b5cf6',
+  themeColor: '#c5f82a',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -40,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased`}>
         <ToastProvider>
           <AppShell>{children}</AppShell>
         </ToastProvider>

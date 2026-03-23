@@ -7,22 +7,20 @@ interface CardProps {
   children: React.ReactNode
   className?: string
   hover?: boolean
-  glow?: boolean
   onClick?: () => void
 }
 
-export default function Card({ children, className, hover = true, glow = false, onClick }: CardProps) {
+export default function Card({ children, className, hover = true, onClick }: CardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className={cn(
-        'glass p-5 transition-all duration-300 ease-out',
-        hover && 'hover:scale-[1.015] hover:-translate-y-0.5',
-        glow && 'glow',
-        onClick && 'cursor-pointer active:scale-[0.99]',
+        'glass p-5',
+        hover && 'hover:border-border-hover',
+        onClick && 'cursor-pointer',
         className
       )}
     >

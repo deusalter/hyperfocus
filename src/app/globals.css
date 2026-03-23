@@ -1,52 +1,74 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #0a0a0f;
-  --color-foreground: #e4e4e7;
-  --color-muted: #71717a;
-  --color-accent: #8b5cf6;
-  --color-accent-light: #a78bfa;
-  --color-accent-dark: #7c3aed;
-  --color-accent-glow: rgba(139, 92, 246, 0.15);
-  --color-surface: rgba(255, 255, 255, 0.03);
-  --color-surface-hover: rgba(255, 255, 255, 0.06);
-  --color-surface-elevated: rgba(255, 255, 255, 0.05);
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-hover: rgba(255, 255, 255, 0.15);
-  --color-border-subtle: rgba(255, 255, 255, 0.04);
-  --color-success: #22c55e;
-  --color-success-glow: rgba(34, 197, 94, 0.15);
-  --color-warning: #f59e0b;
-  --color-warning-glow: rgba(245, 158, 11, 0.15);
-  --color-danger: #ef4444;
-  --color-energy-low: #22d3ee;
-  --color-energy-medium: #f59e0b;
-  --color-energy-high: #ef4444;
+  --color-background: #07070a;
+  --color-foreground: #f4f4f5;
+  --color-muted: #6b6b75;
+  --color-muted-strong: #8a8a95;
+
+  --color-surface: #0e0e13;
+  --color-surface-hover: #14141b;
+  --color-surface-elevated: #111118;
+
+  --color-border: #1f1f28;
+  --color-border-hover: #2a2a36;
+  --color-border-subtle: #16161d;
+
+  --color-accent: #c5f82a;
+  --color-accent-light: #d7ff4f;
+  --color-accent-dark: #9fce1e;
+  --color-accent-ink: #0a0d00;
+  --color-accent-glow: rgba(197, 248, 42, 0.16);
+
+  --color-success: #6ee7a7;
+  --color-success-glow: rgba(110, 231, 167, 0.14);
+  --color-warning: #fbbf24;
+  --color-warning-glow: rgba(251, 191, 36, 0.14);
+  --color-danger: #f87171;
+  --color-danger-glow: rgba(248, 113, 113, 0.14);
+
+  --color-energy-low: #7dd3fc;
+  --color-energy-medium: #fbbf24;
+  --color-energy-high: #f87171;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-instrument-serif);
+
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snap: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Light mode — warm off-white, same lime */
+[data-theme="light"] {
+  --color-background: #fafaf7;
+  --color-foreground: #0e0e13;
+  --color-muted: #6b6b75;
+  --color-muted-strong: #4a4a55;
+  --color-surface: rgba(0, 0, 0, 0.025);
+  --color-surface-hover: rgba(0, 0, 0, 0.05);
+  --color-surface-elevated: rgba(0, 0, 0, 0.035);
+  --color-border: rgba(0, 0, 0, 0.09);
+  --color-border-hover: rgba(0, 0, 0, 0.18);
+  --color-border-subtle: rgba(0, 0, 0, 0.05);
+  --color-accent-glow: rgba(159, 206, 30, 0.18);
+  --color-success-glow: rgba(34, 139, 90, 0.12);
+  --color-warning-glow: rgba(200, 140, 20, 0.12);
+  --color-danger-glow: rgba(180, 40, 40, 0.12);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: var(--color-border) transparent;
 }
 
-*::-webkit-scrollbar {
-  width: 6px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-border);
   border-radius: 3px;
 }
-
-*::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+*::-webkit-scrollbar-thumb:hover { background: var(--color-border-hover); }
 
 body {
   background: var(--color-background);
@@ -54,333 +76,151 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11", "tnum" 1;
 }
 
-/* Light theme overrides */
-[data-theme="light"] {
-  --color-background: #fafafa;
-  --color-foreground: #18181b;
-  --color-muted: #71717a;
-  --color-surface: rgba(0, 0, 0, 0.03);
-  --color-surface-hover: rgba(0, 0, 0, 0.06);
-  --color-surface-elevated: rgba(0, 0, 0, 0.04);
-  --color-border: rgba(0, 0, 0, 0.1);
-  --color-border-hover: rgba(0, 0, 0, 0.2);
-  --color-border-subtle: rgba(0, 0, 0, 0.05);
-  --color-accent-glow: rgba(139, 92, 246, 0.1);
-  --color-success-glow: rgba(34, 197, 94, 0.1);
-  --color-warning-glow: rgba(245, 158, 11, 0.1);
-}
+/* ---------- Surface primitives ---------- */
 
-[data-theme="light"] body {
-  background: var(--color-background);
-  color: var(--color-foreground);
-}
-
-/* Glass card utility — layered glass effect */
+/* Flat surface with hairline border. The word "glass" is legacy. */
 .glass {
-  background: linear-gradient(
-    135deg,
-    var(--color-surface) 0%,
-    var(--color-surface-elevated) 50%,
-    var(--color-surface) 100%
-  );
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
-    0 4px 16px -4px rgba(0, 0, 0, 0.3);
-  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 14px;
+  transition: border-color 180ms var(--ease-editorial), background-color 180ms var(--ease-editorial);
 }
-
 .glass:hover {
-  background: linear-gradient(
-    135deg,
-    var(--color-surface-hover) 0%,
-    var(--color-surface-elevated) 50%,
-    var(--color-surface-hover) 100%
-  );
   border-color: var(--color-border-hover);
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
-    0 8px 24px -6px rgba(0, 0, 0, 0.4);
+  background: var(--color-surface-hover);
 }
 
-/* Glass without hover effect — for static containers */
 .glass-static {
-  background: linear-gradient(
-    135deg,
-    var(--color-surface) 0%,
-    var(--color-surface-elevated) 50%,
-    var(--color-surface) 100%
-  );
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
-    0 4px 16px -4px rgba(0, 0, 0, 0.3);
+  border-radius: 14px;
 }
 
-/* Glow effect */
-.glow {
-  box-shadow:
-    0 0 20px var(--color-accent-glow),
-    0 0 60px var(--color-accent-glow),
-    0 1px 0 0 rgba(255, 255, 255, 0.03) inset;
+.glass-highlight {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  position: relative;
 }
-
-/* Ambient gradient background */
-.ambient-gradient {
-  background:
-    radial-gradient(
-      ellipse at 50% 0%,
-      var(--color-accent-glow) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 80% 20%,
-      rgba(139, 92, 246, 0.05) 0%,
-      transparent 40%
-    );
-}
-
-/* Focus ring for interactive glass elements */
-.glass-input:focus-within {
-  border-color: rgba(139, 92, 246, 0.4);
-  box-shadow:
-    0 0 0 3px rgba(139, 92, 246, 0.1),
-    0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
-    0 4px 16px -4px rgba(0, 0, 0, 0.3);
-}
-
-/* Selection color */
-::selection {
-  background: rgba(139, 92, 246, 0.3);
-  color: white;
-}
-
-/* Light theme glass refinements */
-[data-theme="light"] .glass {
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
-    0 4px 16px -4px rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .glass:hover {
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
-    0 8px 24px -6px rgba(0, 0, 0, 0.12);
-}
-
-[data-theme="light"] .glass-static {
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
-    0 4px 16px -4px rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .glow {
-  box-shadow:
-    0 0 20px var(--color-accent-glow),
-    0 0 60px var(--color-accent-glow),
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset;
-}
-
-/* Subtle divider utility */
-.divider-glow {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-border-hover) 50%,
-    transparent
-  );
-}
-
-/* Smooth page-level transitions */
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
-/* Noise texture overlay for premium glass feel */
-.noise-texture::before {
+.glass-highlight::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border-radius: inherit;
-  opacity: 0.03;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--color-accent) 0%, transparent 60%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
   pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 128px 128px;
+  opacity: 0.45;
 }
 
-[data-theme="light"] .noise-texture::before {
-  opacity: 0.02;
-}
+/* No-op: kept to avoid churn in ~20 files. */
+.noise-texture::before { display: none; }
 
-/* Glass highlight — accent-bordered card for key content */
-.glass-highlight {
-  background: linear-gradient(
-    135deg,
-    var(--color-surface) 0%,
-    var(--color-surface-elevated) 50%,
-    var(--color-surface) 100%
-  );
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 16px;
-  box-shadow:
-    0 1px 0 0 rgba(139, 92, 246, 0.05) inset,
-    0 4px 16px -4px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(139, 92, 246, 0.06);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+/* Input focus: hairline, lime */
+.glass-input:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
 }
-
-.glass-highlight:hover {
-  border-color: rgba(139, 92, 246, 0.35);
-  box-shadow:
-    0 1px 0 0 rgba(139, 92, 246, 0.08) inset,
-    0 8px 24px -6px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(139, 92, 246, 0.1);
-}
-
-[data-theme="light"] .glass-highlight {
-  border-color: rgba(139, 92, 246, 0.15);
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
-    0 4px 16px -4px rgba(0, 0, 0, 0.08),
-    0 0 16px rgba(139, 92, 246, 0.06);
-}
-
-[data-theme="light"] .glass-highlight:hover {
-  border-color: rgba(139, 92, 246, 0.25);
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
-    0 8px 24px -6px rgba(0, 0, 0, 0.12),
-    0 0 24px rgba(139, 92, 246, 0.08);
-}
-
-/* Animated gradient border for focused inputs */
-@property --gradient-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
 .glass-input-animated:focus-within {
-  border-color: transparent;
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  background-image:
-    linear-gradient(var(--color-background), var(--color-background)),
-    linear-gradient(var(--gradient-angle), var(--color-accent-light), var(--color-accent-dark), var(--color-accent-light));
-  animation: gradient-rotate 3s linear infinite;
-  box-shadow:
-    0 0 0 3px rgba(139, 92, 246, 0.08),
-    0 0 20px rgba(139, 92, 246, 0.1);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
 }
 
-@keyframes gradient-rotate {
-  to {
-    --gradient-angle: 360deg;
-  }
+/* Subtle divider */
+.divider-glow {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border-hover) 50%, transparent);
 }
 
-/* Breathing animation for active elements */
-@keyframes breathe {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.02); }
+/* Ambient: a single faint top-wash. Replaces the purple orbs. */
+.ambient-gradient {
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--color-accent-glow) 0%, transparent 70%);
+  opacity: 0.6;
 }
 
-.breathing {
-  animation: breathe 4s ease-in-out infinite;
+/* ---------- Selection + focus ---------- */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 
-/* Shimmer animation for text highlights */
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible { outline: none; }
+
+/* ---------- Motion ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }
 
-.text-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--color-accent-dark) 0%,
-    var(--color-accent-light) 25%,
-    var(--color-accent) 50%,
-    var(--color-accent-light) 75%,
-    var(--color-accent-dark) 100%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 6s linear infinite;
+/* Single outward pulse — used by timer-complete and other hero moments */
+@keyframes pulse-out {
+  0%   { transform: scale(0.9); opacity: 0.65; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.pulse-out {
+  animation: pulse-out 900ms var(--ease-editorial) forwards;
 }
 
-/* Skeleton shimmer loading effect */
+/* Skeleton shimmer */
 @keyframes skeleton-shimmer {
-  0% { transform: translateX(-100%); }
+  0%   { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
-
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
     transparent 0%,
     rgba(255, 255, 255, 0.04) 40%,
-    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.07) 50%,
     rgba(255, 255, 255, 0.04) 60%,
     transparent 100%
   );
   animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }
-
 [data-theme="light"] .skeleton-shimmer {
   background: linear-gradient(
     90deg,
     transparent 0%,
     rgba(0, 0, 0, 0.04) 40%,
-    rgba(0, 0, 0, 0.06) 50%,
+    rgba(0, 0, 0, 0.07) 50%,
     rgba(0, 0, 0, 0.04) 60%,
     transparent 100%
   );
 }
 
-/* Button ripple effect */
-@keyframes button-ripple {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  70% {
-    transform: scale(1);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0;
-  }
+/* Elastic route-mask reveal */
+@keyframes mask-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+.mask-reveal { animation: mask-reveal 420ms var(--ease-editorial) both; }
+
+/* ---------- Typography utilities ---------- */
+.font-serif { font-family: var(--font-serif), ui-serif, Georgia, serif; font-feature-settings: normal; }
+.font-mono  { font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace; }
+
+.display-xl {
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
 }
 
-/* Hide scrollbar utility for horizontal scroll containers */
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-
-/* Skip-to-content link — hidden until focused */
+/* ---------- Skip link ---------- */
 .skip-to-content {
   position: absolute;
   top: -100%;
@@ -391,57 +231,32 @@ body {
   border-radius: 0 0 12px 12px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: white;
-  background: linear-gradient(135deg, var(--color-accent-light), var(--color-accent-dark));
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+  color: var(--color-accent-ink);
+  background: var(--color-accent);
   transition: top 0.2s ease;
 }
+.skip-to-content:focus { top: 0; outline: none; }
 
-.skip-to-content:focus {
-  top: 0;
-  outline: none;
+/* ---------- Scrollbar util ---------- */
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Hairline top-border for ambient dividers */
+.hairline {
+  background: linear-gradient(90deg, transparent, var(--color-border-hover) 50%, transparent);
+  height: 1px;
 }
 
-/* Global focus-visible ring for keyboard navigation */
-*:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
+/* Button ripple no-op shim (kept for legacy CSS refs) */
+@keyframes button-ripple { 0% { opacity: 0; } 100% { opacity: 0; } }
 
-/* Override for inputs that already have custom focus styles */
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: none;
-}
-
-/* Reduced motion: disable decorative animations */
+/* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .glass,
-  .glass:hover,
-  .glass-static {
-    transition: none;
-  }
-
-  .breathing {
-    animation: none;
-  }
-
-  .text-shimmer {
-    animation: none;
-  }
-
-  .glass-input-animated:focus-within {
-    animation: none;
-  }
-
+  .pulse-out,
+  .mask-reveal,
   .skeleton-shimmer {
     animation: none;
   }
-
-  @keyframes button-ripple {
-    0% { transform: scale(1); opacity: 0; }
-    100% { transform: scale(1); opacity: 0; }
-  }
+  .glass,
+  .glass:hover { transition: none; }
 }
