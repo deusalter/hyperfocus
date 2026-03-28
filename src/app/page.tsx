@@ -10,10 +10,6 @@ export default function Dashboard() {
     <div>
       <Greeting />
       <QuickStats />
-
-      {/* Glowing section divider */}
-      <div className="divider-glow my-6" />
-
       <QuickCapture />
       <TodayTasks />
     </div>

@@ -1,93 +1,57 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle2, Timer, Flame } from 'lucide-react'
 import { useStats } from '@/hooks/useStats'
 import { formatMinutes } from '@/lib/utils'
-import AnimatedNumber from '@/components/ui/AnimatedNumber'
+import Odometer from '@/components/ui/Odometer'
 
 const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 },
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
   },
 }
 
 const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { ease: [0.22, 1, 0.36, 1], duration: 0.4 } },
 }
 
 export default function QuickStats() {
   const { todayCompletedTasks, todayFocusMinutes, streaks } = useStats()
-
-  const stats = [
-    {
-      label: 'Tasks Done',
-      numericValue: todayCompletedTasks,
-      displayValue: null as string | null,
-      icon: CheckCircle2,
-      color: 'text-success',
-      bg: 'bg-success/10',
-      glowColor: 'var(--color-success-glow)',
-      gradientFrom: 'rgba(34, 197, 94, 0.08)',
-    },
-    {
-      label: 'Focus Time',
-      numericValue: null as number | null,
-      displayValue: formatMinutes(todayFocusMinutes),
-      icon: Timer,
-      color: 'text-accent',
-      bg: 'bg-accent/10',
-      glowColor: 'var(--color-accent-glow)',
-      gradientFrom: 'rgba(139, 92, 246, 0.08)',
-    },
-    {
-      label: 'Day Streak',
-      numericValue: streaks.current,
-      displayValue: null as string | null,
-      icon: Flame,
-      color: 'text-warning',
-      bg: 'bg-warning/10',
-      glowColor: 'var(--color-warning-glow)',
-      gradientFrom: 'rgba(245, 158, 11, 0.08)',
-    },
-  ]
 
   return (
     <motion.div
       variants={container}
       initial="hidden"
       animate="show"
-      className="grid grid-cols-3 gap-2 sm:gap-3 mb-6"
+      className="grid grid-cols-3 divide-x divide-border border-y border-border py-6 mb-8"
     >
-      {stats.map((stat) => {
-        const Icon = stat.icon
-        return (
-          <motion.div
-            key={stat.label}
-            variants={item}
-            className="glass noise-texture p-3 sm:p-4 flex flex-col items-center text-center relative overflow-hidden"
+      <motion.div variants={item} className="px-4 sm:px-6 text-center">
+        <div className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted mb-2">Done today</div>
+        <Odometer value={todayCompletedTasks} className="display-xl text-[36px] sm:text-[44px]" />
+      </motion.div>
+
+      <motion.div variants={item} className="px-4 sm:px-6 text-center">
+        <div className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted mb-2">Focus</div>
+        <span className="display-xl text-[36px] sm:text-[44px] tabular-nums">
+          {formatMinutes(todayFocusMinutes)}
+        </span>
+      </motion.div>
+
+      <motion.div variants={item} className="px-4 sm:px-6 text-center">
+        <div className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted mb-2">Streak</div>
+        <div className="flex items-baseline justify-center gap-1.5">
+          <Odometer value={streaks.current} className="display-xl text-[36px] sm:text-[44px]" />
+          <span
+            className="text-xs tracking-wide"
+            style={{ color: streaks.current > 0 ? 'var(--color-accent)' : 'var(--color-muted)' }}
           >
-            <div
-              className="absolute inset-0 opacity-50 pointer-events-none"
-              style={{
-                background: `radial-gradient(ellipse at 50% 0%, ${stat.gradientFrom}, transparent 70%)`,
-              }}
-            />
-            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-1.5 sm:mb-2 relative z-10`}>
-              <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`} />
-            </div>
-            {stat.numericValue !== null ? (
-              <AnimatedNumber value={stat.numericValue} className="text-xl sm:text-2xl font-bold relative z-10 tabular-nums" />
-            ) : (
-              <span className="text-xl sm:text-2xl font-bold relative z-10 tabular-nums">{stat.displayValue}</span>
-            )}
-            <span className="text-[10px] sm:text-xs text-muted mt-0.5 relative z-10">{stat.label}</span>
-          </motion.div>
-        )
-      })}
+            {streaks.current === 1 ? 'day' : 'days'}
+          </span>
+        </div>
+      </motion.div>
     </motion.div>
   )
 }

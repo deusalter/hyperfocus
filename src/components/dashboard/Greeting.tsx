@@ -4,43 +4,37 @@ import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
 import { getGreeting } from '@/lib/utils'
+import { useScrambleText } from '@/hooks/useScrambleText'
 
 export default function Greeting() {
   const [greeting, setGreeting] = useState('Hello')
   const [date, setDate] = useState('')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setGreeting(getGreeting())
     setDate(format(new Date(), 'EEEE, MMMM d'))
+    setMounted(true)
   }, [])
+
+  const scrambled = useScrambleText(mounted ? greeting : '', 520, [mounted])
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-8 relative"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="mb-10"
     >
-      {/* Decorative gradient orb behind the greeting */}
-      <div
-        className="absolute -top-8 -left-4 sm:-top-12 sm:-left-8 w-32 h-32 sm:w-48 sm:h-48 rounded-full pointer-events-none opacity-30 blur-[40px] sm:blur-[60px]"
-        style={{
-          background: 'radial-gradient(circle, var(--color-accent), transparent 70%)',
-        }}
-      />
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight relative z-10">
-        {greeting}{' '}
-        <motion.span
-          className="inline-block text-shimmer"
-          animate={{ rotate: [0, 8, -8, 0] }}
-          transition={{ duration: 3, repeat: Infinity, repeatDelay: 5, ease: 'easeInOut' }}
-        >
-          ✦
-        </motion.span>
+      <h1 className="display-xl text-[44px] sm:text-[56px] md:text-[72px] tracking-tight">
+        <span className="font-mono text-muted text-xs tracking-wider uppercase not-italic block mb-2" style={{ fontFamily: 'var(--font-mono)' }}>
+          {date}
+        </span>
+        <span aria-live="polite">{scrambled || greeting}</span>
+        <span className="inline-block ml-1 align-text-top" style={{ color: 'var(--color-accent)' }}>.</span>
       </h1>
-      <p className="text-muted mt-1.5 text-sm tracking-wide relative z-10">
-        {date}
-        <span className="mx-2 text-border">·</span>
-        <span className="text-accent/70">Let&apos;s make it count</span>
+      <p className="text-sm text-muted mt-2 max-w-sm">
+        Capture what&apos;s in your head. Pick one thing. Start.
       </p>
     </motion.div>
   )

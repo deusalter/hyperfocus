@@ -5,7 +5,7 @@ import { useTasks } from '@/hooks/useTasks'
 import AnimatedCheckbox from '@/components/ui/AnimatedCheckbox'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 export default function TodayTasks() {
   const { todayTasks, toggleTask, completedToday } = useTasks()
@@ -17,53 +17,41 @@ export default function TodayTasks() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-muted uppercase tracking-wider">
-          Today&apos;s Tasks
+      <div className="flex items-baseline justify-between mb-4">
+        <h2 className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
+          Today
         </h2>
         {completedToday.length > 0 && (
-          <span className="text-xs text-success font-medium">
-            {completedToday.length} done today
+          <span className="text-[11px] font-mono text-accent tabular-nums">
+            {completedToday.length} done
           </span>
         )}
       </div>
 
       {displayTasks.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass p-8 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="py-10 text-left"
         >
-          <motion.div
-            animate={{
-              y: [0, -5, 0],
-              rotate: [0, 5, -5, 0],
-            }}
-            transition={{
-              duration: 3.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            className="mx-auto mb-3 w-fit"
-          >
-            <Sparkles className="w-6 h-6 text-accent/50" />
-          </motion.div>
-          <p className="text-muted text-sm">No tasks for today yet.</p>
-          <p className="text-muted/60 text-xs mt-1">
-            Use the quick capture above or press <kbd className="px-1.5 py-0.5 glass text-xs rounded">N</kbd> to add one.
+          <p className="display-xl text-[28px] sm:text-[32px] text-muted-strong">
+            Nothing yet.
+          </p>
+          <p className="text-sm text-muted mt-2">
+            Capture a thought above, or press <kbd className="px-1.5 py-0.5 font-mono text-[10px] border border-border rounded">N</kbd> for the full task view.
           </p>
         </motion.div>
       ) : (
-        <div className="space-y-2">
+        <ul className="divide-y divide-border border-t border-border">
           <AnimatePresence>
             {displayTasks.map((task) => (
-              <motion.div
+              <motion.li
                 key={task.id}
                 layout
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10, height: 0 }}
-                className="glass flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-center gap-3 py-3.5 group"
               >
                 <AnimatedCheckbox
                   checked={task.completed}
@@ -72,33 +60,37 @@ export default function TodayTasks() {
                 />
                 <span
                   className={cn(
-                    'text-sm transition-all duration-300 flex-1 min-w-0 truncate',
+                    'text-[15px] flex-1 min-w-0 truncate transition-colors duration-300',
                     task.completed && 'line-through text-muted'
                   )}
                 >
                   {task.title}
                 </span>
-                {task.energyLevel && (
+                {task.energyLevel && !task.completed && (
                   <span
-                    className={cn(
-                      'text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0',
-                      task.energyLevel === 'low' && 'bg-energy-low/10 text-energy-low',
-                      task.energyLevel === 'medium' && 'bg-energy-medium/10 text-energy-medium',
-                      task.energyLevel === 'high' && 'bg-energy-high/10 text-energy-high'
-                    )}
+                    className="text-[10px] font-mono uppercase tracking-wider shrink-0"
+                    style={{
+                      color:
+                        task.energyLevel === 'low' ? 'var(--color-energy-low)'
+                        : task.energyLevel === 'medium' ? 'var(--color-energy-medium)'
+                        : 'var(--color-energy-high)',
+                    }}
                   >
                     {task.energyLevel}
                   </span>
                 )}
-              </motion.div>
+              </motion.li>
             ))}
           </AnimatePresence>
-        </div>
+        </ul>
       )}
 
       {todayTasks.length > 5 && (
-        <Link href="/tasks" className="mt-3 flex items-center gap-1 text-xs text-accent hover:text-accent-light transition-colors">
-          View all {todayTasks.length} tasks <ArrowRight className="w-3 h-3" />
+        <Link
+          href="/tasks"
+          className="mt-4 inline-flex items-center gap-1 text-xs text-muted hover:text-foreground transition-colors"
+        >
+          View all {todayTasks.length} <ArrowRight className="w-3 h-3" />
         </Link>
       )}
     </motion.div>

@@ -2,14 +2,12 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Zap, Sparkles } from 'lucide-react'
 import { useTasks } from '@/hooks/useTasks'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 
 export default function QuickCapture() {
   const [value, setValue] = useState('')
-  const [showSuccess, setShowSuccess] = useState(false)
   const [showError, setShowError] = useState(false)
   const { addTask } = useTasks()
   const { toast } = useToast()
@@ -24,10 +22,8 @@ export default function QuickCapture() {
 
     addTask(value.trim())
     setValue('')
-    setShowSuccess(true)
     setShowError(false)
-    setTimeout(() => setShowSuccess(false), 1500)
-    toast('Task captured', 'success', { duration: 2000 })
+    toast('Captured', 'success', { duration: 1800 })
   }
 
   return (
@@ -35,39 +31,24 @@ export default function QuickCapture() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="mb-6"
+      className="mb-8"
     >
-      <form onSubmit={handleSubmit} className="relative">
+      <form onSubmit={handleSubmit}>
         <motion.div
+          animate={showError ? { x: [0, -5, 5, -3, 3, 0] } : {}}
+          transition={{ duration: 0.35 }}
           className={cn(
-            'glass glass-input glass-input-animated flex items-center gap-3 px-4 py-3',
-            showError && 'ring-1 ring-danger/50'
+            'glass-input flex items-center gap-3 px-0 py-3 border-b border-border transition-colors',
+            showError ? 'border-danger/60' : 'focus-within:border-accent'
           )}
-          animate={showError ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-          transition={{ duration: 0.4 }}
         >
-          <AnimatePresence mode="wait">
-            {showSuccess ? (
-              <motion.div
-                key="success-icon"
-                initial={{ scale: 0, rotate: -90 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: 90 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-              >
-                <Sparkles className="w-5 h-5 text-success shrink-0" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="plus-icon"
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-              >
-                <Plus className="w-5 h-5 text-muted shrink-0" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <span
+            aria-hidden="true"
+            className="font-mono text-xs text-muted pl-0.5 select-none"
+            style={{ minWidth: '14px' }}
+          >
+            {'>'}
+          </span>
           <input
             type="text"
             value={value}
@@ -75,25 +56,13 @@ export default function QuickCapture() {
               setValue(e.target.value)
               if (showError) setShowError(false)
             }}
-            placeholder="Capture a thought... (press Enter)"
+            placeholder="Type a thought, press Enter"
             aria-label="Quick capture a task"
             aria-invalid={showError}
             aria-describedby={showError ? 'quick-capture-error' : undefined}
-            className="flex-1 bg-transparent text-foreground placeholder-muted/60 text-sm outline-none"
+            className="flex-1 bg-transparent text-foreground placeholder-muted/50 text-[15px] outline-none"
           />
-          <AnimatePresence>
-            {showSuccess && (
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                className="flex items-center gap-1 text-success text-xs font-medium"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                Added!
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <kbd className="text-[10px] text-muted font-mono border border-border rounded px-1.5 py-0.5 shrink-0">Enter</kbd>
         </motion.div>
         <AnimatePresence>
           {showError && (
@@ -102,10 +71,10 @@ export default function QuickCapture() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="text-xs text-danger mt-1.5 ml-1"
+              className="text-xs text-danger mt-2"
               role="alert"
             >
-              Type something to capture
+              Type something first.
             </motion.p>
           )}
         </AnimatePresence>
