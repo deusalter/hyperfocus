@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Brain, X, Sparkles } from 'lucide-react'
+import { Brain, X, ArrowRight } from 'lucide-react'
 import Button from '@/components/ui/Button'
 
 interface BrainDumpProps {
@@ -23,14 +23,13 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
     setTimeout(() => {
       setResult(null)
       setIsOpen(false)
-    }, 2000)
+    }, 1800)
   }
 
   const handleClose = useCallback(() => {
     setIsOpen(false)
   }, [])
 
-  // Trap focus within modal and handle Escape
   useEffect(() => {
     if (!isOpen) return
 
@@ -74,10 +73,9 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="text-muted"
       >
         <Brain className="w-4 h-4" />
-        Brain Dump
+        Brain dump
       </Button>
 
       <AnimatePresence>
@@ -86,7 +84,7 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/85 backdrop-blur-sm"
             onClick={handleClose}
           >
             <motion.div
@@ -94,56 +92,61 @@ export default function BrainDump({ onDump }: BrainDumpProps) {
               role="dialog"
               aria-modal="true"
               aria-labelledby="brain-dump-title"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="glass noise-texture w-full max-w-lg p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="glass-static w-full max-w-lg p-5 sm:p-7 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-accent" />
-                  <h2 id="brain-dump-title" className="text-lg font-semibold">Brain Dump</h2>
-                </div>
-                <button onClick={handleClose} className="text-muted hover:text-foreground" aria-label="Close dialog">
+                <h2
+                  id="brain-dump-title"
+                  className="display-xl text-[28px]"
+                >
+                  Brain dump
+                </h2>
+                <button
+                  onClick={handleClose}
+                  className="text-muted hover:text-foreground transition-colors"
+                  aria-label="Close dialog"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <p className="text-sm text-muted mb-3">
-                Write everything on your mind. One thought per line. They&apos;ll become tasks.
+              <p className="text-sm text-muted mb-4">
+                Empty your head. One thought per line. They&apos;ll become tasks.
               </p>
 
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Buy groceries&#10;Email professor&#10;Finish assignment&#10;Call mom..."
-                className="w-full h-36 sm:h-48 bg-surface rounded-xl p-3 sm:p-4 text-sm text-foreground placeholder-muted/40 outline-none resize-none border border-border focus:border-accent/30 transition-colors"
+                placeholder={"Email professor\nGroceries\nFinish the draft\nCall mom"}
+                className="w-full h-44 sm:h-52 bg-background rounded-lg p-3 sm:p-4 text-[15px] text-foreground placeholder-muted/40 outline-none resize-none border border-border focus:border-accent transition-colors"
                 aria-label="Brain dump thoughts, one per line"
                 autoFocus
               />
 
               <div className="flex items-center justify-between mt-4">
-                <span className="text-xs text-muted" aria-live="polite">
-                  {text.split('\n').filter((l) => l.trim()).length} thoughts
+                <span className="text-xs text-muted font-mono tabular-nums" aria-live="polite">
+                  {text.split('\n').filter((l) => l.trim()).length} lines
                 </span>
 
                 <AnimatePresence mode="wait">
                   {result !== null ? (
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="flex items-center gap-1 text-success text-sm font-medium"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="text-sm font-medium text-accent"
                       role="status"
                     >
-                      <Sparkles className="w-4 h-4" />
-                      {result} tasks created!
+                      {result} created.
                     </motion.div>
                   ) : (
                     <Button onClick={handleDump} disabled={!text.trim()}>
-                      <Sparkles className="w-4 h-4" />
-                      Convert to Tasks
+                      Convert <ArrowRight className="w-4 h-4" />
                     </Button>
                   )}
                 </AnimatePresence>
