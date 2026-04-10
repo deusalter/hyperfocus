@@ -50,8 +50,8 @@ export default function FocusPage() {
         className="flex items-center justify-between mb-6"
       >
         <div>
-          <h1 className="text-2xl font-bold">Focus</h1>
-          <p className="text-sm text-muted mt-0.5">Deep work starts here</p>
+          <h1 className="display-xl text-[44px] sm:text-[56px]">Focus<span style={{ color: 'var(--color-accent)' }}>.</span></h1>
+          <p className="text-sm text-muted mt-1">One thing. Time-boxed. That&apos;s it.</p>
         </div>
         {(isRunning || isPaused) && (
           <motion.button
@@ -99,7 +99,7 @@ export default function FocusPage() {
                 animate={{ opacity: 1 }}
                 className="mb-6"
               >
-                <label htmlFor="focus-task-select" className="text-xs text-muted uppercase tracking-wider block mb-2">
+                <label htmlFor="focus-task-select" className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted block mb-2">
                   Working on
                 </label>
                 <div className="relative">
@@ -107,7 +107,7 @@ export default function FocusPage() {
                     id="focus-task-select"
                     value={selectedTask}
                     onChange={(e) => setSelectedTask(e.target.value)}
-                    className="w-full glass glass-input px-4 py-3 pr-10 text-sm bg-transparent text-foreground outline-none cursor-pointer appearance-none"
+                    className="w-full border border-border rounded-xl bg-surface px-4 py-3 pr-10 text-sm text-foreground outline-none cursor-pointer appearance-none focus:border-accent transition-colors"
                   >
                     <option value="" className="bg-background">Just focusing</option>
                     {incompleteTasks.map((task) => (

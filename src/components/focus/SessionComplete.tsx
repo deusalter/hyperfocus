@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { PartyPopper, Coffee, RotateCcw } from 'lucide-react'
+import { Coffee, RotateCcw } from 'lucide-react'
 import Button from '@/components/ui/Button'
 
 interface SessionCompleteProps {
@@ -11,148 +11,65 @@ interface SessionCompleteProps {
   onNewSession: () => void
 }
 
-const celebrationColors = ['#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', '#22d3ee', '#a78bfa']
+export default function SessionComplete({ isBreak, onStartBreak, onNewSession }: SessionCompleteProps) {
+  const accent = isBreak ? 'var(--color-success)' : 'var(--color-accent)'
 
-export default function SessionComplete({ isBreak, onStartBreak, onReset, onNewSession }: SessionCompleteProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="text-center py-8 relative"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="text-center py-12 relative"
       role="status"
-      aria-label={isBreak ? 'Break over! Ready to focus again?' : 'Session complete! Great work!'}
+      aria-label={isBreak ? 'Break over. Ready to focus again?' : 'Session complete. Great work.'}
     >
-      {/* Background glow */}
+      {/* Single expanding ring replaces the celebration confetti */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-40"
-        style={{
-          background: isBreak
-            ? 'radial-gradient(ellipse at 50% 30%, rgba(34, 197, 94, 0.12), transparent 60%)'
-            : 'radial-gradient(ellipse at 50% 30%, rgba(139, 92, 246, 0.15), transparent 60%)',
-        }}
+        aria-hidden="true"
+        className="absolute left-1/2 top-[56px] -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full pulse-out"
+        style={{ border: `1px solid ${accent}`, transformOrigin: 'center' }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute left-1/2 top-[56px] -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full"
+        style={{ background: accent }}
       />
 
-      {/* Pulsing ring behind icon */}
-      {!isBreak && (
-        <motion.div
-          className="absolute left-1/2 top-8 -translate-x-1/2 w-28 h-28 rounded-full"
-          style={{
-            border: '1px solid rgba(139, 92, 246, 0.15)',
-          }}
-          animate={{
-            scale: [1, 1.3, 1.5],
-            opacity: [0.4, 0.1, 0],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeOut',
-          }}
-        />
-      )}
-
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.2, 1] }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 relative z-10"
-        style={{
-          background: isBreak
-            ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.08))'
-            : 'linear-gradient(135deg, rgba(167, 139, 250, 0.25), rgba(124, 58, 237, 0.1))',
-          boxShadow: isBreak
-            ? '0 0 30px rgba(34, 197, 94, 0.15), 0 0 60px rgba(34, 197, 94, 0.05)'
-            : '0 0 30px rgba(139, 92, 246, 0.2), 0 0 60px rgba(139, 92, 246, 0.08)',
-          border: isBreak
-            ? '1px solid rgba(34, 197, 94, 0.15)'
-            : '1px solid rgba(139, 92, 246, 0.15)',
-        }}
-      >
-        {isBreak ? (
-          <Coffee className="w-10 h-10 text-success drop-shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-        ) : (
-          <PartyPopper className="w-10 h-10 text-accent drop-shadow-[0_0_8px_rgba(139,92,246,0.4)]" />
-        )}
-      </motion.div>
-
       <motion.h2
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-2xl font-bold mb-1 relative z-10"
+        transition={{ delay: 0.25 }}
+        className="display-xl text-[44px] sm:text-[56px] mt-20 leading-none"
       >
-        {isBreak ? 'Break Over!' : 'Session Complete!'}
+        {isBreak ? 'Break over.' : 'Session done.'}
       </motion.h2>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-muted text-sm mb-6 relative z-10"
+        transition={{ delay: 0.35 }}
+        className="text-sm text-muted mt-3"
       >
-        {isBreak
-          ? 'Ready to focus again?'
-          : 'Great work! You earned a break.'}
+        {isBreak ? 'Ready for another round?' : 'Take a breath. Step away. Come back.'}
       </motion.p>
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 relative z-10"
+        transition={{ delay: 0.5 }}
+        className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mt-8"
       >
         {!isBreak && (
           <Button onClick={onStartBreak} variant="secondary">
             <Coffee className="w-4 h-4" />
-            5min Break
+            5m break
           </Button>
         )}
         <Button onClick={onNewSession}>
           <RotateCcw className="w-4 h-4" />
-          {isBreak ? 'Start Focus' : 'Another Session'}
+          {isBreak ? 'Start focus' : 'Another session'}
         </Button>
       </motion.div>
-
-      {/* Celebration particles — two rings for depth */}
-      {!isBreak && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          {Array.from({ length: 20 }).map((_, i) => {
-            const color = celebrationColors[i % celebrationColors.length]
-            const size = 3 + Math.random() * 5
-            const isSquare = i % 3 === 0
-            return (
-              <motion.div
-                key={i}
-                initial={{
-                  x: '50%',
-                  y: '35%',
-                  scale: 0,
-                }}
-                animate={{
-                  x: `${10 + Math.random() * 80}%`,
-                  y: `${Math.random() * 100}%`,
-                  scale: [0, 1.2, 0],
-                  opacity: [0, 0.9, 0],
-                  rotate: [0, Math.random() * 720],
-                }}
-                transition={{
-                  duration: 1.5 + Math.random() * 1,
-                  delay: 0.05 + i * 0.05,
-                  ease: 'easeOut',
-                }}
-                className="absolute"
-                style={{
-                  width: `${size}px`,
-                  height: `${size}px`,
-                  backgroundColor: color,
-                  borderRadius: isSquare ? '2px' : '50%',
-                  boxShadow: `0 0 8px ${color}88`,
-                }}
-              />
-            )
-          })}
-        </div>
-      )}
     </motion.div>
   )
 }

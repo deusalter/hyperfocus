@@ -13,10 +13,8 @@ interface AmbientModeProps {
 }
 
 export default function AmbientMode({ remaining, progress, isBreak, onExit }: AmbientModeProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
   const exitButtonRef = useRef<HTMLButtonElement>(null)
 
-  // Focus the exit button on mount and handle Escape key
   useEffect(() => {
     exitButtonRef.current?.focus()
 
@@ -24,7 +22,6 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
       if (e.key === 'Escape') {
         onExit()
       }
-      // Trap focus within ambient mode (only one focusable element)
       if (e.key === 'Tab') {
         e.preventDefault()
         exitButtonRef.current?.focus()
@@ -35,87 +32,59 @@ export default function AmbientMode({ remaining, progress, isBreak, onExit }: Am
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onExit])
 
+  const accent = isBreak ? 'var(--color-success)' : 'var(--color-accent)'
+
   return (
     <motion.div
-      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-background flex items-center justify-center"
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: '#000000' }}
       role="dialog"
       aria-modal="true"
       aria-label={`Ambient focus mode — ${formatDuration(remaining)} remaining`}
     >
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] rounded-full opacity-20 blur-[60px] sm:blur-[100px]"
-          style={{
-            background: isBreak
-              ? 'radial-gradient(circle, var(--color-success), transparent)'
-              : 'radial-gradient(circle, var(--color-accent), transparent)',
-          }}
-          animate={{
-            x: ['-30%', '30%', '-30%'],
-            y: ['-20%', '20%', '-20%'],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        <motion.div
-          className="absolute right-0 bottom-0 w-[200px] h-[200px] sm:w-[400px] sm:h-[400px] rounded-full opacity-10 blur-[40px] sm:blur-[80px]"
-          style={{
-            background: 'radial-gradient(circle, var(--color-accent-light), transparent)',
-          }}
-          animate={{
-            x: ['20%', '-20%', '20%'],
-            y: ['20%', '-30%', '20%'],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 text-center" role="timer" aria-live="off" aria-atomic="true">
+      <div className="relative z-10 text-center px-6" role="timer" aria-live="off" aria-atomic="true">
         <span className="sr-only" aria-live="polite">
           {formatDuration(remaining)} remaining
         </span>
-        <motion.span
-          key={remaining}
-          initial={{ scale: 1.02 }}
-          animate={{ scale: 1 }}
-          className="text-6xl sm:text-7xl md:text-9xl font-bold tabular-nums tracking-tighter"
-          aria-hidden="true"
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
-          {formatDuration(remaining)}
-        </motion.span>
+          <span
+            className="display-xl tabular-nums text-[120px] sm:text-[180px] md:text-[220px] leading-none"
+            aria-hidden="true"
+            style={{ color: '#f4f4f5' }}
+          >
+            {formatDuration(remaining)}
+          </span>
+        </motion.div>
 
-        <div className="mt-6 sm:mt-8 w-48 sm:w-64 mx-auto">
-          <div className="h-1 bg-border rounded-full overflow-hidden">
+        <div className="mt-10 mx-auto" style={{ width: 'min(320px, 80vw)' }}>
+          <div className="h-[1px] w-full" style={{ background: 'rgba(255,255,255,0.12)' }}>
             <motion.div
-              className="h-full rounded-full"
-              style={{
-                backgroundColor: isBreak ? 'var(--color-success)' : 'var(--color-accent)',
-              }}
+              className="h-full"
+              style={{ background: accent }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5 }}
             />
           </div>
+          <p className="text-[10px] font-mono uppercase tracking-[0.2em] mt-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            {isBreak ? 'Break' : 'Focus'} · press Esc to exit
+          </p>
         </div>
       </div>
 
       <motion.button
         ref={exitButtonRef}
         onClick={onExit}
-        className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted hover:text-foreground p-2 z-10 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded-lg"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        className="absolute top-5 right-5 p-2 rounded-lg transition-colors"
+        style={{ color: 'rgba(255,255,255,0.5)' }}
+        whileHover={{ color: 'rgba(255,255,255,1)' }}
         aria-label="Exit ambient mode (Escape)"
       >
         <Minimize2 className="w-5 h-5" />
