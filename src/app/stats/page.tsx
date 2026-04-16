@@ -6,7 +6,6 @@ import DailyChart from '@/components/stats/DailyChart'
 import StreakDisplay from '@/components/stats/StreakDisplay'
 import LevelBadge from '@/components/stats/LevelBadge'
 import WeeklySummary from '@/components/stats/WeeklySummary'
-import ScrollReveal from '@/components/ui/ScrollReveal'
 
 export default function StatsPage() {
   const { last7DaysFocus, last7DaysTasks, streaks, level, totalFocusMinutes, weeklySummary } = useStats()
@@ -26,55 +25,43 @@ export default function StatsPage() {
   return (
     <div>
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
+        className="mb-8"
       >
-        <h1 className="text-2xl font-bold">Stats</h1>
-        <p className="text-sm text-muted mt-0.5">Track your progress and growth</p>
+        <h1 className="display-xl text-[44px] sm:text-[56px]">Stats<span style={{ color: 'var(--color-accent)' }}>.</span></h1>
+        <p className="text-sm text-muted mt-1">Signal, not guilt.</p>
       </motion.div>
 
-      <div className="space-y-4">
-        <ScrollReveal delay={0}>
-          <LevelBadge
-            level={level.level}
-            title={level.title}
-            progress={level.progress}
-            totalMinutes={totalFocusMinutes}
-            nextLevelMinutes={level.nextLevelMinutes}
-          />
-        </ScrollReveal>
+      <LevelBadge
+        level={level.level}
+        title={level.title}
+        progress={level.progress}
+        totalMinutes={totalFocusMinutes}
+        nextLevelMinutes={level.nextLevelMinutes}
+      />
 
-        <ScrollReveal delay={0.1}>
-          <WeeklySummary
-            totalTasks={weeklySummary.totalTasks}
-            totalMinutes={weeklySummary.totalMinutes}
-            activeDays={weeklySummary.activeDays}
-          />
-        </ScrollReveal>
+      <StreakDisplay current={streaks.current} longest={streaks.longest} />
 
-        <ScrollReveal delay={0.2}>
-          <StreakDisplay current={streaks.current} longest={streaks.longest} />
-        </ScrollReveal>
+      <WeeklySummary
+        totalTasks={weeklySummary.totalTasks}
+        totalMinutes={weeklySummary.totalMinutes}
+        activeDays={weeklySummary.activeDays}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ScrollReveal delay={0.3}>
-            <DailyChart
-              data={focusChartData}
-              label="Focus Time (7 days)"
-              color="var(--color-accent)"
-              unit="m"
-            />
-          </ScrollReveal>
-          <ScrollReveal delay={0.4}>
-            <DailyChart
-              data={tasksChartData}
-              label="Tasks Completed (7 days)"
-              color="var(--color-success)"
-              unit=""
-            />
-          </ScrollReveal>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 border-t border-border">
+        <DailyChart
+          data={focusChartData}
+          label="Focus · 7 days"
+          color="var(--color-accent)"
+          unit="m"
+        />
+        <DailyChart
+          data={tasksChartData}
+          label="Tasks · 7 days"
+          color="var(--color-foreground)"
+          unit=""
+        />
       </div>
     </div>
   )

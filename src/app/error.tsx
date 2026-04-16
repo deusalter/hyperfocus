@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, RotateCcw, Home } from 'lucide-react'
+import { RotateCcw, Home } from 'lucide-react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 
@@ -19,46 +19,43 @@ export default function Error({
 
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
+      className="flex flex-col items-start justify-center min-h-[60vh] max-w-md"
       role="alert"
       aria-live="assertive"
     >
-      <motion.div
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', bounce: 0.4, duration: 0.8 }}
-        className="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mb-6"
-      >
-        <AlertTriangle className="w-10 h-10 text-warning drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
-      </motion.div>
-
-      <motion.h1
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-2xl font-bold mb-2"
-      >
-        Something went wrong
-      </motion.h1>
-
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-sm text-muted mb-8 max-w-xs"
+        className="text-[11px] font-mono uppercase tracking-[0.14em] text-danger mb-3"
       >
-        Don&apos;t worry — your data is safe. Try refreshing or head back to the dashboard.
+        Error
+      </motion.p>
+      <motion.h1
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="display-xl text-[44px] sm:text-[56px] leading-none"
+      >
+        Something broke.
+      </motion.h1>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="text-sm text-muted mt-4 mb-8"
+      >
+        Your data is safe. Try again, or head back.
       </motion.p>
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.3 }}
         className="flex gap-3"
       >
         <Button variant="secondary" onClick={reset}>
           <RotateCcw className="w-4 h-4" />
-          Try Again
+          Try again
         </Button>
         <Link href="/">
           <Button>
