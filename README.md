@@ -1,150 +1,88 @@
 # Hyperfocus
 
-A productivity app designed **by someone with ADHD, for someone with ADHD**. Zero friction, dopamine-friendly, and beautiful.
+A productivity app for ADHD brains — built by one.
 
-Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, and Framer Motion.
+Most task apps punish you. Miss a day and the streak dies, the red numbers pile up, the UI nags. Hyperfocus goes the other way: capture without friction, focus without ceremony, and if you miss a day, nothing breaks. It's meant to be opened when your brain is already full, not when you're in an "I'm going to get organized" mood.
 
-## Features
+## What it does
 
-### Dashboard
-- Time-based greeting (Good morning / afternoon / evening / night)
-- Quick stats: tasks completed today, focus time, current streak
-- **Quick Capture** — type a thought and press Enter. Zero friction task entry.
-- Today's task overview with energy level badges
+**Capture.** One input on the dashboard. Type what's in your head, press Enter, it's saved. No categorization, no priority dropdown, no modal. The bar at the top of the app is the fastest path from thought to saved.
 
-### Task Management
-- **Quick capture** with single-input task entry
-- Categories: Today, Tomorrow, This Week, Someday
-- Energy level tags (Low / Medium / High) with color-coded borders
-- **Brain Dump mode** — fullscreen text area to dump all thoughts, then convert to tasks
-- Animated checkboxes with sparkle particles on completion
-- Swipe-to-delete on mobile, hover actions on desktop
-- Move tasks between categories with one tap
-- Undo delete with toast notification
+**Focus.** A timer that respects you being on it. Pick a preset (15 / 25 / 45 / 60), optionally pin a task to the session, and go. The ring doesn't strobe at you. Once a minute, it sends a single soft pulse outward — a heartbeat, not a notification. Press the expand icon and the whole screen goes black with just the remaining time in it. That's ambient mode.
 
-### Focus Timer
-- Beautiful circular progress timer with SVG ring and tick marks
-- Presets: 15, 25, 45, and 60 minutes
-- Start / Pause / Resume / Stop controls
-- Link a task to your focus session
-- **Ambient Mode** — fullscreen minimal timer with animated gradient background
-- Break reminders with 5-minute break timer
-- Session completion celebration with particle animation
-- Focus session history with completion status
+**Triage.** When you're ready to sort, the Tasks page has four buckets: Today, Tomorrow, This Week, Someday. Tasks get an optional energy tag (low / medium / high) so you can match them to what you've got. Swipe left to delete (mobile), drag right to the next bucket, or use the keyboard — Delete removes the focused task, → moves it.
 
-### Stats & Streaks
-- Daily focus time bar chart (last 7 days)
-- Daily tasks completed bar chart (last 7 days)
-- Current streak and longest streak with animated counters
-- **Level system** based on total focus hours (Beginner → Transcendent, 9 levels)
-- Weekly summary with tasks, focus time, and active days
+**Brain dump.** When your head is loud, open the brain dump modal and type every thought on its own line. Hit convert. They all become tasks. No editing ceremony — you can always polish them later, or just mark them done.
 
-### Settings
-- Dark / Light theme toggle with animated switch
-- Sound effects toggle
-- Default focus duration selector (15 / 25 / 30 / 45 / 60 min)
-- Data reset with confirmation dialog
-
-### Accessibility
-- Skip-to-content link for keyboard navigation
-- ARIA roles, labels, and live regions throughout
-- Focus trap in modals with Escape key to close
-- `aria-pressed` on toggle buttons, `aria-checked` on checkboxes
-- Screen reader data table in charts
-- Keyboard task management (Delete to remove, Arrow keys to move)
-- Respects `prefers-reduced-motion` — all decorative animations disabled
-- Global focus-visible ring for keyboard users
-
-### Other
-- PWA-ready (installable on desktop/mobile)
-- Keyboard shortcuts: `N` = New Task, `T` = Timer, `D` = Dashboard, `S` = Stats
-- Toast notifications with undo support
-- Skeleton loading screens for every page
-- Custom 404 page and error boundary
-- Smooth page transitions with AnimatePresence
-- Mobile-responsive with bottom navigation bar
-- Glassmorphism design with noise texture overlays
-- All data stored in localStorage (no backend needed)
-
-## Tech Stack
-
-| Technology | Purpose |
-|---|---|
-| **Next.js 16** | React framework with App Router |
-| **React 19** | UI library with compiler |
-| **TypeScript 5** | Type safety |
-| **Tailwind CSS 4** | Utility-first styling |
-| **Framer Motion** | Animations, gestures, and transitions |
-| **Lucide React** | Icon library |
-| **date-fns** | Date manipulation |
-| **localStorage** | Client-side data persistence |
+**Signal, not guilt.** The Stats page shows your level (nine tiers, based on lifetime focus minutes), current and longest streaks, and the last seven days as two small bar charts. There's no weekly goal, no "you missed Tuesday" callout. Just the numbers.
 
 ## Design
 
-- Dark mode by default with light mode support
-- Electric purple accent color (#8b5cf6)
-- Glassmorphism cards with backdrop blur and noise texture
-- Smooth 60fps animations throughout
-- Satisfying micro-interactions: ripple buttons, sparkle checkboxes, spring-animated numbers
-- Responsive: mobile-first with bottom nav, desktop sidebar
+Editorial-dark. Ink-black background (`#07070a`), off-white type, a single electric lime accent (`#c5f82a`) that appears only where it matters: active navigation, the timer ring, the focus indicator, a period at the end of the page title. No purple gradients, no glassmorphism, no layered cards. Surfaces are flat, separated by 1px hairlines.
 
-## Getting Started
+Typography is Geist for UI, Instrument Serif italic for display numerals and page titles, and Geist Mono for eyebrows and kbd hints.
+
+Motion is quiet on purpose. The greeting text scrambles in once, stat numbers roll digit-by-digit like an odometer, page transitions are a left-to-right clip-path reveal, and completed sessions exit with a single expanding ring. All of it degrades cleanly when you've got `prefers-reduced-motion` on.
+
+## Getting started
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
-
-# Build for production
-npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+Then open http://localhost:3000. Data is stored in `localStorage` — there's no backend, no account, no sync. That's on purpose: the app works offline, nothing leaves your device, and there's no login friction.
 
-## Project Structure
+## Tech
 
-```
-src/
-├── app/              # Next.js App Router pages & global styles
-│   ├── page.tsx      # Dashboard
-│   ├── focus/        # Focus timer
-│   ├── tasks/        # Task management
-│   ├── stats/        # Statistics & streaks
-│   ├── settings/     # App settings
-│   ├── globals.css   # CSS variables, glass utilities, animations
-│   ├── error.tsx     # Error boundary
-│   └── not-found.tsx # 404 page
-├── components/       # React components organized by feature
-│   ├── layout/       # AppShell, Sidebar, MobileNav
-│   ├── dashboard/    # Greeting, QuickStats, QuickCapture, TodayTasks
-│   ├── tasks/        # AddTask, TaskList, TaskItem, CategoryTabs, BrainDump
-│   ├── focus/        # TimerDisplay, TimerControls, TimerPresets, AmbientMode, SessionComplete, SessionHistory
-│   ├── stats/        # DailyChart, StreakDisplay, LevelBadge, WeeklySummary
-│   └── ui/           # Button, Card, AnimatedCheckbox, AnimatedNumber, Toast, ScrollReveal, Skeleton
-├── hooks/            # Custom hooks (useTasks, useTimer, useStats, useLocalStorage, useKeyboardShortcuts)
-└── lib/              # TypeScript types & utility functions
-```
+Built on Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS 4, and Framer Motion 12. Icons are Lucide. Dates are `date-fns`. It's PWA-installable on desktop and mobile.
 
-## Keyboard Shortcuts
+## Keyboard
 
-| Key | Action |
+| Key | What it does |
 |---|---|
-| `D` | Go to Dashboard |
-| `N` | Go to Tasks (and focus input) |
-| `T` | Go to Focus Timer |
-| `S` | Go to Stats |
-| `Delete` | Delete focused task |
-| `→` | Move focused task to next category |
+| `D` | Dashboard |
+| `N` | Tasks (focuses the add input) |
+| `T` | Focus timer |
+| `S` | Stats |
+| `Enter` | Save the task in the capture bar |
+| `Delete` | Remove the focused task |
+| `→` | Move the focused task to the next bucket |
 | `Esc` | Close modals and ambient mode |
+
+## Accessibility
+
+The app is built to be usable with just a keyboard. Every interactive element has an accessible name, the skip link works, toggles expose `aria-pressed`/`aria-checked`, charts include an `sr-only` data table, and modals trap focus with Escape to close. Decorative motion is disabled under `prefers-reduced-motion`.
 
 ## Philosophy
 
-This app follows ADHD-friendly design principles:
+Four rules the app follows:
 
-- **Zero friction** — Every interaction requires minimum executive function
-- **Dopamine-friendly** — Satisfying animations, progress indicators, streaks, and celebrations
-- **Not overwhelming** — Clean UI, minimal choices, progressive disclosure
-- **Flexible** — No rigid systems that create guilt. Missed a day? No punishment.
-- **Beautiful** — Polished, premium UI that makes you want to open it
+- **Zero friction.** The fastest thing should be the most common thing. Capture is one keystroke away on every page.
+- **Dopamine-friendly, not dopamine-overloading.** Satisfying micro-moments (the odometer roll, the pulse at session end) — but no sparkle storms, no confetti cannons.
+- **Not overwhelming.** Flat surfaces, generous whitespace, one accent color, progressive disclosure. If a setting isn't earning its keep, it's not there.
+- **No punishment.** Miss a day and your streak resets, but nothing gets angry at you about it. The rest of the app looks identical.
+
+## Project shape
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── page.tsx            # Dashboard
+│   ├── tasks/, focus/, stats/, settings/
+│   ├── globals.css         # Tokens, surfaces, motion
+│   ├── error.tsx, not-found.tsx
+│   └── layout.tsx
+├── components/
+│   ├── layout/             # AppShell, Sidebar, MobileNav
+│   ├── dashboard/          # Greeting, QuickStats, QuickCapture, TodayTasks
+│   ├── tasks/              # AddTask, TaskList, TaskItem, CategoryTabs, BrainDump
+│   ├── focus/              # TimerDisplay, TimerControls, Presets, Ambient, Complete, History
+│   ├── stats/              # DailyChart, StreakDisplay, LevelBadge, WeeklySummary
+│   └── ui/                 # Button, Card, Checkbox, Odometer, Toast, Skeleton
+├── hooks/                  # useTasks, useTimer, useStats, useLocalStorage,
+│                           # useKeyboardShortcuts, useScrambleText
+└── lib/                    # types, utils
+```
+
+The design system lives entirely in `src/app/globals.css` — tokens up top, surface primitives in the middle, motion at the bottom. Reskinning is a CSS edit, not a component rewrite.

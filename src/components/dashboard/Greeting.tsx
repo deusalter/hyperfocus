@@ -11,10 +11,14 @@ export default function Greeting() {
   const [date, setDate] = useState('')
   const [mounted, setMounted] = useState(false)
 
+  // Date/time depend on the client clock, so they're resolved after mount
+  // to avoid SSR hydration mismatches.
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setGreeting(getGreeting())
     setDate(format(new Date(), 'EEEE, MMMM d'))
     setMounted(true)
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [])
 
   const scrambled = useScrambleText(mounted ? greeting : '', 520, [mounted])
