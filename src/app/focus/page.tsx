@@ -91,6 +91,7 @@ export default function FocusPage() {
               progress={progress}
               isRunning={isRunning}
               isBreak={isBreak}
+              duration={duration}
             />
 
             {!isRunning && !isPaused && incompleteTasks.length > 0 && (

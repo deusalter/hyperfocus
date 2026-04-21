@@ -9,9 +9,10 @@ interface TimerDisplayProps {
   progress: number
   isRunning: boolean
   isBreak: boolean
+  duration: number
 }
 
-export default function TimerDisplay({ remaining, progress, isRunning, isBreak }: TimerDisplayProps) {
+export default function TimerDisplay({ remaining, progress, isRunning, isBreak, duration }: TimerDisplayProps) {
   const viewBoxSize = 280
   const strokeWidth = 2
   const radius = (viewBoxSize - strokeWidth) / 2 - 8
@@ -122,12 +123,22 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak }
           <span className="sr-only" aria-live="polite">
             {formatDuration(remaining)} remaining. {isBreak ? 'Break time' : isRunning ? 'Focusing' : 'Ready'}
           </span>
-          <span
-            className="display-xl text-[60px] sm:text-[76px] tabular-nums"
-            aria-hidden="true"
-          >
-            {formatDuration(remaining)}
-          </span>
+          {/* Keyed on `duration` so the slide-swap only fires on preset change,
+              not on every per-second tick of `remaining`. */}
+          <div className="relative h-[68px] sm:h-[86px] overflow-hidden flex items-center justify-center" aria-hidden="true">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={duration}
+                initial={{ y: '40%', opacity: 0, filter: 'blur(6px)' }}
+                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                exit={{ y: '-40%', opacity: 0, filter: 'blur(6px)' }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                className="display-xl text-[60px] sm:text-[76px] tabular-nums leading-none"
+              >
+                {formatDuration(remaining)}
+              </motion.span>
+            </AnimatePresence>
+          </div>
           <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-muted mt-2" aria-hidden="true">
             {isBreak ? 'Break' : isRunning ? 'Focusing' : 'Ready'}
           </span>
