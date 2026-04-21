@@ -40,13 +40,24 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
+// Runs before React hydrates. Reads the persisted theme from localStorage and
+// applies it to <html data-theme> so the CSS tokens resolve correctly on the
+// very first paint. Without this the server always sends data-theme="dark";
+// if localStorage said "light" the user had to toggle twice to switch — first
+// click re-aligned state to the (wrong) visible attr, second click finally
+// disagreed. suppressHydrationWarning tells React this attr diff is intentional.
+const themeSyncScript = `(function(){try{var s=localStorage.getItem('hyperfocus-settings');if(s){var t=JSON.parse(s).theme;if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}}catch(e){}})();`
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeSyncScript }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased`}>
         <ToastProvider>
           <AppShell>{children}</AppShell>

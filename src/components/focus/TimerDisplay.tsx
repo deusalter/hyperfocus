@@ -55,19 +55,23 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak, 
             </linearGradient>
           </defs>
 
-          {/* Tick marks */}
+          {/* Tick marks — coords rounded to 3 decimals so SSR and CSR serialize
+              identical strings. Without rounding, JS float→string differs between
+              Node and V8 (e.g. 89.157919615525 vs 89.15791961552499), which makes
+              React bail on hydration. */}
           {Array.from({ length: 60 }).map((_, i) => {
             const angle = (i * 6 * Math.PI) / 180
             const isMajor = i % 5 === 0
             const innerR = radius - (isMajor ? 10 : 6)
             const outerR = radius - 2
+            const r = (n: number) => n.toFixed(3)
             return (
               <line
                 key={i}
-                x1={viewBoxSize / 2 + innerR * Math.cos(angle)}
-                y1={viewBoxSize / 2 + innerR * Math.sin(angle)}
-                x2={viewBoxSize / 2 + outerR * Math.cos(angle)}
-                y2={viewBoxSize / 2 + outerR * Math.sin(angle)}
+                x1={r(viewBoxSize / 2 + innerR * Math.cos(angle))}
+                y1={r(viewBoxSize / 2 + innerR * Math.sin(angle))}
+                x2={r(viewBoxSize / 2 + outerR * Math.cos(angle))}
+                y2={r(viewBoxSize / 2 + outerR * Math.sin(angle))}
                 stroke="var(--color-border-hover)"
                 strokeWidth={isMajor ? 1 : 0.5}
                 opacity={isMajor ? 0.5 : 0.2}
