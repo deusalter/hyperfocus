@@ -124,16 +124,18 @@ export default function TimerDisplay({ remaining, progress, isRunning, isBreak, 
             {formatDuration(remaining)} remaining. {isBreak ? 'Break time' : isRunning ? 'Focusing' : 'Ready'}
           </span>
           {/* Keyed on `duration` so the slide-swap only fires on preset change,
-              not on every per-second tick of `remaining`. */}
-          <div className="relative h-[68px] sm:h-[86px] overflow-hidden flex items-center justify-center" aria-hidden="true">
+              not on every per-second tick of `remaining`. No overflow clipping —
+              mode="wait" ensures only one element exists at a time, so the blur
+              halo can expand freely without revealing a cutoff box edge. */}
+          <div className="relative h-[68px] sm:h-[86px] flex items-center justify-center" aria-hidden="true">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
                 key={duration}
-                initial={{ y: '40%', opacity: 0, filter: 'blur(6px)' }}
+                initial={{ y: 14, opacity: 0, filter: 'blur(6px)' }}
                 animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                exit={{ y: '-40%', opacity: 0, filter: 'blur(6px)' }}
+                exit={{ y: -14, opacity: 0, filter: 'blur(6px)' }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="display-xl text-[60px] sm:text-[76px] tabular-nums leading-none"
+                className="display-xl text-[60px] sm:text-[76px] tabular-nums leading-none absolute"
               >
                 {formatDuration(remaining)}
               </motion.span>

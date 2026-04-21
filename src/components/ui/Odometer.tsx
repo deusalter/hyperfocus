@@ -11,23 +11,32 @@ interface OdometerProps {
 
 /**
  * Digit-stack odometer — each digit is a vertical column that slides to its target.
- * Used for stat numbers and streak counts.
+ *
+ * Baseline trick: an invisible "0" inside the column establishes natural font metrics
+ * (width, height, baseline). The animated digit stack is absolutely positioned over it.
+ * When `animate y` is `-${digit}em`, the target digit lands exactly where the invisible
+ * anchor sits — so baselines and widths match the surrounding text at any font size,
+ * regardless of glyph-specific quirks like the serif "1" sitting high in its em-box.
  */
 function DigitColumn({ digit }: { digit: number }) {
   return (
     <span
-      className="inline-block relative overflow-hidden tabular-nums"
-      style={{ height: '1em', width: '0.62em', verticalAlign: 'baseline' }}
+      className="inline-block relative overflow-hidden tabular-nums align-baseline"
+      style={{ lineHeight: 1 }}
       aria-hidden="true"
     >
+      {/* Invisible anchor — sets width, height, and baseline from the real font */}
+      <span className="invisible" aria-hidden="true">0</span>
+
       <motion.span
-        className="absolute left-0 right-0 top-0 flex flex-col"
+        className="absolute inset-x-0 top-0 flex flex-col"
+        style={{ lineHeight: 1 }}
         initial={false}
         animate={{ y: `-${digit}em` }}
         transition={{ type: 'spring', stiffness: 260, damping: 28, mass: 0.9 }}
       >
         {Array.from({ length: 10 }).map((_, i) => (
-          <span key={i} style={{ height: '1em', lineHeight: '1em' }}>
+          <span key={i} style={{ height: '1em', lineHeight: 1 }}>
             {i}
           </span>
         ))}
