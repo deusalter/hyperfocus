@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-@theme inline {
+/* Dark-mode defaults — declared as CSS vars so [data-theme="light"] can override at runtime.
+   @theme (NOT @theme inline) makes Tailwind utilities reference var(--color-*) instead of
+   inlining values at build time — this is what lets the whole UI repaint on theme switch. */
+@theme {
   --color-background: #07070a;
   --color-foreground: #f4f4f5;
   --color-muted: #6b6b75;
@@ -39,22 +42,39 @@
   --ease-snap: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* Light mode — warm off-white, same lime */
+/* Light mode — warm paper, softened charcoal, moss-green accent.
+   Lime (#c5f82a) is engineered for dark backgrounds; on cream it reads as neon highlighter.
+   #6f9415 is the same hue family, dark enough to carry ~5:1 contrast against paper. */
 [data-theme="light"] {
-  --color-background: #fafaf7;
-  --color-foreground: #0e0e13;
-  --color-muted: #6b6b75;
-  --color-muted-strong: #4a4a55;
-  --color-surface: rgba(0, 0, 0, 0.025);
-  --color-surface-hover: rgba(0, 0, 0, 0.05);
-  --color-surface-elevated: rgba(0, 0, 0, 0.035);
-  --color-border: rgba(0, 0, 0, 0.09);
-  --color-border-hover: rgba(0, 0, 0, 0.18);
-  --color-border-subtle: rgba(0, 0, 0, 0.05);
-  --color-accent-glow: rgba(159, 206, 30, 0.18);
-  --color-success-glow: rgba(34, 139, 90, 0.12);
-  --color-warning-glow: rgba(200, 140, 20, 0.12);
-  --color-danger-glow: rgba(180, 40, 40, 0.12);
+  --color-background: #f4f1e8;
+  --color-foreground: #1e1e22;
+  --color-muted: #767074;
+  --color-muted-strong: #4a4850;
+
+  --color-surface: #eeeadf;
+  --color-surface-hover: #e7e2d4;
+  --color-surface-elevated: #f0ecde;
+
+  --color-border: rgba(30, 25, 18, 0.12);
+  --color-border-hover: rgba(30, 25, 18, 0.22);
+  --color-border-subtle: rgba(30, 25, 18, 0.06);
+
+  --color-accent: #6f9415;
+  --color-accent-light: #85b01a;
+  --color-accent-dark: #587810;
+  --color-accent-ink: #ffffff;
+  --color-accent-glow: rgba(111, 148, 21, 0.14);
+
+  --color-success: #3a8457;
+  --color-success-glow: rgba(58, 132, 87, 0.10);
+  --color-warning: #b7801c;
+  --color-warning-glow: rgba(183, 128, 28, 0.10);
+  --color-danger: #b43a3a;
+  --color-danger-glow: rgba(180, 58, 58, 0.10);
+
+  --color-energy-low: #2b83a6;
+  --color-energy-medium: #b7801c;
+  --color-energy-high: #b43a3a;
 }
 
 * {
@@ -142,6 +162,10 @@ body {
 .ambient-gradient {
   background: radial-gradient(ellipse 80% 50% at 50% 0%, var(--color-accent-glow) 0%, transparent 70%);
   opacity: 0.6;
+}
+/* Light mode: dim the wash further — on cream a bright tint reads as a dirty stain. */
+[data-theme="light"] .ambient-gradient {
+  opacity: 0.35;
 }
 
 /* ---------- Selection + focus ---------- */
