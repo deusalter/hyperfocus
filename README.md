@@ -1,88 +1,56 @@
 # Hyperfocus
 
-A productivity app for ADHD brains — built by one.
+A mobile productivity app for ADHD brains — built by one.
 
-Most task apps punish you. Miss a day and the streak dies, the red numbers pile up, the UI nags. Hyperfocus goes the other way: capture without friction, focus without ceremony, and if you miss a day, nothing breaks. It's meant to be opened when your brain is already full, not when you're in an "I'm going to get organized" mood.
+Most task apps punish you. Miss a day and the streak dies, the red numbers pile up, the UI nags. Hyperfocus goes the other way: capture without friction, focus without ceremony, and if you miss a day, nothing breaks. The central mechanic is **shadow-self racing** — you race your own past performance in real time. Last Tuesday-you started a session at 9:04am and hit 2h 15m of focus. This Tuesday-you is at 45m. That pressure is the point.
 
-## What it does
+## Stack
 
-**Capture.** One input on the dashboard. Type what's in your head, press Enter, it's saved. No categorization, no priority dropdown, no modal. The bar at the top of the app is the fastest path from thought to saved.
+React Native · Expo · Expo Router · NativeWind · React Native Reanimated · React Native SVG · AsyncStorage
 
-**Focus.** A timer that respects you being on it. Pick a preset (15 / 25 / 45 / 60), optionally pin a task to the session, and go. The ring doesn't strobe at you. Once a minute, it sends a single soft pulse outward — a heartbeat, not a notification. Press the expand icon and the whole screen goes black with just the remaining time in it. That's ambient mode.
-
-**Triage.** When you're ready to sort, the Tasks page has four buckets: Today, Tomorrow, This Week, Someday. Tasks get an optional energy tag (low / medium / high) so you can match them to what you've got. Swipe left to delete (mobile), drag right to the next bucket, or use the keyboard — Delete removes the focused task, → moves it.
-
-**Brain dump.** When your head is loud, open the brain dump modal and type every thought on its own line. Hit convert. They all become tasks. No editing ceremony — you can always polish them later, or just mark them done.
-
-**Signal, not guilt.** The Stats page shows your level (nine tiers, based on lifetime focus minutes), current and longest streaks, and the last seven days as two small bar charts. There's no weekly goal, no "you missed Tuesday" callout. Just the numbers.
-
-## Design
-
-Editorial-dark. Ink-black background (`#07070a`), off-white type, a single electric lime accent (`#c5f82a`) that appears only where it matters: active navigation, the timer ring, the focus indicator, a period at the end of the page title. No purple gradients, no glassmorphism, no layered cards. Surfaces are flat, separated by 1px hairlines.
-
-Typography is Geist for UI, Instrument Serif italic for display numerals and page titles, and Geist Mono for eyebrows and kbd hints.
-
-Motion is quiet on purpose. The greeting text scrambles in once, stat numbers roll digit-by-digit like an odometer, page transitions are a left-to-right clip-path reveal, and completed sessions exit with a single expanding ring. All of it degrades cleanly when you've got `prefers-reduced-motion` on.
+The repo used to be a Next.js web app (see git history before the pivot commit). It was rebuilt on Expo because ADHD tools need to be on your phone, with you, not at a desktop. Shadow-self with lock-screen widgets and background focus timers only works native.
 
 ## Getting started
 
 ```bash
-npm install
-npm run dev
+npm install --legacy-peer-deps
+npx expo start
 ```
 
-Then open http://localhost:3000. Data is stored in `localStorage` — there's no backend, no account, no sync. That's on purpose: the app works offline, nothing leaves your device, and there's no login friction.
-
-## Tech
-
-Built on Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS 4, and Framer Motion 12. Icons are Lucide. Dates are `date-fns`. It's PWA-installable on desktop and mobile.
-
-## Keyboard
-
-| Key | What it does |
-|---|---|
-| `D` | Dashboard |
-| `N` | Tasks (focuses the add input) |
-| `T` | Focus timer |
-| `S` | Stats |
-| `Enter` | Save the task in the capture bar |
-| `Delete` | Remove the focused task |
-| `→` | Move the focused task to the next bucket |
-| `Esc` | Close modals and ambient mode |
-
-## Accessibility
-
-The app is built to be usable with just a keyboard. Every interactive element has an accessible name, the skip link works, toggles expose `aria-pressed`/`aria-checked`, charts include an `sr-only` data table, and modals trap focus with Escape to close. Decorative motion is disabled under `prefers-reduced-motion`.
-
-## Philosophy
-
-Four rules the app follows:
-
-- **Zero friction.** The fastest thing should be the most common thing. Capture is one keystroke away on every page.
-- **Dopamine-friendly, not dopamine-overloading.** Satisfying micro-moments (the odometer roll, the pulse at session end) — but no sparkle storms, no confetti cannons.
-- **Not overwhelming.** Flat surfaces, generous whitespace, one accent color, progressive disclosure. If a setting isn't earning its keep, it's not there.
-- **No punishment.** Miss a day and your streak resets, but nothing gets angry at you about it. The rest of the app looks identical.
+Press `i` to open the iOS Simulator, `a` for Android, or scan the QR code with the Expo Go app on a real device.
 
 ## Project shape
 
 ```
+app/                     # Expo Router screens (file-based routing)
+├── _layout.tsx          # Root stack: SafeAreaProvider, GestureHandler, StatusBar
+└── (tabs)/
+    ├── _layout.tsx      # Bottom tabs: Today / Tasks / Focus / Settings
+    ├── index.tsx        # Today (dashboard, shadow-self live race)
+    ├── tasks.tsx        # Task triage
+    ├── focus.tsx        # Timer
+    └── settings.tsx     # Preferences + BYOK later
+
 src/
-├── app/                    # Next.js App Router pages
-│   ├── page.tsx            # Dashboard
-│   ├── tasks/, focus/, stats/, settings/
-│   ├── globals.css         # Tokens, surfaces, motion
-│   ├── error.tsx, not-found.tsx
-│   └── layout.tsx
-├── components/
-│   ├── layout/             # AppShell, Sidebar, MobileNav
-│   ├── dashboard/          # Greeting, QuickStats, QuickCapture, TodayTasks
-│   ├── tasks/              # AddTask, TaskList, TaskItem, CategoryTabs, BrainDump
-│   ├── focus/              # TimerDisplay, TimerControls, Presets, Ambient, Complete, History
-│   ├── stats/              # DailyChart, StreakDisplay, LevelBadge, WeeklySummary
-│   └── ui/                 # Button, Card, Checkbox, Odometer, Toast, Skeleton
-├── hooks/                  # useTasks, useTimer, useStats, useLocalStorage,
-│                           # useKeyboardShortcuts, useScrambleText
-└── lib/                    # types, utils
+├── lib/                 # Types + pure utility functions
+└── hooks/               # useTasks, useTimer, useStats, useLocalStorage, useScrambleText
+
+global.css               # NativeWind entry (tailwind directives)
+tailwind.config.js       # Color tokens + font families
+app.json                 # Expo config
 ```
 
-The design system lives entirely in `src/app/globals.css` — tokens up top, surface primitives in the middle, motion at the bottom. Reskinning is a CSS edit, not a component rewrite.
+## Design
+
+Editorial-dark. Ink-black background (`#07070a`), off-white type, a single electric lime accent (`#c5f82a`). Light mode swaps to warm paper cream with a moss-green accent for legibility. Instrument Serif italic for display numerals; Geist for UI. Motion is quiet — digit-stack odometers for stats, single-pulse completion rings. All of it degrades cleanly under "Reduce Motion."
+
+## Philosophy
+
+- **Zero friction.** Capture is one keystroke away on every screen.
+- **Not overwhelming.** Flat surfaces, hairline borders, one accent, progressive disclosure.
+- **No punishment.** Miss a day and nothing gets angry at you.
+- **Race, don't score.** Shadow-self > streak counter. Competition beats monotonic progress bars for ADHD brains specifically.
+
+## Status
+
+Scaffold + data layer ported. UI rebuild in progress — placeholder tab screens for now. Shadow-self racing and AI-assisted task breakdown coming next.

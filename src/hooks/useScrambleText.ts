@@ -1,12 +1,12 @@
-'use client'
-
 import { useEffect, useState, useRef } from 'react'
+import { AccessibilityInfo } from 'react-native'
 
 const GLYPHS = '!@#$%^&*<>/\\|{}[]?+=-_~'
 
 /**
  * Scrambles characters in a string then resolves to the target over `duration` ms.
- * Each character reveals in left-to-right order. Respects prefers-reduced-motion.
+ * Each character reveals in left-to-right order. Respects the OS-level
+ * "Reduce Motion" setting via AccessibilityInfo (was window.matchMedia on web).
  */
 export function useScrambleText(target: string, duration = 480, deps: unknown[] = []) {
   const [output, setOutput] = useState(target)
@@ -18,39 +18,48 @@ export function useScrambleText(target: string, duration = 480, deps: unknown[] 
       return
     }
 
-    const reduced = typeof window !== 'undefined'
-      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    if (reduced) {
-      setOutput(target)
-      return
-    }
+    let cancelled = false
 
-    const start = performance.now()
-    const total = target.length
+    const run = async () => {
+      const reduced = await AccessibilityInfo.isReduceMotionEnabled().catch(() => false)
+      if (cancelled) return
+      if (reduced) {
+        setOutput(target)
+        return
+      }
 
-    const tick = (now: number) => {
-      const elapsed = now - start
-      const progress = Math.min(elapsed / duration, 1)
-      const revealCount = Math.floor(progress * total)
-      let next = ''
-      for (let i = 0; i < total; i++) {
-        const ch = target[i]
-        if (i < revealCount || ch === ' ') {
-          next += ch
+      const start = performance.now()
+      const total = target.length
+
+      const tick = (now: number) => {
+        if (cancelled) return
+        const elapsed = now - start
+        const progress = Math.min(elapsed / duration, 1)
+        const revealCount = Math.floor(progress * total)
+        let next = ''
+        for (let i = 0; i < total; i++) {
+          const ch = target[i]
+          if (i < revealCount || ch === ' ') {
+            next += ch
+          } else {
+            next += GLYPHS[Math.floor(Math.random() * GLYPHS.length)]
+          }
+        }
+        setOutput(next)
+        if (progress < 1) {
+          frameRef.current = requestAnimationFrame(tick)
         } else {
-          next += GLYPHS[Math.floor(Math.random() * GLYPHS.length)]
+          setOutput(target)
         }
       }
-      setOutput(next)
-      if (progress < 1) {
-        frameRef.current = requestAnimationFrame(tick)
-      } else {
-        setOutput(target)
-      }
+
+      frameRef.current = requestAnimationFrame(tick)
     }
 
-    frameRef.current = requestAnimationFrame(tick)
+    run()
+
     return () => {
+      cancelled = true
       if (frameRef.current != null) cancelAnimationFrame(frameRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

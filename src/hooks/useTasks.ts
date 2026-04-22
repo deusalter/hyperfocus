@@ -1,5 +1,3 @@
-'use client'
-
 import { useCallback, useMemo } from 'react'
 import { useLocalStorage } from './useLocalStorage'
 import { Task, TaskCategory, EnergyLevel } from '@/lib/types'

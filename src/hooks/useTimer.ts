@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useLocalStorage } from './useLocalStorage'
 import { FocusSession } from '@/lib/types'
@@ -26,7 +24,7 @@ export function useTimer() {
   })
   const [isComplete, setIsComplete] = useState(false)
   const [isBreak, setIsBreak] = useState(false)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {

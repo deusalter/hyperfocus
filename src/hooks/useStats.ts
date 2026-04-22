@@ -1,5 +1,3 @@
-'use client'
-
 import { useMemo } from 'react'
 import { useLocalStorage } from './useLocalStorage'
 import { FocusSession, Task } from '@/lib/types'
