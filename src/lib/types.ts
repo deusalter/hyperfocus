@@ -1,46 +1,54 @@
-export type TaskCategory = 'today' | 'tomorrow' | 'week' | 'someday'
-export type EnergyLevel = 'low' | 'medium' | 'high'
-export type TaskType = 'deep' | 'admin' | 'creative'
-export type TaskWeight = 'S' | 'M' | 'L'
+import { Cat } from './theme'
+
+export type Bucket = 'inbox' | 'today' | 'later'
 
 export interface Task {
   id: string
   title: string
-  category: TaskCategory
-  completed: boolean
-  completedAt?: string
-  createdAt: string
-  energyLevel?: EnergyLevel
-  timeEstimate?: number
-  order: number
-  // v2 additions — optional during migration, defaulted on any read that needs them
-  type?: TaskType
-  weight?: TaskWeight
+  /** unset while sitting in the inbox — assigned at triage */
+  cat?: Cat
+  bucket: Bucket
+  /** tiny first step to beat initiation paralysis */
+  firstStep?: string
+  /** YYYY-MM-DD — puts the task on the calendar + debrief */
   due?: string
+  /** external sync source, e.g. 'canvas' */
+  source?: string
+  course?: string
+  createdAt: string
 }
 
-export interface FocusSession {
+/**
+ * The permanent record — one entry per finished task or focus session.
+ * Everything historical (day points, streaks, insights, the yesterday
+ * baseline the race runs against) derives from this log.
+ */
+export interface Completion {
   id: string
-  taskId?: string
-  taskTitle?: string
-  duration: number
-  actualDuration: number
+  title: string
+  cat: Cat
+  points: number
+  /** focused minutes attached to this completion (0 = checked off directly) */
+  minutes: number
   completedAt: string
-  completed: boolean
 }
 
 export interface Settings {
-  theme: 'dark' | 'light'
-  defaultFocusDuration: number
-  soundEnabled: boolean
+  name: string
+  /** default focus length in minutes */
+  focusLen: number
+  /** gentle mode — hide streak pressure entirely */
+  gentle: boolean
+  reminders: boolean
+  sounds: boolean
+  onboarded: boolean
 }
 
-// Computed per-day summary used by shadow-self racing.
-export interface DaySummary {
-  dateISO: string             // YYYY-MM-DD
-  dayOfWeek: number           // 0 (Sun) - 6 (Sat)
-  focusSeconds: number
-  tasksCompleted: number
-  score: number               // weighted score (deep/creative/admin multipliers)
-  sessionStarts: { startISO: string; durationSec: number }[]
+export const DEFAULT_SETTINGS: Settings = {
+  name: '',
+  focusLen: 25,
+  gentle: false,
+  reminders: true,
+  sounds: false,
+  onboarded: false,
 }
