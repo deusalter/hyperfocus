@@ -1,7 +1,8 @@
 import '../global.css'
 
 import { useEffect } from 'react'
-import { Stack, useRouter, useSegments } from 'expo-router'
+import { View, Text, Pressable } from 'react-native'
+import { Stack, useRouter, useSegments, type ErrorBoundaryProps } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -23,6 +24,58 @@ import { palette } from '@/lib/theme'
 
 SplashScreen.preventAutoHideAsync().catch(() => {})
 
+/** Friendly crash screen — shown by expo-router if anything below throws. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: palette.background,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 32,
+      }}
+    >
+      <Text style={{ fontSize: 40 }}>🫧</Text>
+      <Text
+        style={{
+          color: palette.ink,
+          fontSize: 20,
+          fontWeight: '800',
+          marginTop: 12,
+          textAlign: 'center',
+        }}
+      >
+        Something hiccuped
+      </Text>
+      <Text
+        style={{
+          color: palette.muted,
+          fontSize: 13,
+          marginTop: 8,
+          textAlign: 'center',
+          lineHeight: 19,
+        }}
+      >
+        Your tasks and points are safe on this device.{'\n'}
+        {error.message}
+      </Text>
+      <Pressable
+        onPress={retry}
+        style={{
+          marginTop: 20,
+          backgroundColor: palette.accent,
+          borderRadius: 14,
+          paddingVertical: 13,
+          paddingHorizontal: 28,
+        }}
+      >
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Try again</Text>
+      </Pressable>
+    </View>
+  )
+}
+
 function OnboardingGate() {
   const { hydrated, settings } = useApp()
   const segments = useSegments()
@@ -36,6 +89,23 @@ function OnboardingGate() {
     }
   }, [hydrated, settings.onboarded, segments, router])
 
+  // cover the UI until storage has hydrated — prevents a one-frame flash of
+  // the home screen before a first-run redirect to onboarding
+  if (!hydrated) {
+    return (
+      <View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: palette.background,
+          zIndex: 100,
+        }}
+      />
+    )
+  }
   return null
 }
 
@@ -61,7 +131,6 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <AppProvider>
           <StatusBar style="dark" />
-          <OnboardingGate />
           <Stack
             screenOptions={{
               headerShown: false,
@@ -76,6 +145,8 @@ export default function RootLayout() {
             <Stack.Screen name="focus" options={{ gestureEnabled: false, animation: 'fade' }} />
             <Stack.Screen name="recap" options={{ gestureEnabled: false, animation: 'fade' }} />
           </Stack>
+          {/* after the Stack so the hydration cover paints on top */}
+          <OnboardingGate />
         </AppProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
