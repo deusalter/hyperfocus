@@ -4,7 +4,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   ReactNode,
 } from 'react'
@@ -71,7 +70,6 @@ interface Store {
   bars: WeekBar[]
 
   focus: FocusSession | null
-  focusRemaining: number
   focusTask: Task | null
   lastRecap: Recap | null
 
@@ -161,8 +159,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<Completion[]>([])
   const [focus, setFocus] = useState<FocusSession | null>(null)
   const [lastRecap, setLastRecap] = useState<Recap | null>(null)
-  // ticks once a second while focusing so remaining-time renders stay live
-  const [, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -313,13 +309,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ---- focus session ----
 
-  // intentionally recomputed every render — the 1 Hz tick below drives it
-  const focusRemaining = !focus
-    ? 0
-    : focus.running
-      ? Math.max(0, Math.round((focus.endsAt - Date.now()) / 1000))
-      : focus.pausedRemaining
-
   const startFocus = useCallback(
     (taskId: string) => {
       const totalSec = settings.focusLen * 60
@@ -378,18 +367,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const abandonFocus = useCallback(() => setFocus(null), [])
 
-  // 1 Hz heartbeat while a session runs — auto-completes at zero
-  const finishRef = useRef(finishFocus)
-  finishRef.current = finishFocus
-  useEffect(() => {
-    if (!focus?.running) return
-    const iv = setInterval(() => {
-      setTick((n) => n + 1)
-      if (Date.now() >= focus.endsAt) finishRef.current()
-    }, 1000)
-    return () => clearInterval(iv)
-  }, [focus])
-
   const resetAll = useCallback(() => {
     AsyncStorage.multiRemove([...Object.values(KEYS), ...Object.values(V1)]).catch(() => {})
     setTasks([])
@@ -431,34 +408,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [focus, tasks]
   )
 
-  const value: Store = {
-    hydrated,
-    settings,
-    tasks,
-    history,
-    inbox,
-    today,
-    later,
-    ...derived,
-    focus,
-    focusRemaining,
-    focusTask,
-    lastRecap,
-    addToInbox,
-    removeTask,
-    triageAssign,
-    cycleCat,
-    promoteToToday,
-    completeTask,
-    setFirstStep,
-    setDue,
-    startFocus,
-    toggleFocusRun,
-    finishFocus,
-    abandonFocus,
-    updateSettings,
-    resetAll,
-  }
+  // memoized so consumers only re-render when state actually changes
+  const value: Store = useMemo(
+    () => ({
+      hydrated,
+      settings,
+      tasks,
+      history,
+      inbox,
+      today,
+      later,
+      ...derived,
+      focus,
+      focusTask,
+      lastRecap,
+      addToInbox,
+      removeTask,
+      triageAssign,
+      cycleCat,
+      promoteToToday,
+      completeTask,
+      setFirstStep,
+      setDue,
+      startFocus,
+      toggleFocusRun,
+      finishFocus,
+      abandonFocus,
+      updateSettings,
+      resetAll,
+    }),
+    [
+      hydrated,
+      settings,
+      tasks,
+      history,
+      inbox,
+      today,
+      later,
+      derived,
+      focus,
+      focusTask,
+      lastRecap,
+      addToInbox,
+      removeTask,
+      triageAssign,
+      cycleCat,
+      promoteToToday,
+      completeTask,
+      setFirstStep,
+      setDue,
+      startFocus,
+      toggleFocusRun,
+      finishFocus,
+      abandonFocus,
+      updateSettings,
+      resetAll,
+    ]
+  )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }

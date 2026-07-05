@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { View, Text, TextInput, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useKeepAwake } from 'expo-keep-awake'
 import Svg, { Circle } from 'react-native-svg'
 import Animated, {
   useAnimatedProps,
@@ -21,10 +22,10 @@ const CIRCUMFERENCE = 2 * Math.PI * R
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
 
 export default function FocusScreen() {
+  useKeepAwake() // a focus session shouldn't die to auto-lock
   const router = useRouter()
   const {
     focus,
-    focusRemaining,
     focusTask,
     lastRecap,
     toggleFocusRun,
@@ -35,12 +36,32 @@ export default function FocusScreen() {
   const [stepDraft, setStepDraft] = useState('')
   const [showStepInput, setShowStepInput] = useState(false)
 
+  // this screen owns the clock — the rest of the app never re-renders per tick
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!focus?.running) return
+    setNow(Date.now()) // re-sync immediately on start/resume
+    const iv = setInterval(() => setNow(Date.now()), 500)
+    return () => clearInterval(iv)
+  }, [focus?.running])
+
+  const focusRemaining = !focus
+    ? 0
+    : focus.running
+      ? Math.max(0, Math.round((focus.endsAt - now) / 1000))
+      : focus.pausedRemaining
+
+  // wall clock hit zero → complete the session
+  useEffect(() => {
+    if (focus?.running && focusRemaining === 0) finishFocus()
+  }, [focus?.running, focusRemaining, finishFocus])
+
   const progress = useSharedValue(0)
 
   useEffect(() => {
     if (!focus) return
     const p = (focus.totalSec - focusRemaining) / focus.totalSec
-    progress.value = withTiming(p, { duration: 900, easing: Easing.linear })
+    progress.value = withTiming(p, { duration: 600, easing: Easing.linear })
   }, [focus, focusRemaining, progress])
 
   const ringProps = useAnimatedProps(() => ({
