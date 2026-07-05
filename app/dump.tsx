@@ -77,9 +77,9 @@ export default function DumpScreen() {
             {inbox.map((item) => (
               <Animated.View
                 key={item.id}
-                entering={FadeIn.duration(200)}
-                exiting={FadeOut.duration(150)}
-                layout={LinearTransition.springify().damping(18)}
+                entering={FadeIn.duration(140)}
+                exiting={FadeOut.duration(120)}
+                layout={LinearTransition.duration(160)}
                 className="bg-surface border border-soft flex-row items-center"
                 style={{ borderRadius: 12, paddingHorizontal: 13, paddingVertical: 11, gap: 11 }}
               >

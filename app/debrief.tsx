@@ -71,9 +71,9 @@ export default function DebriefScreen() {
               {overdue.map((item) => (
                 <Animated.View
                   key={item.id}
-                  entering={FadeIn.duration(200)}
-                  exiting={FadeOut.duration(180)}
-                  layout={LinearTransition.springify().damping(18)}
+                  entering={FadeIn.duration(160)}
+                  exiting={FadeOut.duration(140)}
+                  layout={LinearTransition.duration(180)}
                   className="bg-surface border border-soft"
                   style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 13 }}
                 >

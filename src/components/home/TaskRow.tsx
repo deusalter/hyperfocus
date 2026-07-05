@@ -45,9 +45,9 @@ function TaskRow({ task }: { task: Task }) {
 
   return (
     <Animated.View
-      entering={FadeIn.duration(200)}
-      exiting={FadeOut.duration(160)}
-      layout={LinearTransition.springify().damping(18)}
+      entering={FadeIn.duration(160)}
+      exiting={FadeOut.duration(140)}
+      layout={LinearTransition.duration(180)}
       className="bg-surface border border-soft"
       style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 11 }}
     >
