@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import Svg, { Path } from 'react-native-svg'
-import CatTag from '@/components/CatTag'
+import CatPicker from '@/components/CatPicker'
 import PressableScale from '@/components/ui/PressableScale'
 import { Task } from '@/lib/types'
 import { useApp } from '@/store/AppStore'
@@ -20,7 +20,7 @@ const CHECK_DELAY_MS = 320
 
 /** One task on the Home Today list: check-off circle, title, Focus pill, cat cycling. */
 function TaskRow({ task }: { task: Task }) {
-  const { completeTask, cycleCat, startFocus } = useApp()
+  const { completeTask, setCat, startFocus } = useApp()
   const router = useRouter()
   const [checking, setChecking] = useState(false)
 
@@ -98,11 +98,8 @@ function TaskRow({ task }: { task: Task }) {
           <Text className="font-hk700 text-white text-[11.5px]">Focus</Text>
         </PressableScale>
       </View>
-      <View className="flex-row items-center mt-2" style={{ gap: 8, paddingLeft: 34 }}>
-        <Pressable onPress={() => cycleCat(task.id)} hitSlop={6}>
-          <CatTag cat={task.cat ?? 'sprint'} />
-        </Pressable>
-        <Text className="font-hk400 text-muted text-[10px]">tap to recategorize</Text>
+      <View className="flex-row items-center mt-2" style={{ paddingLeft: 34 }}>
+        <CatPicker value={task.cat ?? 'sprint'} onChange={(cat) => setCat(task.id, cat)} />
       </View>
     </Animated.View>
   )

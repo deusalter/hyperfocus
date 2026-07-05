@@ -9,7 +9,7 @@ import {
 } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Haptics from 'expo-haptics'
-import { Cat, CAT_ORDER } from '@/lib/theme'
+import { Cat } from '@/lib/theme'
 import { Completion, DEFAULT_SETTINGS, Settings, Task } from '@/lib/types'
 import {
   DayTotals,
@@ -76,7 +76,7 @@ interface Store {
   addToInbox: (title: string) => void
   removeTask: (id: string) => void
   triageAssign: (id: string, bucket: 'today' | 'later' | 'drop') => void
-  cycleCat: (id: string) => void
+  setCat: (id: string, cat: Cat) => void
   promoteToToday: (id: string) => void
   completeTask: (id: string) => void
   setFirstStep: (id: string, step: string) => void
@@ -253,15 +253,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [patchTasks, removeTask]
   )
 
-  const cycleCat = useCallback(
-    (id: string) => {
-      patchTasks((prev) =>
-        prev.map((t) => {
-          if (t.id !== id) return t
-          const idx = CAT_ORDER.indexOf(t.cat ?? 'sprint')
-          return { ...t, cat: CAT_ORDER[(idx + 1) % CAT_ORDER.length] }
-        })
-      )
+  const setCat = useCallback(
+    (id: string, cat: Cat) => {
+      patchTasks((prev) => prev.map((t) => (t.id === id ? { ...t, cat } : t)))
     },
     [patchTasks]
   )
@@ -425,7 +419,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addToInbox,
       removeTask,
       triageAssign,
-      cycleCat,
+      setCat,
       promoteToToday,
       completeTask,
       setFirstStep,
@@ -452,7 +446,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addToInbox,
       removeTask,
       triageAssign,
-      cycleCat,
+      setCat,
       promoteToToday,
       completeTask,
       setFirstStep,
