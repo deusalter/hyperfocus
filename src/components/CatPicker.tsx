@@ -89,7 +89,7 @@ export default function CatPicker({
       {/* keyed on value so a fresh pick lands with a small pop */}
       <Animated.View
         key={value}
-        entering={ZoomIn.springify().damping(15).stiffness(260)}
+        entering={ZoomIn.duration(160)}
         className="flex-row items-center rounded-[9px]"
         style={{
           paddingHorizontal: 9,

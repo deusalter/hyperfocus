@@ -6,9 +6,9 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated'
+import { EASE_OUT } from '@/lib/motion'
 import * as Haptics from 'expo-haptics'
 import Sprite from '@/components/Sprite'
 import Confetti from '@/components/Confetti'
@@ -31,7 +31,7 @@ function AheadBadge() {
   const style = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }))
   return (
     <Animated.View
-      entering={ZoomIn.springify().damping(13)}
+      entering={ZoomIn.duration(200)}
       className="bg-accent rounded-full"
       style={[{ paddingHorizontal: 10, paddingVertical: 4 }, style]}
     >
@@ -54,9 +54,9 @@ export default function RaceCard() {
   const x = useSharedValue(0)
   useEffect(() => {
     if (trackW > 0) {
-      x.value = withSpring((raceLeftPct / 100) * trackW - SPRITE_W / 2, {
-        damping: 16,
-        stiffness: 90,
+      x.value = withTiming((raceLeftPct / 100) * trackW - SPRITE_W / 2, {
+        duration: 550,
+        easing: EASE_OUT,
       })
     }
   }, [raceLeftPct, trackW, x])

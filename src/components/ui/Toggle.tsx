@@ -3,10 +3,10 @@ import Animated, {
   interpolateColor,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated'
 import { palette } from '@/lib/theme'
+import { SNAP } from '@/lib/motion'
 
 /** The design's 46×27 pill toggle with a springy knob. Wrap in a Pressable row. */
 export default function Toggle({ on }: { on: boolean }) {
@@ -19,7 +19,7 @@ export default function Toggle({ on }: { on: boolean }) {
     backgroundColor: interpolateColor(t.value, [0, 1], [palette.soft, palette.accent]),
   }))
   const knob = useAnimatedStyle(() => ({
-    transform: [{ translateX: withSpring(on ? 19 : 0, { damping: 18, stiffness: 260 }) }],
+    transform: [{ translateX: withTiming(on ? 19 : 0, SNAP) }],
   }))
 
   return (

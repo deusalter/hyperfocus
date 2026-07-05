@@ -3,9 +3,10 @@ import { Pressable, PressableProps, ViewStyle } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
 import * as Haptics from 'expo-haptics'
+import { SNAP, TAP } from '@/lib/motion'
 
 interface Props extends Omit<PressableProps, 'style'> {
   children: ReactNode
@@ -33,11 +34,11 @@ export default function PressableScale({
   return (
     <Pressable
       onPressIn={(e) => {
-        scale.value = withSpring(scaleTo, { damping: 20, stiffness: 400 })
+        scale.value = withTiming(scaleTo, TAP)
         onPressIn?.(e)
       }}
       onPressOut={(e) => {
-        scale.value = withSpring(1, { damping: 16, stiffness: 300 })
+        scale.value = withTiming(1, SNAP)
         onPressOut?.(e)
       }}
       onPress={(e) => {

@@ -68,7 +68,7 @@ export default function RecapScreen() {
           SESSION COMPLETE
         </Animated.Text>
 
-        <Animated.View entering={ZoomIn.springify().damping(12).delay(80)} className="mt-2.5">
+        <Animated.View entering={ZoomIn.duration(260).delay(80)} className="mt-2.5">
           <Sprite pose="cheer" level={Math.max(level, 1)} />
         </Animated.View>
 

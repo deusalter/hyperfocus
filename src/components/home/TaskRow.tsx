@@ -6,8 +6,9 @@ import Animated, {
   LinearTransition,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
+import { SNAP } from '@/lib/motion'
 import { useRouter } from 'expo-router'
 import Svg, { Path } from 'react-native-svg'
 import CatPicker from '@/components/CatPicker'
@@ -39,7 +40,7 @@ function TaskRow({ task }: { task: Task }) {
   const onCheck = () => {
     if (checking) return
     setChecking(true)
-    fill.value = withSpring(1, { damping: 14, stiffness: 320 })
+    fill.value = withTiming(1, SNAP)
     setTimeout(() => completeTask(task.id), CHECK_DELAY_MS)
   }
 

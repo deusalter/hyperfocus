@@ -59,7 +59,8 @@ export default function TriageScreen() {
           runOnJS(decide)('later')
         })
       } else {
-        dx.value = withSpring(0, { damping: 16, stiffness: 220 })
+        // settle back without wobble
+        dx.value = withSpring(0, { damping: 28, stiffness: 260 })
       }
     })
 

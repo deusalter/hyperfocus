@@ -8,8 +8,9 @@ import * as Haptics from 'expo-haptics'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
+import { GLIDE } from '@/lib/motion'
 import Svg, { Path, Rect, Circle } from 'react-native-svg'
 import { palette, hexA } from '@/lib/theme'
 import PressableScale from '@/components/ui/PressableScale'
@@ -65,15 +66,12 @@ function BarContent({
 }: Pick<BottomTabBarProps, 'state' | 'navigation'> & { barW: number }) {
   const tabW = barW > 0 ? (barW - H_PAD * 2 - FAB_GAP) / 4 : 0
 
-  // the "lens" that glides under the active tab
+  // the "lens" that glides under the active tab — smooth, no bounce
   const lensX = useSharedValue(0)
   useEffect(() => {
     if (tabW <= 0) return
     const i = state.index
-    lensX.value = withSpring(H_PAD + i * tabW + (i >= 2 ? FAB_GAP : 0), {
-      damping: 17,
-      stiffness: 210,
-    })
+    lensX.value = withTiming(H_PAD + i * tabW + (i >= 2 ? FAB_GAP : 0), GLIDE)
   }, [state.index, tabW, lensX])
   const lensStyle = useAnimatedStyle(() => ({ transform: [{ translateX: lensX.value }] }))
 
