@@ -1,12 +1,21 @@
-import { View, Text, Pressable } from 'react-native'
+import { useEffect, useState } from 'react'
+import { View, Text, Pressable, Platform } from 'react-native'
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { BlurView } from 'expo-blur'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated'
 import Svg, { Path, Rect, Circle } from 'react-native-svg'
-import { palette } from '@/lib/theme'
+import { palette, hexA } from '@/lib/theme'
 import PressableScale from '@/components/ui/PressableScale'
+
+const H_PAD = 14
+const FAB_GAP = 60
 
 function TabGlyph({ name, color }: { name: string; color: string }) {
   const stroke = { stroke: color, strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' }
@@ -48,9 +57,25 @@ const LABELS: Record<string, string> = {
   you: 'You',
 }
 
-export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
-  const insets = useSafeAreaInsets()
-  const router = useRouter()
+/** Row content shared by the iOS blur path and the Android solid path. */
+function BarContent({
+  state,
+  navigation,
+  barW,
+}: Pick<BottomTabBarProps, 'state' | 'navigation'> & { barW: number }) {
+  const tabW = barW > 0 ? (barW - H_PAD * 2 - FAB_GAP) / 4 : 0
+
+  // the "lens" that glides under the active tab
+  const lensX = useSharedValue(0)
+  useEffect(() => {
+    if (tabW <= 0) return
+    const i = state.index
+    lensX.value = withSpring(H_PAD + i * tabW + (i >= 2 ? FAB_GAP : 0), {
+      damping: 17,
+      stiffness: 210,
+    })
+  }, [state.index, tabW, lensX])
+  const lensStyle = useAnimatedStyle(() => ({ transform: [{ translateX: lensX.value }] }))
 
   const renderTab = (routeName: string, routeKey: string, index: number) => {
     const focused = state.index === index
@@ -65,7 +90,7 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
           }
         }}
         className="flex-1 items-center"
-        style={{ gap: 3 }}
+        style={{ gap: 3, paddingVertical: 9 }}
         accessibilityRole="tab"
         accessibilityState={{ selected: focused }}
         accessibilityLabel={LABELS[routeName]}
@@ -81,6 +106,39 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const [home, calendar, insights, you] = state.routes
 
   return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: H_PAD }}>
+      {tabW > 0 && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            {
+              position: 'absolute',
+              top: 6,
+              bottom: 6,
+              left: 0,
+              width: tabW,
+              borderRadius: 18,
+              backgroundColor: hexA(palette.accent, 0.1),
+            },
+            lensStyle,
+          ]}
+        />
+      )}
+      {renderTab(home.name, home.key, 0)}
+      {renderTab(calendar.name, calendar.key, 1)}
+      <View style={{ width: FAB_GAP }} />
+      {renderTab(insights.name, insights.key, 2)}
+      {renderTab(you.name, you.key, 3)}
+    </View>
+  )
+}
+
+export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets()
+  const router = useRouter()
+  const [barW, setBarW] = useState(0)
+
+  return (
     <View
       pointerEvents="box-none"
       style={{
@@ -91,6 +149,7 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
       }}
     >
       <View
+        onLayout={(e) => setBarW(e.nativeEvent.layout.width)}
         style={{
           borderRadius: 28,
           borderWidth: 1,
@@ -104,24 +163,20 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
         }}
       >
         <View style={{ borderRadius: 27, overflow: 'hidden' }}>
-          <BlurView
-            intensity={40}
-            tint="light"
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 9,
-              paddingHorizontal: 14,
-              backgroundColor: 'rgba(255,255,255,0.55)',
-            }}
-          >
-            {renderTab(home.name, home.key, 0)}
-            {renderTab(calendar.name, calendar.key, 1)}
-            {/* spacer under the floating FAB */}
-            <View style={{ width: 60 }} />
-            {renderTab(insights.name, insights.key, 2)}
-            {renderTab(you.name, you.key, 3)}
-          </BlurView>
+          {Platform.OS === 'ios' ? (
+            <BlurView
+              intensity={40}
+              tint="light"
+              style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}
+            >
+              <BarContent state={state} navigation={navigation} barW={barW} />
+            </BlurView>
+          ) : (
+            // Android: blur is unreliable — near-opaque glass reads the same
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.94)' }}>
+              <BarContent state={state} navigation={navigation} barW={barW} />
+            </View>
+          )}
         </View>
 
         {/* capture FAB — floats above the glass */}

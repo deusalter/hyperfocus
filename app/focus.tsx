@@ -4,7 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useKeepAwake } from 'expo-keep-awake'
 import Svg, { Circle } from 'react-native-svg'
 import Animated, {
+  cancelAnimation,
   useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
   withTiming,
   Easing,
@@ -58,14 +60,28 @@ export default function FocusScreen() {
 
   const progress = useSharedValue(0)
 
+  // one continuous UI-thread animation for the whole session — perfectly
+  // smooth, zero JS involvement. Pause cancels; resume re-aims at 1.
   useEffect(() => {
     if (!focus) return
-    const p = (focus.totalSec - focusRemaining) / focus.totalSec
-    progress.value = withTiming(p, { duration: 600, easing: Easing.linear })
-  }, [focus, focusRemaining, progress])
+    if (focus.running) {
+      const remainingMs = Math.max(0, focus.endsAt - Date.now())
+      progress.value = 1 - remainingMs / (focus.totalSec * 1000)
+      progress.value = withTiming(1, { duration: remainingMs, easing: Easing.linear })
+    } else {
+      cancelAnimation(progress)
+      progress.value = 1 - focus.pausedRemaining / focus.totalSec
+    }
+    return () => cancelAnimation(progress)
+  }, [focus?.running, focus?.endsAt, focus?.totalSec, focus?.pausedRemaining, progress]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const ringProps = useAnimatedProps(() => ({
     strokeDashoffset: CIRCUMFERENCE * (1 - progress.value),
+  }))
+
+  // ring breathes down when paused
+  const ringDim = useAnimatedStyle(() => ({
+    opacity: withTiming(focus?.running ? 1 : 0.45, { duration: 300 }),
   }))
 
   // session ended (timer hit zero or finished elsewhere) → recap
@@ -144,7 +160,7 @@ export default function FocusScreen() {
         )}
 
         {/* progress ring */}
-        <View style={{ width: 212, height: 212, marginTop: 18 }}>
+        <Animated.View style={[{ width: 212, height: 212, marginTop: 18 }, ringDim]}>
           <Svg width={212} height={212} viewBox="0 0 212 212">
             <Circle cx={106} cy={106} r={R} fill="none" stroke={palette.soft} strokeWidth={13} />
             <AnimatedCircle
@@ -184,7 +200,7 @@ export default function FocusScreen() {
               {meta.label} · +{livePts} pts
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
         <View className="flex-row mt-auto w-full" style={{ gap: 10 }}>
           <PressableScale

@@ -11,6 +11,7 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
+import * as Haptics from 'expo-haptics'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
 import Sprite from '@/components/Sprite'
@@ -20,22 +21,33 @@ import { palette, hexA } from '@/lib/theme'
 const COMMIT_DX = 80
 const FLY_OUT = 420
 
+function thresholdBuzz() {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {})
+}
+
 export default function TriageScreen() {
   const { inbox, triageAssign, level } = useApp()
   const router = useRouter()
   const current = inbox[0]
+  const next = inbox[1]
 
   const dx = useSharedValue(0)
+  const crossed = useSharedValue(0)
 
   const decide = (bucket: 'today' | 'later') => {
     if (!current) return
     triageAssign(current.id, bucket)
     dx.value = 0
+    crossed.value = 0
   }
 
   const pan = Gesture.Pan()
     .onChange((e) => {
       dx.value += e.changeX
+      // haptic tick the instant the swipe becomes a commitment
+      const zone = dx.value > COMMIT_DX ? 1 : dx.value < -COMMIT_DX ? -1 : 0
+      if (zone !== 0 && zone !== crossed.value) runOnJS(thresholdBuzz)()
+      crossed.value = zone
     })
     .onEnd(() => {
       if (dx.value > COMMIT_DX) {
@@ -50,6 +62,15 @@ export default function TriageScreen() {
         dx.value = withSpring(0, { damping: 16, stiffness: 220 })
       }
     })
+
+  // the card behind rises into place as the front card leaves
+  const nextStyle = useAnimatedStyle(() => {
+    const commit = Math.min(1, Math.abs(dx.value) / (COMMIT_DX * 2))
+    return {
+      transform: [{ scale: 0.94 + 0.06 * commit }, { translateY: 10 - 10 * commit }],
+      opacity: 0.55 + 0.45 * commit,
+    }
+  })
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: dx.value }, { rotate: `${dx.value * 0.03}deg` }],
@@ -88,32 +109,63 @@ export default function TriageScreen() {
               </Animated.Text>
             </View>
 
-            <GestureDetector gesture={pan}>
-              <Animated.View
-                className="border border-soft items-center justify-center"
-                style={[
-                  {
-                    borderRadius: 22,
-                    paddingVertical: 30,
-                    paddingHorizontal: 24,
-                    minHeight: 140,
-                    shadowColor: '#000',
-                    shadowOpacity: 0.06,
-                    shadowRadius: 20,
-                    shadowOffset: { width: 0, height: 6 },
-                    elevation: 4,
-                  },
-                  cardStyle,
-                ]}
-              >
-                <Text
-                  className="font-hk600 text-ink text-center text-[20px]"
-                  style={{ lineHeight: 28 }}
+            <View>
+              {next && (
+                <Animated.View
+                  pointerEvents="none"
+                  className="bg-surface border border-soft items-center justify-center"
+                  style={[
+                    {
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      borderRadius: 22,
+                      paddingVertical: 30,
+                      paddingHorizontal: 24,
+                    },
+                    nextStyle,
+                  ]}
                 >
-                  {current.title}
-                </Text>
-              </Animated.View>
-            </GestureDetector>
+                  <Text
+                    className="font-hk600 text-muted text-center text-[20px]"
+                    style={{ lineHeight: 28 }}
+                    numberOfLines={2}
+                  >
+                    {next.title}
+                  </Text>
+                </Animated.View>
+              )}
+              <GestureDetector gesture={pan}>
+                <Animated.View
+                  key={current.id}
+                  entering={FadeIn.duration(140)}
+                  className="border border-soft items-center justify-center"
+                  style={[
+                    {
+                      borderRadius: 22,
+                      paddingVertical: 30,
+                      paddingHorizontal: 24,
+                      minHeight: 140,
+                      shadowColor: '#000',
+                      shadowOpacity: 0.06,
+                      shadowRadius: 20,
+                      shadowOffset: { width: 0, height: 6 },
+                      elevation: 4,
+                    },
+                    cardStyle,
+                  ]}
+                >
+                  <Text
+                    className="font-hk600 text-ink text-center text-[20px]"
+                    style={{ lineHeight: 28 }}
+                  >
+                    {current.title}
+                  </Text>
+                </Animated.View>
+              </GestureDetector>
+            </View>
 
             <View className="flex-row" style={{ gap: 9 }}>
               <PressableScale

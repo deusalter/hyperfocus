@@ -17,15 +17,20 @@ interface Piece {
   color: string
   duration: number
   delay: number
+  /** horizontal drift while falling, px */
+  drift: number
+  size: number
 }
 
 const PIECES: Piece[] = [
-  { left: '14%', color: palette.accent, duration: 1300, delay: 0 },
-  { left: '30%', color: palette.accent2, duration: 1500, delay: 250 },
-  { left: '46%', color: palette.accent, duration: 1200, delay: 400 },
-  { left: '62%', color: palette.accent2, duration: 1450, delay: 100 },
-  { left: '78%', color: palette.accent, duration: 1350, delay: 320 },
-  { left: '90%', color: palette.accent2, duration: 1250, delay: 180 },
+  { left: '8%', color: palette.accent, duration: 1300, delay: 0, drift: 14, size: 7 },
+  { left: '20%', color: palette.accent2, duration: 1500, delay: 250, drift: -10, size: 6 },
+  { left: '34%', color: palette.accent, duration: 1200, delay: 400, drift: 8, size: 8 },
+  { left: '47%', color: palette.accent2, duration: 1450, delay: 100, drift: -16, size: 7 },
+  { left: '60%', color: palette.accent, duration: 1350, delay: 320, drift: 12, size: 6 },
+  { left: '72%', color: palette.accent2, duration: 1250, delay: 180, drift: -8, size: 8 },
+  { left: '84%', color: palette.accent, duration: 1400, delay: 60, drift: 15, size: 7 },
+  { left: '93%', color: palette.accent2, duration: 1320, delay: 420, drift: -12, size: 6 },
 ]
 
 function ConfettiPiece({ piece, fall }: { piece: Piece; fall: number }) {
@@ -38,8 +43,12 @@ function ConfettiPiece({ piece, fall }: { piece: Piece; fall: number }) {
     return () => cancelAnimation(t)
   }, [t, piece])
   const style = useAnimatedStyle(() => ({
-    opacity: 1 - t.value,
-    transform: [{ translateY: fall * t.value }, { rotate: `${420 * t.value}deg` }],
+    opacity: 1 - t.value * t.value, // fade late, not linearly
+    transform: [
+      { translateY: fall * t.value },
+      { translateX: piece.drift * Math.sin(t.value * Math.PI) },
+      { rotate: `${420 * t.value}deg` },
+    ],
   }))
   return (
     <Animated.View
@@ -48,8 +57,8 @@ function ConfettiPiece({ piece, fall }: { piece: Piece; fall: number }) {
           position: 'absolute',
           top: -10,
           left: piece.left as any,
-          width: 7,
-          height: 12,
+          width: piece.size,
+          height: piece.size + 5,
           borderRadius: 1,
           backgroundColor: piece.color,
         },

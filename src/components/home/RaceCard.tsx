@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { View, Text } from 'react-native'
 import Animated, {
+  ZoomIn,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -8,10 +9,11 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
+import * as Haptics from 'expo-haptics'
 import Sprite from '@/components/Sprite'
 import Confetti from '@/components/Confetti'
 import { useApp } from '@/store/AppStore'
-import { palette } from '@/lib/theme'
+import { palette, hexA } from '@/lib/theme'
 import { levelForPoints } from '@/lib/points'
 
 const SPRITE_SCALE = 0.52
@@ -29,6 +31,7 @@ function AheadBadge() {
   const style = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }))
   return (
     <Animated.View
+      entering={ZoomIn.springify().damping(13)}
       className="bg-accent rounded-full"
       style={[{ paddingHorizontal: 10, paddingVertical: 4 }, style]}
     >
@@ -58,6 +61,24 @@ export default function RaceCard() {
     }
   }, [raceLeftPct, trackW, x])
   const runnerStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }))
+  // accent trail fills the track behind the runner
+  const trailStyle = useAnimatedStyle(() => ({
+    width: Math.max(0, x.value + SPRITE_W / 2),
+  }))
+
+  // level-up moment: cheer + haptic when today's points cross a level boundary
+  const [levelBurst, setLevelBurst] = useState(false)
+  const prevLevel = useRef(level)
+  useEffect(() => {
+    const prev = prevLevel.current
+    prevLevel.current = level
+    if (level > prev) {
+      setLevelBurst(true)
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+      const t = setTimeout(() => setLevelBurst(false), 2200)
+      return () => clearTimeout(t)
+    }
+  }, [level])
 
   const gap = Math.max(0, pastPts - todayTotals.points)
   const pastLevel = baseline ? levelForPoints(pastPts) : 0
@@ -105,6 +126,20 @@ export default function RaceCard() {
             backgroundColor: palette.soft,
           }}
         />
+        {/* trail the runner has covered */}
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              left: 0,
+              bottom: 20,
+              height: 4,
+              borderRadius: 3,
+              backgroundColor: hexA(palette.accent, 0.35),
+            },
+            trailStyle,
+          ]}
+        />
         {baseline && (
           <>
             {/* yesterday's finish line + ghost */}
@@ -148,7 +183,9 @@ export default function RaceCard() {
         {/* you */}
         <Animated.View style={[{ position: 'absolute', left: 0, top: 2 }, runnerStyle]}>
           <Sprite
-            pose={ahead ? 'cheer' : todayTotals.points > 0 ? 'run' : 'idle'}
+            pose={
+              ahead || levelBurst ? 'cheer' : todayTotals.points > 0 ? 'run' : 'idle'
+            }
             level={Math.max(level, ahead ? pastLevel : 0)}
             scale={SPRITE_SCALE}
           />
