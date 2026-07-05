@@ -65,7 +65,7 @@ export default function YouScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View entering={FadeInUp.duration(320)}>
+        <Animated.View entering={FadeInUp.duration(260)}>
           <Text className="font-hk800 text-ink text-[24px]" style={{ letterSpacing: -0.5 }}>
             You
           </Text>
@@ -73,7 +73,7 @@ export default function YouScreen() {
 
         {/* profile card */}
         <Animated.View
-          entering={FadeInUp.delay(60).duration(320)}
+          entering={FadeInUp.delay(40).duration(260)}
           className="bg-surface border border-soft items-center mt-4"
           style={{ borderRadius: 20, paddingVertical: 18, paddingHorizontal: 16 }}
         >
@@ -93,7 +93,7 @@ export default function YouScreen() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(120).duration(320)}>
+        <Animated.View entering={FadeInUp.delay(80).duration(260)}>
           <SectionLabel>FOCUS</SectionLabel>
           <View className="bg-surface border border-soft" style={{ borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14 }}>
             <Text className="font-hk700 text-ink text-[14px]">Default session length</Text>

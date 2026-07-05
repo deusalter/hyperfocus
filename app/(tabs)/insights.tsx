@@ -58,7 +58,7 @@ export default function InsightsScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View entering={FadeInUp.duration(320)}>
+        <Animated.View entering={FadeInUp.duration(260)}>
           <Text className="font-hk800 text-ink text-[24px]" style={{ letterSpacing: -0.5 }}>
             Insights
           </Text>
@@ -67,7 +67,7 @@ export default function InsightsScreen() {
 
         {/* companion card */}
         <Animated.View
-          entering={FadeInUp.delay(60).duration(320)}
+          entering={FadeInUp.delay(40).duration(260)}
           className="bg-surface border border-soft flex-row items-center mt-4"
           style={{ borderRadius: 20, padding: 16, gap: 8 }}
         >
@@ -87,7 +87,7 @@ export default function InsightsScreen() {
 
         {/* weekly chart */}
         <Animated.View
-          entering={FadeInUp.delay(120).duration(320)}
+          entering={FadeInUp.delay(80).duration(260)}
           className="bg-surface border border-soft mt-3"
           style={{ borderRadius: 20, padding: 16 }}
         >
@@ -156,7 +156,7 @@ export default function InsightsScreen() {
                       {bar.points}
                     </Text>
                     <Animated.View
-                      entering={FadeInUp.delay(160 + i * 45).duration(360)}
+                      entering={FadeInUp.delay(120 + i * 32).duration(300)}
                       style={{
                         width: '100%',
                         height: `${hPct}%`,
@@ -179,7 +179,7 @@ export default function InsightsScreen() {
         </Animated.View>
 
         {/* stat tiles */}
-        <Animated.View entering={FadeInUp.delay(180).duration(320)} className="flex-row mt-3" style={{ gap: 10 }}>
+        <Animated.View entering={FadeInUp.delay(120).duration(260)} className="flex-row mt-3" style={{ gap: 10 }}>
           <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 13 }}>
             <Text className="font-hk600 text-muted text-[11px]">SHOWING UP</Text>
             <View className="flex-row items-baseline mt-0.5" style={{ gap: 4 }}>
@@ -205,7 +205,7 @@ export default function InsightsScreen() {
 
         {/* insight note */}
         <Animated.View
-          entering={FadeInUp.delay(240).duration(320)}
+          entering={FadeInUp.delay(160).duration(260)}
           className="bg-accent-soft flex-row items-start mt-3"
           style={{ borderRadius: 16, paddingHorizontal: 16, paddingVertical: 15, gap: 12 }}
         >

@@ -69,7 +69,7 @@ export default function CalendarScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 130 }}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View entering={FadeInUp.duration(320)} className="flex-row justify-between items-start">
+        <Animated.View entering={FadeInUp.duration(260)} className="flex-row justify-between items-start">
           <View>
             <Text className="font-hk800 text-ink text-[24px]" style={{ letterSpacing: -0.5 }}>
               Calendar
@@ -91,7 +91,7 @@ export default function CalendarScreen() {
 
         {/* week strip */}
         <Animated.View
-          entering={FadeInUp.delay(60).duration(320)}
+          entering={FadeInUp.delay(40).duration(260)}
           className="bg-surface border border-soft flex-row justify-between mt-3.5"
           style={{ borderRadius: 18, paddingVertical: 12, paddingHorizontal: 6 }}
         >
@@ -147,7 +147,7 @@ export default function CalendarScreen() {
         </Animated.View>
 
         {/* selected day */}
-        <Animated.View entering={FadeInUp.delay(120).duration(320)}>
+        <Animated.View entering={FadeInUp.delay(80).duration(260)}>
           <View className="flex-row items-baseline mt-4.5" style={{ gap: 8, marginTop: 18 }}>
             <Text className="font-hk800 text-ink text-[16px]" style={{ letterSpacing: -0.3 }}>
               {format(selectedDate, 'EEEE')}
@@ -189,7 +189,7 @@ export default function CalendarScreen() {
         </Animated.View>
 
         {/* debrief link */}
-        <Animated.View entering={FadeInUp.delay(180).duration(320)}>
+        <Animated.View entering={FadeInUp.delay(120).duration(260)}>
           <PressableScale
             onPress={() => router.push('/debrief')}
             className="bg-accent-soft flex-row items-center mt-4.5"

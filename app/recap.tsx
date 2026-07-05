@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
@@ -8,11 +8,37 @@ import Confetti from '@/components/Confetti'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
 
+/** Counts 0 → target with an ease-out curve — makes the points feel earned. */
+function useCountUp(target: number, duration = 700, delay = 380) {
+  const [value, setValue] = useState(0)
+  useEffect(() => {
+    let raf: number
+    let start: number | null = null
+    const timer = setTimeout(() => {
+      const tick = (t: number) => {
+        if (start == null) start = t
+        const p = Math.min(1, (t - start) / duration)
+        setValue(Math.round(target * (1 - Math.pow(1 - p, 3))))
+        if (p < 1) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
+    }, delay)
+    return () => {
+      clearTimeout(timer)
+      cancelAnimationFrame(raf)
+    }
+  }, [target, duration, delay])
+  return value
+}
+
 export default function RecapScreen() {
   const router = useRouter()
   const { lastRecap, todayTotals, baseline, ahead, level } = useApp()
 
   const goHome = () => router.replace('/')
+
+  const sessionPts = useCountUp(lastRecap?.points ?? 0)
+  const momentumPts = useCountUp(todayTotals.points, 700, 500)
 
   // nothing to celebrate — bounce home
   useEffect(() => {
@@ -35,26 +61,26 @@ export default function RecapScreen() {
       {ahead && <Confetti fall={420} />}
       <View className="flex-1 items-center justify-center" style={{ padding: 20 }}>
         <Animated.Text
-          entering={FadeIn.duration(300)}
+          entering={FadeIn.duration(240)}
           className="font-hk800 text-accent text-[11px]"
           style={{ letterSpacing: 1.5 }}
         >
           SESSION COMPLETE
         </Animated.Text>
 
-        <Animated.View entering={ZoomIn.springify().damping(12).delay(120)} className="mt-2.5">
+        <Animated.View entering={ZoomIn.springify().damping(12).delay(80)} className="mt-2.5">
           <Sprite pose="cheer" level={Math.max(level, 1)} />
         </Animated.View>
 
         <Animated.Text
-          entering={FadeIn.delay(200).duration(300)}
+          entering={FadeIn.delay(140).duration(240)}
           className="font-hk800 text-ink text-[23px] mt-1"
           style={{ letterSpacing: -0.3 }}
         >
           {title}
         </Animated.Text>
         <Animated.Text
-          entering={FadeIn.delay(280).duration(300)}
+          entering={FadeIn.delay(190).duration(240)}
           className="font-hk400 text-muted text-center text-[13.5px] mt-2"
           style={{ maxWidth: 250, lineHeight: 20 }}
         >
@@ -62,25 +88,25 @@ export default function RecapScreen() {
         </Animated.Text>
 
         <Animated.View
-          entering={FadeIn.delay(360).duration(300)}
+          entering={FadeIn.delay(240).duration(240)}
           className="flex-row mt-5 w-full"
           style={{ gap: 10 }}
         >
           <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, padding: 14 }}>
             <Text className="font-mono text-accent text-[24px]" style={{ letterSpacing: -0.5 }}>
-              +{lastRecap.points}
+              +{sessionPts}
             </Text>
             <Text className="font-hk600 text-muted text-[11px]">PTS THIS SESSION</Text>
           </View>
           <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, padding: 14 }}>
             <Text className="font-mono text-ink text-[24px]" style={{ letterSpacing: -0.5 }}>
-              {todayTotals.points}
+              {momentumPts}
             </Text>
             <Text className="font-hk600 text-muted text-[11px]">MOMENTUM TODAY</Text>
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeIn.delay(440).duration(300)} className="w-full">
+        <Animated.View entering={FadeIn.delay(290).duration(240)} className="w-full">
           <PressableScale
             haptic
             onPress={goHome}

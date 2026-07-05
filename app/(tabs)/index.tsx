@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import Svg, { Path } from 'react-native-svg'
 import RaceCard from '@/components/home/RaceCard'
 import TaskRow from '@/components/home/TaskRow'
+import Sprite from '@/components/Sprite'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
 import { greeting, dayKey } from '@/lib/points'
@@ -83,7 +84,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* header */}
-        <Animated.View entering={FadeInUp.duration(320)} className="flex-row justify-between items-start">
+        <Animated.View entering={FadeInUp.duration(260)} className="flex-row justify-between items-start">
           <View>
             <Text className="font-hk500 text-muted text-[12px]">
               {format(new Date(), 'EEEE · MMMM d')}
@@ -104,12 +105,12 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* race card */}
-        <Animated.View entering={FadeInUp.delay(60).duration(320)} className="mt-3.5">
+        <Animated.View entering={FadeInUp.delay(40).duration(260)} className="mt-3.5">
           <RaceCard />
         </Animated.View>
 
         {/* stat tiles */}
-        <Animated.View entering={FadeInUp.delay(120).duration(320)} className="flex-row mt-3" style={{ gap: 10 }}>
+        <Animated.View entering={FadeInUp.delay(80).duration(260)} className="flex-row mt-3" style={{ gap: 10 }}>
           <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12 }}>
             <Text className="font-hk600 text-muted text-[11px]">MOMENTUM</Text>
             <View className="flex-row items-baseline mt-0.5" style={{ gap: 5 }}>
@@ -139,7 +140,7 @@ export default function HomeScreen() {
 
         {/* debrief banner */}
         {overdueCount > 0 && (
-          <Animated.View entering={FadeInUp.delay(160).duration(320)}>
+          <Animated.View entering={FadeInUp.delay(105).duration(260)}>
             <PressableScale
               onPress={() => router.push('/debrief')}
               className="bg-surface border border-soft flex-row items-center mt-3"
@@ -172,7 +173,7 @@ export default function HomeScreen() {
 
         {/* Today */}
         <Animated.View
-          entering={FadeInUp.delay(200).duration(320)}
+          entering={FadeInUp.delay(130).duration(260)}
           className="mt-5 flex-row justify-between items-center"
         >
           <Text className="font-hk800 text-ink text-[16px]" style={{ letterSpacing: -0.3 }}>
@@ -191,7 +192,7 @@ export default function HomeScreen() {
 
         {/* Start one thing */}
         {today.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(240).duration(320)}>
+          <Animated.View entering={FadeInUp.delay(155).duration(260)}>
             <PressableScale
               haptic
               onPress={() => {
@@ -244,7 +245,10 @@ export default function HomeScreen() {
             <TaskRow key={task.id} task={task} />
           ))}
           {today.length === 0 && (
-            <View className="items-center" style={{ paddingVertical: 22, paddingHorizontal: 10 }}>
+            <View className="items-center" style={{ paddingVertical: 16, paddingHorizontal: 10 }}>
+              {inbox.length === 0 && later.length === 0 && (
+                <Sprite pose="wave" level={2} scale={0.75} />
+              )}
               <Text className="font-hk400 text-muted text-[13px] text-center" style={{ lineHeight: 20 }}>
                 Nothing here yet.{'\n'}Tap + to brain-dump, then sort.
               </Text>
