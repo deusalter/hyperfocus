@@ -1,52 +1,16 @@
 import { Tabs } from 'expo-router'
-import { LayoutDashboard, CheckSquare, Timer, Settings } from 'lucide-react-native'
+import GlassTabBar from '@/components/GlassTabBar'
 
 export default function TabsLayout() {
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#c5f82a',
-        tabBarInactiveTintColor: '#6b6b75',
-        tabBarStyle: {
-          backgroundColor: '#07070a',
-          borderTopColor: '#1f1f28',
-          borderTopWidth: 1,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '500',
-        },
-      }}
+      tabBar={(props) => <GlassTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Today',
-          tabBarIcon: ({ color, size }) => <LayoutDashboard color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="tasks"
-        options={{
-          title: 'Tasks',
-          tabBarIcon: ({ color, size }) => <CheckSquare color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="focus"
-        options={{
-          title: 'Focus',
-          tabBarIcon: ({ color, size }) => <Timer color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: 'Home' }} />
+      <Tabs.Screen name="calendar" options={{ title: 'Calendar' }} />
+      <Tabs.Screen name="insights" options={{ title: 'Insights' }} />
+      <Tabs.Screen name="you" options={{ title: 'You' }} />
     </Tabs>
   )
 }
