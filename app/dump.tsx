@@ -87,7 +87,7 @@ export default function DumpScreen() {
                 <Text className="flex-1 font-hk500 text-ink text-[14px]" style={{ lineHeight: 18 }}>
                   {item.title}
                 </Text>
-                <Pressable onPress={() => removeTask(item.id)} hitSlop={8} accessibilityLabel="Remove">
+                <Pressable onPress={() => removeTask(item.id)} hitSlop={12} accessibilityLabel="Remove">
                   <Text className="text-muted" style={{ fontSize: 19, lineHeight: 20 }}>×</Text>
                 </Pressable>
               </Animated.View>

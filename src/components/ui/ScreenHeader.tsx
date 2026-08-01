@@ -20,7 +20,10 @@ export default function ScreenHeader({
       <View className="flex-row items-center" style={{ gap: 10 }}>
         <Pressable
           onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))}
-          hitSlop={12}
+          // the chevron glyph is only ~16pt wide — wider horizontal slop
+          // carries the tap target to 44pt without moving the title
+          hitSlop={{ top: 10, bottom: 10, left: 16, right: 16 }}
+          accessibilityRole="button"
           accessibilityLabel="Back"
         >
           <Text className="text-muted" style={{ fontSize: 26, lineHeight: 28, marginTop: -2 }}>

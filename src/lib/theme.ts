@@ -2,22 +2,37 @@
 // Mirrors tailwind.config.js — import these when a value is needed
 // programmatically (SVG strokes, animated styles, dot fills).
 
+/**
+ * Tuned so body text clears WCAG AA (4.5:1) while staying short of maximal
+ * contrast — pure black on pure white is a documented source of visual stress,
+ * so this is near-black ink on warm off-white rather than #000 on #fff.
+ */
 export const palette = {
   background: '#eef0f0',
   ink: '#1d2023',
   surface: '#ffffff',
-  muted: '#858c91',
+  muted: '#62686b', // was #858c91: 2.98:1 on background, an AA failure
   soft: '#e0e4e4',
-  accent: '#4f7aa6',
+  accent: '#456a90', // was #4f7aa6: white-on-accent landed at 4.4998:1
   accent2: '#d98a4f',
   accentSoft: '#dde8f1',
+  /** overdue / destructive — the vivid tone, for icons and tints only */
+  danger: '#cc5b3e',
+  /** same intent as text: the vivid one is 4.09:1 on surface, under AA */
+  dangerText: '#af4e35',
 } as const
 
 export type Cat = 'sprint' | 'fire' | 'grind'
 
 export interface CatMeta {
   label: string
+  /** vivid fill for icons and dots — non-text, so 3:1 is the bar */
   color: string
+  /**
+   * Darker sibling for the 11px chip label. The vivid fill sits at ~3.3:1 on
+   * its own 13% tint, which is fine for a glyph and fails for a word.
+   */
+  textColor: string
   /** points awarded for completing a task of this kind */
   base: number
   /** points per focused minute — grind rewards deep time */
@@ -29,6 +44,7 @@ export const CATS: Record<Cat, CatMeta> = {
   sprint: {
     label: 'Sprint',
     color: '#2f8f9c',
+    textColor: '#277580',
     base: 8,
     rate: 1,
     blurb: 'Quick wins, low activation energy',
@@ -36,6 +52,7 @@ export const CATS: Record<Cat, CatMeta> = {
   fire: {
     label: 'Fire',
     color: '#cc5b3e',
+    textColor: '#af4e35',
     base: 20,
     rate: 2,
     blurb: 'Urgent or overdue — clears the most',
@@ -43,6 +60,7 @@ export const CATS: Record<Cat, CatMeta> = {
   grind: {
     label: 'Grind',
     color: '#5a6f9c',
+    textColor: '#566b96',
     base: 14,
     rate: 3,
     blurb: 'Deep, effortful, long-haul',

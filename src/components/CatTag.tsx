@@ -40,7 +40,7 @@ export default function CatTag({
       {showLabel && (
         <Text
           className="font-hk800 text-[11px]"
-          style={{ color: meta.color, letterSpacing: 0.2 }}
+          style={{ color: meta.textColor, letterSpacing: 0.2 }}
         >
           {meta.label}
         </Text>

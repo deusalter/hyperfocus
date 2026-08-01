@@ -61,7 +61,7 @@ export default function OnboardingScreen() {
       >
         <View className="flex-1" style={{ paddingHorizontal: 26, paddingTop: 8, paddingBottom: 30 }}>
           <View className="flex-row justify-end" style={{ height: 24 }}>
-            <Pressable onPress={finish} hitSlop={10}>
+            <Pressable onPress={finish} hitSlop={14}>
               <Text className="font-hk600 text-muted text-[13px]">Skip</Text>
             </Pressable>
           </View>
