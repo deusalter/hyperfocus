@@ -24,6 +24,12 @@ interface SpriteProps {
   level?: number
   /** overall render scale — 1 = 130×140 points */
   scale?: number
+  /**
+   * Hold the pose without any looping motion. For sprites that live
+   * permanently on screen: a run cycle or cheer bob that never stops is fast
+   * ambient motion, and repeated onsets re-capture attention every loop.
+   */
+  calm?: boolean
 }
 
 // intrinsic canvas the part coordinates below are authored against
@@ -177,10 +183,16 @@ function DustPiece({
   )
 }
 
-export default function Sprite({ pose = 'idle', ghost = false, level = 4, scale = 1 }: SpriteProps) {
+export default function Sprite({
+  pose = 'idle',
+  ghost = false,
+  level = 4,
+  scale = 1,
+  calm = false,
+}: SpriteProps) {
   const reducedMotion = useReducedMotion()
   const effectivePose: SpritePose = ghost ? 'idle' : pose
-  const animate = !ghost && !reducedMotion
+  const animate = !ghost && !reducedMotion && !calm
 
   const bob = useSharedValue(0) // translateY of the whole body
   const breathe = useSharedValue(1) // scale of the whole body
@@ -297,8 +309,9 @@ export default function Sprite({ pose = 'idle', ghost = false, level = 4, scale 
             <Limb angle={legB} width={11} height={34} style={{ top: 58, left: 22, opacity: 0.93 }} />
             {/* front leg */}
             <Limb angle={legF} width={11} height={34} style={{ top: 58, left: 40 }} />
-            {/* back arm */}
-            <Limb angle={armB} width={9} height={26} style={{ top: 38, left: 16, opacity: 0.9 }} />
+            {/* back arm — tucked under the torso's left edge (x24) so it stays
+                attached through its full swing instead of floating free */}
+            <Limb angle={armB} width={9} height={26} style={{ top: 38, left: 20, opacity: 0.9 }} />
             {/* torso */}
             <View
               style={{

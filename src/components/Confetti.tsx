@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import Animated, {
   cancelAnimation,
@@ -7,10 +7,10 @@ import Animated, {
   useReducedMotion,
   useSharedValue,
   withDelay,
-  withRepeat,
   withTiming,
 } from 'react-native-reanimated'
 import { palette } from '@/lib/theme'
+import { BURST_MS } from '@/lib/motion'
 
 interface Piece {
   left: string
@@ -23,22 +23,24 @@ interface Piece {
 }
 
 const PIECES: Piece[] = [
-  { left: '8%', color: palette.accent, duration: 1300, delay: 0, drift: 14, size: 7 },
-  { left: '20%', color: palette.accent2, duration: 1500, delay: 250, drift: -10, size: 6 },
-  { left: '34%', color: palette.accent, duration: 1200, delay: 400, drift: 8, size: 8 },
-  { left: '47%', color: palette.accent2, duration: 1450, delay: 100, drift: -16, size: 7 },
-  { left: '60%', color: palette.accent, duration: 1350, delay: 320, drift: 12, size: 6 },
-  { left: '72%', color: palette.accent2, duration: 1250, delay: 180, drift: -8, size: 8 },
-  { left: '84%', color: palette.accent, duration: 1400, delay: 60, drift: 15, size: 7 },
-  { left: '93%', color: palette.accent2, duration: 1320, delay: 420, drift: -12, size: 6 },
+  { left: '6%', color: palette.accent, duration: 1100, delay: 0, drift: 14, size: 7 },
+  { left: '18%', color: palette.accent2, duration: 1250, delay: 120, drift: -10, size: 6 },
+  { left: '31%', color: palette.accent, duration: 1000, delay: 220, drift: 8, size: 8 },
+  { left: '44%', color: palette.accent2, duration: 1200, delay: 60, drift: -16, size: 7 },
+  { left: '57%', color: palette.accent, duration: 1120, delay: 180, drift: 12, size: 6 },
+  { left: '70%', color: palette.accent2, duration: 1050, delay: 100, drift: -8, size: 8 },
+  { left: '82%', color: palette.accent, duration: 1180, delay: 30, drift: 15, size: 7 },
+  { left: '93%', color: palette.accent2, duration: 1090, delay: 240, drift: -12, size: 6 },
 ]
 
 function ConfettiPiece({ piece, fall }: { piece: Piece; fall: number }) {
   const t = useSharedValue(0)
   useEffect(() => {
+    // One fall, then done — no withRepeat. A looping burst re-captures
+    // attention every cycle and would sit permanently over the card's message.
     t.value = withDelay(
       piece.delay,
-      withRepeat(withTiming(1, { duration: piece.duration, easing: Easing.in(Easing.quad) }), -1)
+      withTiming(1, { duration: piece.duration, easing: Easing.in(Easing.quad) })
     )
     return () => cancelAnimation(t)
   }, [t, piece])
@@ -55,7 +57,7 @@ function ConfettiPiece({ piece, fall }: { piece: Piece; fall: number }) {
       style={[
         {
           position: 'absolute',
-          top: -10,
+          top: -12,
           left: piece.left as any,
           width: piece.size,
           height: piece.size + 5,
@@ -68,12 +70,30 @@ function ConfettiPiece({ piece, fall }: { piece: Piece; fall: number }) {
   )
 }
 
-/** Gentle looping confetti — absolutely fills its parent. */
+/**
+ * A single celebration burst that cleans itself up.
+ *
+ * Remount with a fresh `key` to replay. It deliberately does not loop:
+ * ambient motion running alongside content is both a WCAG 2.2.2 Level A
+ * failure and the motion pattern that costs an attention-limited reader most.
+ */
 export default function Confetti({ fall = 220 }: { fall?: number }) {
   const reducedMotion = useReducedMotion()
-  if (reducedMotion) return null
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    if (reducedMotion) return
+    const t = setTimeout(() => setDone(true), BURST_MS)
+    return () => clearTimeout(t)
+  }, [reducedMotion])
+
+  if (reducedMotion || done) return null
+
   return (
-    <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
+    <View
+      pointerEvents="none"
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}
+    >
       {PIECES.map((p, i) => (
         <ConfettiPiece key={i} piece={p} fall={fall} />
       ))}
