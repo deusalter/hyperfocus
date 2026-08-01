@@ -265,7 +265,8 @@ export function weekBars(byDay: Map<string, DayTotals>, today: string): WeekBar[
 
 export function greeting(now: Date = new Date()): string {
   const h = now.getHours()
-  if (h < 5) return 'Still up?'
+  // no trailing punctuation — a name gets appended after this
+  if (h < 5) return 'Still up'
   if (h < 12) return 'Good morning'
   if (h < 17) return 'Good afternoon'
   if (h < 21) return 'Good evening'
