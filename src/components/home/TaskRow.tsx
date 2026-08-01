@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { View, Text, Pressable } from 'react-native'
 import Animated, {
   FadeIn,
@@ -37,11 +37,15 @@ function TaskRow({ task }: { task: Task }) {
     transform: [{ scale: fill.value }],
   }))
 
+  // the check animation outlives a fast unmount unless we hold the handle
+  const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (pending.current) clearTimeout(pending.current) }, [])
+
   const onCheck = () => {
     if (checking) return
     setChecking(true)
     fill.value = withTiming(1, SNAP)
-    setTimeout(() => completeTask(task.id), CHECK_DELAY_MS)
+    pending.current = setTimeout(() => completeTask(task.id), CHECK_DELAY_MS)
   }
 
   return (
@@ -53,7 +57,7 @@ function TaskRow({ task }: { task: Task }) {
       style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 11 }}
     >
       <View className="flex-row items-center" style={{ gap: 12 }}>
-        <Pressable onPress={onCheck} hitSlop={8} accessibilityLabel={`Complete ${task.title}`}>
+        <Pressable onPress={onCheck} hitSlop={12} accessibilityLabel={`Complete ${task.title}`}>
           <Animated.View
             style={[
               {

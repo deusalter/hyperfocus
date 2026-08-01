@@ -20,7 +20,15 @@ function Chip({
 }) {
   const meta = CATS[cat]
   return (
-    <Pressable onPress={onPress} hitSlop={6} accessibilityRole="button" accessibilityState={{ selected }}>
+    // Chips sit 6px apart, so horizontal slop is capped at half the gap —
+    // overlapping hit regions resolve unpredictably and would make the
+    // neighbouring category win some taps. Vertical slop carries it to 44pt.
+    <Pressable
+      onPress={onPress}
+      hitSlop={{ top: 11, bottom: 11, left: 3, right: 3 }}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+    >
       <Animated.View
         entering={FadeIn.duration(120).delay(index * 35)}
         className="flex-row items-center rounded-[9px]"
@@ -28,13 +36,15 @@ function Chip({
           paddingHorizontal: 10,
           paddingVertical: 5,
           gap: 5,
-          backgroundColor: selected ? meta.color : hexA(meta.color, 0.12),
+          // selected fills with the darker tone: white on the vivid fill sits
+          // at 3.8:1 for sprint, which is under AA for an 11px label
+          backgroundColor: selected ? meta.textColor : hexA(meta.color, 0.12),
         }}
       >
         <CatIcon cat={cat} color={selected ? '#fff' : meta.color} />
         <Text
           className="font-hk800 text-[11px]"
-          style={{ color: selected ? '#fff' : meta.color, letterSpacing: 0.2 }}
+          style={{ color: selected ? '#fff' : meta.textColor, letterSpacing: 0.2 }}
         >
           {meta.label}
         </Text>
@@ -80,7 +90,7 @@ export default function CatPicker({
         Haptics.selectionAsync().catch(() => {})
         setOpen(true)
       }}
-      hitSlop={10}
+      hitSlop={12}
       className="flex-row items-center"
       style={{ gap: 8 }}
       accessibilityRole="button"
@@ -99,11 +109,13 @@ export default function CatPicker({
         }}
       >
         <CatIcon cat={value} />
-        <Text className="font-hk800 text-[11px]" style={{ color: meta.color, letterSpacing: 0.2 }}>
+        <Text className="font-hk800 text-[11px]" style={{ color: meta.textColor, letterSpacing: 0.2 }}>
           {meta.label}
         </Text>
+        {/* a caret carries "this opens" without a sentence repeated on every
+            row — instructional text that never goes away is just clutter */}
+        <Text style={{ color: meta.textColor, fontSize: 9, opacity: 0.7, marginLeft: -1 }}>▾</Text>
       </Animated.View>
-      <Text className="font-hk400 text-muted text-[10px]">tap to change</Text>
     </Pressable>
   )
 }

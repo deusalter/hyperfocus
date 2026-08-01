@@ -110,7 +110,7 @@ function OnboardingGate() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     HankenGrotesk_400Regular,
     HankenGrotesk_500Medium,
     HankenGrotesk_600SemiBold,
@@ -120,11 +120,19 @@ export default function RootLayout() {
     SplineSansMono_600SemiBold,
   })
 
-  useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync().catch(() => {})
-  }, [fontsLoaded])
+  // A font fetch that fails used to hang on the splash screen forever. Ship
+  // the app in system type instead — unstyled beats unreachable.
+  const ready = fontsLoaded || !!fontError
 
-  if (!fontsLoaded) return null
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => {})
+  }, [ready])
+
+  useEffect(() => {
+    if (fontError) console.warn('font load failed, falling back to system:', fontError)
+  }, [fontError])
+
+  if (!ready) return null
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

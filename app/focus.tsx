@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, Pressable } from 'react-native'
+import { AppState, View, Text, TextInput, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useKeepAwake } from 'expo-keep-awake'
 import Svg, { Circle } from 'react-native-svg'
@@ -7,6 +7,7 @@ import Animated, {
   cancelAnimation,
   useAnimatedProps,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withTiming,
   Easing,
@@ -27,6 +28,7 @@ export default function FocusScreen() {
   useKeepAwake() // a focus session shouldn't die to auto-lock
   const router = useRouter()
   const {
+    hydrated,
     focus,
     focusTask,
     lastRecap,
@@ -38,14 +40,34 @@ export default function FocusScreen() {
   const [stepDraft, setStepDraft] = useState('')
   const [showStepInput, setShowStepInput] = useState(false)
 
-  // this screen owns the clock — the rest of the app never re-renders per tick
+  // This screen owns the clock — the rest of the app never re-renders per tick.
+  // The tick is aimed at the next whole-second boundary rather than polling on
+  // a fixed interval, so the digits change exactly when they should (a 500ms
+  // poll drifts and visibly skips a second) at half the renders.
   const [now, setNow] = useState(() => Date.now())
+  const endsAt = focus?.endsAt
+  const running = focus?.running
   useEffect(() => {
-    if (!focus?.running) return
-    setNow(Date.now()) // re-sync immediately on start/resume
-    const iv = setInterval(() => setNow(Date.now()), 500)
-    return () => clearInterval(iv)
-  }, [focus?.running])
+    if (!running || endsAt == null) return
+    let timer: ReturnType<typeof setTimeout>
+    const tick = () => {
+      setNow(Date.now())
+      const untilBoundary = ((endsAt - Date.now()) % 1000 + 1000) % 1000
+      timer = setTimeout(tick, untilBoundary || 1000)
+    }
+    tick()
+    // a backgrounded timer gets throttled; resync the moment we're back
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') {
+        clearTimeout(timer)
+        tick()
+      }
+    })
+    return () => {
+      clearTimeout(timer)
+      sub.remove()
+    }
+  }, [running, endsAt])
 
   const focusRemaining = !focus
     ? 0
@@ -58,22 +80,33 @@ export default function FocusScreen() {
     if (focus?.running && focusRemaining === 0) finishFocus()
   }, [focus?.running, focusRemaining, finishFocus])
 
+  const reduced = useReducedMotion()
   const progress = useSharedValue(0)
 
-  // one continuous UI-thread animation for the whole session — perfectly
-  // smooth, zero JS involvement. Pause cancels; resume re-aims at 1.
+  // One continuous UI-thread sweep for the whole session — smooth, zero JS
+  // involvement. A single slow sweep has no repeated motion onsets, so unlike
+  // a pulsing indicator it never re-grabs attention mid-task. Pause cancels;
+  // resume re-aims at 1. Under Reduce Motion it steps with the clock instead.
   useEffect(() => {
     if (!focus) return
     if (focus.running) {
       const remainingMs = Math.max(0, focus.endsAt - Date.now())
       progress.value = 1 - remainingMs / (focus.totalSec * 1000)
-      progress.value = withTiming(1, { duration: remainingMs, easing: Easing.linear })
+      if (!reduced) {
+        progress.value = withTiming(1, { duration: remainingMs, easing: Easing.linear })
+      }
     } else {
       cancelAnimation(progress)
       progress.value = 1 - focus.pausedRemaining / focus.totalSec
     }
     return () => cancelAnimation(progress)
-  }, [focus?.running, focus?.endsAt, focus?.totalSec, focus?.pausedRemaining, progress]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [focus?.running, focus?.endsAt, focus?.totalSec, focus?.pausedRemaining, progress, reduced]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reduce Motion: no sweep, so redraw the arc on each visible tick.
+  useEffect(() => {
+    if (!reduced || !focus) return
+    progress.value = 1 - focusRemaining / focus.totalSec
+  }, [reduced, focusRemaining, focus, progress])
 
   const ringProps = useAnimatedProps(() => ({
     strokeDashoffset: CIRCUMFERENCE * (1 - progress.value),
@@ -84,11 +117,13 @@ export default function FocusScreen() {
     opacity: withTiming(focus?.running ? 1 : 0.45, { duration: 300 }),
   }))
 
-  // session ended (timer hit zero or finished elsewhere) → recap
+  // Session ended (timer hit zero or finished elsewhere) → recap.
+  // Gated on `hydrated`: storage loads async, so an un-gated check treats the
+  // startup window as "no session" and evicts you before a restored one lands.
   useEffect(() => {
-    if (!focus && lastRecap) router.replace('/recap')
-    else if (!focus && !lastRecap) router.replace('/')
-  }, [focus, lastRecap, router])
+    if (!hydrated || focus) return
+    router.replace(lastRecap ? '/recap' : '/')
+  }, [hydrated, focus, lastRecap, router])
 
   if (!focus) return <View className="flex-1 bg-background" />
 
@@ -104,7 +139,10 @@ export default function FocusScreen() {
           <ScreenHeader title="Focus" onBack={abandonFocus} />
         </View>
 
-        <Text className="font-hk600 text-muted text-[11px] mt-3.5" style={{ letterSpacing: 0.4 }}>
+        {/* the session block owns the space between header and controls, so
+            the ring sits optically centred instead of stranded up top */}
+        <View className="flex-1 items-center justify-center self-stretch">
+        <Text className="font-hk600 text-muted text-[11px]" style={{ letterSpacing: 0.4 }}>
           FOCUSING ON
         </Text>
         <Text
@@ -120,40 +158,55 @@ export default function FocusScreen() {
             style={{ paddingHorizontal: 13, paddingVertical: 7, maxWidth: 260 }}
           >
             <Text className="font-hk600 text-accent text-center text-[12.5px]" style={{ lineHeight: 17 }}>
-              First step: {focusTask.firstStep}
+              Start by: {focusTask.firstStep}
             </Text>
           </View>
         ) : showStepInput ? (
-          <View className="flex-row mt-2" style={{ gap: 7, width: '100%', maxWidth: 280 }}>
-            <TextInput
-              value={stepDraft}
-              onChangeText={setStepDraft}
-              onSubmitEditing={() => {
-                if (focusTask && stepDraft.trim()) setFirstStep(focusTask.id, stepDraft)
-                setShowStepInput(false)
-              }}
-              autoFocus
-              placeholder="Smallest first step…"
-              placeholderTextColor={palette.muted}
-              className="flex-1 bg-surface border border-soft font-hk400 text-ink text-[13px]"
-              style={{ borderRadius: 11, paddingHorizontal: 12, paddingVertical: 9 }}
-            />
-            <PressableScale
-              onPress={() => {
-                if (focusTask && stepDraft.trim()) setFirstStep(focusTask.id, stepDraft)
-                setShowStepInput(false)
-              }}
-              className="bg-accent items-center justify-center"
-              style={{ borderRadius: 11, paddingHorizontal: 14 }}
-            >
-              <Text className="font-hk700 text-white text-[13px]">Set</Text>
-            </PressableScale>
+          <View className="mt-2" style={{ width: '100%', maxWidth: 300 }}>
+            {/* An if-then plan, not a note. Naming the concrete physical
+                action is what closes the gap between intending and starting —
+                the activation cost is in specifying the move, not in wanting
+                the goal. */}
+            <Text className="font-hk700 text-muted text-center text-[11px]" style={{ letterSpacing: 0.3 }}>
+              WHEN I START, I WILL…
+            </Text>
+            <View className="flex-row mt-1.5" style={{ gap: 7 }}>
+              <TextInput
+                value={stepDraft}
+                onChangeText={setStepDraft}
+                onSubmitEditing={() => {
+                  if (focusTask && stepDraft.trim()) setFirstStep(focusTask.id, stepDraft)
+                  setShowStepInput(false)
+                }}
+                autoFocus
+                placeholder="open the doc and type one line"
+                placeholderTextColor={palette.muted}
+                returnKeyType="done"
+                className="flex-1 bg-surface border border-soft font-hk400 text-ink text-[13px]"
+                style={{ borderRadius: 11, paddingHorizontal: 12, paddingVertical: 9 }}
+              />
+              <PressableScale
+                onPress={() => {
+                  if (focusTask && stepDraft.trim()) setFirstStep(focusTask.id, stepDraft)
+                  setShowStepInput(false)
+                }}
+                className="bg-accent items-center justify-center"
+                style={{ borderRadius: 11, paddingHorizontal: 14 }}
+              >
+                <Text className="font-hk700 text-white text-[13px]">Set</Text>
+              </PressableScale>
+            </View>
           </View>
         ) : (
           focusTask && (
-            <Pressable onPress={() => setShowStepInput(true)} hitSlop={8} className="mt-2">
+            <Pressable
+              onPress={() => setShowStepInput(true)}
+              hitSlop={14}
+              className="mt-2"
+              accessibilityRole="button"
+            >
               <Text className="font-hk700 text-accent text-[12.5px]">
-                Feeling stuck? Break it into a first step
+                Can&apos;t start? Name the very first move
               </Text>
             </Pressable>
           )
@@ -190,19 +243,21 @@ export default function FocusScreen() {
             <Text className="font-mono text-ink" style={{ fontSize: 46, letterSpacing: -1.5 }}>
               {formatClock(focusRemaining)}
             </Text>
-            <Text
-              className="font-hk600 text-muted text-[11px]"
-              style={{ letterSpacing: 1, textTransform: 'uppercase' }}
-            >
-              {focus.running ? 'focusing' : 'paused'}
+            {/* Both directions on purpose: duration-estimation errors run high
+                and low, so remaining alone can't correct a mis-read either way. */}
+            <Text className="font-hk600 text-muted text-[11px]" style={{ letterSpacing: 0.5 }}>
+              {focus.running
+                ? `left · ${formatClock(focus.totalSec - focusRemaining)} focused`
+                : 'PAUSED'}
             </Text>
             <Text className="font-hk700 text-accent text-[12px] mt-1.5">
               {meta.label} · +{livePts} pts
             </Text>
           </View>
         </Animated.View>
+        </View>
 
-        <View className="flex-row mt-auto w-full" style={{ gap: 10 }}>
+        <View className="flex-row w-full" style={{ gap: 10 }}>
           <PressableScale
             haptic
             onPress={toggleFocusRun}
@@ -222,7 +277,7 @@ export default function FocusScreen() {
             <Text className="font-hk700 text-white text-[15px]">Done</Text>
           </PressableScale>
         </View>
-        <Pressable onPress={abandonFocus} hitSlop={8} className="mt-3">
+        <Pressable onPress={abandonFocus} hitSlop={14} className="mt-3">
           <Text className="font-hk400 text-muted text-[12.5px]">Stop without saving</Text>
         </Pressable>
       </View>
