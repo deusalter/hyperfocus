@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react'
 import { View, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
@@ -16,6 +17,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
 import Sprite from '@/components/Sprite'
 import { useApp } from '@/store/AppStore'
+import { TODAY_CAP } from '@/lib/points'
 import { palette, hexA } from '@/lib/theme'
 
 const COMMIT_DX = 80
@@ -26,43 +28,57 @@ function thresholdBuzz() {
 }
 
 export default function TriageScreen() {
-  const { inbox, triageAssign, level } = useApp()
+  const { inbox, today, triageAssign, level } = useApp()
   const router = useRouter()
   const current = inbox[0]
   const next = inbox[1]
+  const full = today.length >= TODAY_CAP
 
   const dx = useSharedValue(0)
   const crossed = useSharedValue(0)
 
-  const decide = (bucket: 'today' | 'later') => {
-    if (!current) return
-    triageAssign(current.id, bucket)
-    dx.value = 0
-    crossed.value = 0
-  }
+  // Reset the card position *before* handing the decision to React. Doing it
+  // after let the incoming card paint for a frame at the old offset — a
+  // visible jump as the next task appeared already flung off-screen.
+  const decide = useCallback(
+    (id: string, bucket: 'today' | 'later') => {
+      dx.value = 0
+      crossed.value = 0
+      triageAssign(id, bucket)
+    },
+    [dx, crossed, triageAssign]
+  )
 
-  const pan = Gesture.Pan()
-    .onChange((e) => {
-      dx.value += e.changeX
-      // haptic tick the instant the swipe becomes a commitment
-      const zone = dx.value > COMMIT_DX ? 1 : dx.value < -COMMIT_DX ? -1 : 0
-      if (zone !== 0 && zone !== crossed.value) runOnJS(thresholdBuzz)()
-      crossed.value = zone
-    })
-    .onEnd(() => {
-      if (dx.value > COMMIT_DX) {
-        dx.value = withTiming(FLY_OUT, { duration: 160 }, () => {
-          runOnJS(decide)('today')
+  const currentId = current?.id
+  // rebuilt only when the card changes — a fresh Gesture object every render
+  // makes GestureDetector re-register its handlers on each keystroke
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .onChange((e) => {
+          dx.value += e.changeX
+          // haptic tick the instant the swipe becomes a commitment
+          const zone = dx.value > COMMIT_DX ? 1 : dx.value < -COMMIT_DX ? -1 : 0
+          if (zone !== 0 && zone !== crossed.value) runOnJS(thresholdBuzz)()
+          crossed.value = zone
         })
-      } else if (dx.value < -COMMIT_DX) {
-        dx.value = withTiming(-FLY_OUT, { duration: 160 }, () => {
-          runOnJS(decide)('later')
-        })
-      } else {
-        // settle back without wobble
-        dx.value = withSpring(0, { damping: 28, stiffness: 260 })
-      }
-    })
+        .onEnd(() => {
+          if (!currentId) return
+          if (dx.value > COMMIT_DX) {
+            dx.value = withTiming(FLY_OUT, { duration: 160 }, () => {
+              runOnJS(decide)(currentId, 'today')
+            })
+          } else if (dx.value < -COMMIT_DX) {
+            dx.value = withTiming(-FLY_OUT, { duration: 160 }, () => {
+              runOnJS(decide)(currentId, 'later')
+            })
+          } else {
+            // settle back without wobble
+            dx.value = withSpring(0, { damping: 28, stiffness: 260 })
+          }
+        }),
+    [dx, crossed, currentId, decide]
+  )
 
   // the card behind rises into place as the front card leaves
   const nextStyle = useAnimatedStyle(() => {
@@ -94,13 +110,36 @@ export default function TriageScreen() {
           title="Triage"
           right={
             inbox.length > 0 ? (
-              <Text className="font-hk600 text-muted text-[12px]">{inbox.length} left</Text>
+              <View className="flex-row items-center" style={{ gap: 10 }}>
+                {/* capacity is visible while deciding, not after — this is the
+                    moment the choice is actually being made */}
+                <Text
+                  className="font-hk700 text-[12px]"
+                  style={{ color: full ? palette.dangerText : palette.muted }}
+                >
+                  Today {today.length}/{TODAY_CAP}
+                </Text>
+                <Text className="font-hk600 text-muted text-[12px]">{inbox.length} left</Text>
+              </View>
             ) : undefined
           }
         />
 
         {current ? (
           <View className="flex-1 justify-center" style={{ gap: 18, paddingVertical: 8 }}>
+            {/* A note, not a block. The cap exists to stop Today rebuilding the
+                pile you just cleared, but overruling a decision made one second
+                ago would be the more annoying failure. */}
+            {full && (
+              <Animated.Text
+                entering={FadeIn.duration(200)}
+                className="font-hk600 text-muted text-center text-[12px]"
+                style={{ lineHeight: 17, paddingHorizontal: 12 }}
+              >
+                Today already holds {today.length}. Most days fit about {TODAY_CAP} —
+                Later is not a downgrade.
+              </Animated.Text>
+            )}
             <View className="flex-row justify-between" style={{ paddingHorizontal: 4 }}>
               <Animated.Text className="font-hk700 text-muted text-[11px]" style={laterHint}>
                 ← LATER
@@ -171,7 +210,7 @@ export default function TriageScreen() {
             <View className="flex-row" style={{ gap: 9 }}>
               <PressableScale
                 haptic
-                onPress={() => decide('later')}
+                onPress={() => decide(current.id, 'later')}
                 className="flex-1 items-center bg-surface border border-soft"
                 style={{ borderRadius: 14, paddingVertical: 14 }}
               >
@@ -194,7 +233,7 @@ export default function TriageScreen() {
               </PressableScale>
               <PressableScale
                 haptic
-                onPress={() => decide('today')}
+                onPress={() => decide(current.id, 'today')}
                 className="flex-1 items-center bg-accent"
                 style={{ borderRadius: 14, paddingVertical: 14 }}
               >
