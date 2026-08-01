@@ -27,16 +27,22 @@ function ToggleRow({
   on,
   onToggle,
   last,
+  soon,
 }: {
   title: string
   subtitle: string
   on: boolean
   onToggle: () => void
   last?: boolean
+  /** not wired up yet — say so rather than offer a switch that does nothing */
+  soon?: boolean
 }) {
   return (
     <Pressable
-      onPress={onToggle}
+      onPress={soon ? undefined : onToggle}
+      disabled={soon}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: on, disabled: soon }}
       className="flex-row items-center"
       style={{
         gap: 12,
@@ -47,17 +53,34 @@ function ToggleRow({
       }}
     >
       <View className="flex-1">
-        <Text className="font-hk700 text-ink text-[14.5px]">{title}</Text>
+        <View className="flex-row items-center" style={{ gap: 7 }}>
+          <Text
+            className="font-hk700 text-[14.5px]"
+            style={{ color: soon ? palette.muted : palette.ink }}
+          >
+            {title}
+          </Text>
+          {soon && (
+            <View
+              className="bg-accent-soft rounded-full"
+              style={{ paddingHorizontal: 7, paddingVertical: 2 }}
+            >
+              <Text className="font-hk700 text-accent text-[9.5px]">SOON</Text>
+            </View>
+          )}
+        </View>
         <Text className="font-hk400 text-muted text-[12px] mt-0.5">{subtitle}</Text>
       </View>
-      <Toggle on={on} />
+      <View style={{ opacity: soon ? 0.4 : 1 }}>
+        <Toggle on={on} />
+      </View>
     </Pressable>
   )
 }
 
 export default function YouScreen() {
   const router = useRouter()
-  const { settings, updateSettings, streak, companionLevel, resetAll } = useApp()
+  const { settings, updateSettings, showedUp, companionLevel, resetAll } = useApp()
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -85,9 +108,11 @@ export default function YouScreen() {
             <View className="bg-accent-soft rounded-full" style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
               <Text className="font-hk700 text-accent text-[12px]">Level {companionLevel}</Text>
             </View>
-            {!settings.gentle && streak > 0 && (
+            {!settings.gentle && showedUp > 0 && (
               <View className="bg-accent-soft rounded-full" style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
-                <Text className="font-hk700 text-accent text-[12px]">{streak}-day streak</Text>
+                <Text className="font-hk700 text-accent text-[12px]">
+                  {showedUp} days this month
+                </Text>
               </View>
             )}
           </View>
@@ -166,12 +191,14 @@ export default function YouScreen() {
               onToggle={() => updateSettings({ gentle: !settings.gentle })}
             />
             <ToggleRow
+              soon
               title="Gentle reminders"
               subtitle="A nudge, never a nag"
               on={settings.reminders}
               onToggle={() => updateSettings({ reminders: !settings.reminders })}
             />
             <ToggleRow
+              soon
               title="Focus sounds"
               subtitle="Soft ambience while focusing"
               on={settings.sounds}
@@ -209,7 +236,7 @@ export default function YouScreen() {
               className="flex-row items-center"
               style={{ gap: 12, paddingHorizontal: 16, paddingVertical: 14 }}
             >
-              <Text className="flex-1 font-hk600 text-[14.5px]" style={{ color: '#cc5b3e' }}>
+              <Text className="flex-1 font-hk600 text-[14.5px]" style={{ color: palette.dangerText }}>
                 Reset everything
               </Text>
               <Text className="text-muted text-[18px]">›</Text>

@@ -33,7 +33,7 @@ function useCountUp(target: number, duration = 700, delay = 380) {
 
 export default function RecapScreen() {
   const router = useRouter()
-  const { lastRecap, todayTotals, baseline, ahead, level } = useApp()
+  const { lastRecap, todayTotals, race, ahead, level } = useApp()
 
   const goHome = () => router.replace('/')
 
@@ -47,14 +47,15 @@ export default function RecapScreen() {
 
   if (!lastRecap) return <View className="flex-1 bg-background" />
 
-  const pastPts = baseline?.totals.points ?? 0
-  const gap = Math.max(0, pastPts - todayTotals.points)
-  const title = ahead ? 'New best — past yesterday!' : 'Nice work.'
+  const gap = Math.max(0, race.pacer - todayTotals.points)
+  const title = ahead ? 'Past a typical day.' : 'That counted.'
   const msg = ahead
-    ? 'You’ve passed yesterday’s self. Your companion is thriving.'
-    : baseline
-      ? `Just ${gap} pts from yesterday — one step at a time.`
-      : 'First points on the board. Tomorrow races against today.'
+    ? `${race.passed} of your last ${race.ghosts.length} days are behind you now.`
+    : race.hasField
+      ? race.passed > 0
+        ? `${race.passed} days passed — ${gap} pts to typical.`
+        : `${gap} pts to a typical day. No hurry.`
+      : 'First points on the board. Tomorrow has something to race.'
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>

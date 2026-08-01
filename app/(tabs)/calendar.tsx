@@ -36,17 +36,20 @@ function taskDay(task: Task, todayISO: string): string | null {
 
 export default function CalendarScreen() {
   const router = useRouter()
-  const { tasks } = useApp()
-  const todayISO = dayKey()
+  const { tasks, todayKey: todayISO } = useApp()
   const [selected, setSelected] = useState(todayISO)
+  // The strip used to be pinned to the current week, so anything overdue sat
+  // on a day you could not navigate to — invisible in the one view meant to
+  // show you where things are.
+  const [weekOffset, setWeekOffset] = useState(0)
 
   const week = useMemo(() => {
-    const start = startOfWeek(new Date(), { weekStartsOn: 1 })
+    const start = dfAddDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7)
     return Array.from({ length: 7 }, (_, i) => {
       const date = dfAddDays(start, i)
-      return { key: dayKey(date), letter: format(date, 'EEEEE'), num: date.getDate() }
+      return { key: dayKey(date), letter: format(date, 'EEEEE'), num: date.getDate(), date }
     })
-  }, [])
+  }, [weekOffset])
 
   const byDay = useMemo(() => {
     const map = new Map<string, Task[]>()
@@ -60,8 +63,22 @@ export default function CalendarScreen() {
   }, [tasks, todayISO])
 
   const dayItems = byDay.get(selected) ?? []
+  const overdue = useMemo(
+    () => tasks.filter((t) => t.bucket !== 'inbox' && t.due && t.due < todayISO),
+    [tasks, todayISO]
+  )
   const canvasCount = tasks.filter((t) => t.source === 'canvas').length
   const selectedDate = new Date(`${selected}T12:00:00`)
+  const monthLabel = format(week[0].date, 'MMMM yyyy')
+
+  const jumpWeek = (delta: number) => {
+    setWeekOffset((w) => {
+      const next = w + delta
+      const start = dfAddDays(startOfWeek(new Date(), { weekStartsOn: 1 }), next * 7)
+      setSelected(next === 0 ? todayISO : dayKey(start))
+      return next
+    })
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -74,9 +91,7 @@ export default function CalendarScreen() {
             <Text className="font-hk800 text-ink text-[24px]" style={{ letterSpacing: -0.5 }}>
               Calendar
             </Text>
-            <Text className="font-hk400 text-muted text-[13px] mt-0.5">
-              {format(new Date(), 'MMMM yyyy')}
-            </Text>
+            <Text className="font-hk400 text-muted text-[13px] mt-0.5">{monthLabel}</Text>
           </View>
           {canvasCount > 0 && (
             <View
@@ -89,10 +104,48 @@ export default function CalendarScreen() {
           )}
         </Animated.View>
 
+        {/* week navigation */}
+        <Animated.View
+          entering={FadeInUp.delay(30).duration(260)}
+          className="flex-row items-center justify-between mt-3.5"
+          style={{ paddingHorizontal: 2 }}
+        >
+          <Pressable
+            onPress={() => jumpWeek(-1)}
+            hitSlop={14}
+            accessibilityRole="button"
+            accessibilityLabel="Previous week"
+          >
+            <Text className="font-hk700 text-muted text-[15px]">‹ Prev</Text>
+          </Pressable>
+          {weekOffset !== 0 ? (
+            <Pressable
+              onPress={() => {
+                setWeekOffset(0)
+                setSelected(todayISO)
+              }}
+              hitSlop={12}
+              accessibilityRole="button"
+            >
+              <Text className="font-hk700 text-accent text-[12.5px]">Back to today</Text>
+            </Pressable>
+          ) : (
+            <Text className="font-hk600 text-muted text-[12px]">This week</Text>
+          )}
+          <Pressable
+            onPress={() => jumpWeek(1)}
+            hitSlop={14}
+            accessibilityRole="button"
+            accessibilityLabel="Next week"
+          >
+            <Text className="font-hk700 text-muted text-[15px]">Next ›</Text>
+          </Pressable>
+        </Animated.View>
+
         {/* week strip */}
         <Animated.View
           entering={FadeInUp.delay(40).duration(260)}
-          className="bg-surface border border-soft flex-row justify-between mt-3.5"
+          className="bg-surface border border-soft flex-row justify-between mt-2"
           style={{ borderRadius: 18, paddingVertical: 12, paddingHorizontal: 6 }}
         >
           {week.map((cell) => {
@@ -198,7 +251,9 @@ export default function CalendarScreen() {
             <View className="flex-1">
               <Text className="font-hk800 text-ink text-[13.5px]">Weekly debrief</Text>
               <Text className="font-hk400 text-muted text-[11.5px] mt-0.5">
-                Review what&apos;s overdue, now, and coming up
+                {overdue.length > 0
+                  ? `${overdue.length} slipped past — decide once, calmly`
+                  : "Nothing overdue. Take a look at what's coming"}
               </Text>
             </View>
             <Text className="font-hk800 text-accent text-[18px]">›</Text>

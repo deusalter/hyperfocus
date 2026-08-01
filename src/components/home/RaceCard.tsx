@@ -1,206 +1,289 @@
 import { useEffect, useRef, useState } from 'react'
 import { View, Text } from 'react-native'
 import Animated, {
-  ZoomIn,
+  FadeIn,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
-  withRepeat,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated'
-import { EASE_OUT } from '@/lib/motion'
 import * as Haptics from 'expo-haptics'
 import Sprite from '@/components/Sprite'
 import Confetti from '@/components/Confetti'
 import { useApp } from '@/store/AppStore'
 import { palette, hexA } from '@/lib/theme'
-import { levelForPoints } from '@/lib/points'
+import { levelForPoints, RaceField } from '@/lib/points'
+import { EASE_OUT } from '@/lib/motion'
 
-const SPRITE_SCALE = 0.52
-const GHOST_SCALE = 0.46
+const SPRITE_SCALE = 0.5
+const GHOST_SCALE = 0.44
 const SPRITE_W = 130 * SPRITE_SCALE
+const TRACK_H = 76
+/** where the pacer sits on the track — leaves room to run past it */
+const PACER_AT = 0.72
+const EDGE = 0.98
 
-function AheadBadge() {
-  const pulse = useSharedValue(1)
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(withTiming(1.06, { duration: 800 }), withTiming(1, { duration: 800 })),
-      -1
-    )
-  }, [pulse])
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }))
+function Badge({ label }: { label: string }) {
   return (
     <Animated.View
-      entering={ZoomIn.duration(200)}
+      entering={FadeIn.duration(220)}
       className="bg-accent rounded-full"
-      style={[{ paddingHorizontal: 10, paddingVertical: 4 }, style]}
+      style={{ paddingHorizontal: 10, paddingVertical: 4 }}
     >
       <Text className="font-hk800 text-white text-[9.5px]" style={{ letterSpacing: 0.6 }}>
-        AHEAD OF YESTERDAY
+        {label}
       </Text>
     </Animated.View>
   )
 }
 
-/** "You & Yesterday" — the live race against your past self. */
+/**
+ * "You & your recent days" — the live race against a field of past selves.
+ *
+ * The field matters. Racing one previous day ratchets: a good day sets a bar
+ * you then have to clear, so success guarantees a later failure and the loss
+ * lands hardest right after you did well. This races the last several active
+ * days at once and marks the target at a *typical* day rather than a record
+ * one. The headline is how many you've passed — graded, so there's no single
+ * line whose far side is failure.
+ */
 export default function RaceCard() {
-  const { todayTotals, baseline, ahead, level } = useApp()
+  const { todayTotals, race, level } = useApp()
   const [trackW, setTrackW] = useState(0)
+  const reduced = useReducedMotion()
 
-  const pastPts = baseline?.totals.points ?? 0
-  const pct = Math.min(100, Math.round((todayTotals.points / Math.max(pastPts, 1)) * 100))
-  const raceLeftPct = ahead ? 90 : Math.max(6, Math.min(86, Math.round(pct * 0.86)))
+  const pts = todayTotals.points
+  // Scale is anchored on the pacer, never on the best day — a record
+  // shouldn't quietly become the thing you get measured against.
+  const trackMax = Math.max(race.pacer / PACER_AT, pts * 1.12, 1)
+  const frac = (p: number) => Math.max(0, Math.min(EDGE, p / trackMax))
+
+  const runnerFrac = race.hasField ? frac(pts) : pts > 0 ? 0.5 : 0.04
+  const pacerFrac = race.hasField ? frac(race.pacer) : 0
 
   const x = useSharedValue(0)
   useEffect(() => {
-    if (trackW > 0) {
-      x.value = withTiming((raceLeftPct / 100) * trackW - SPRITE_W / 2, {
-        duration: 550,
-        easing: EASE_OUT,
-      })
-    }
-  }, [raceLeftPct, trackW, x])
+    if (trackW <= 0) return
+    const target = runnerFrac * trackW - SPRITE_W / 2
+    x.value = reduced ? target : withTiming(target, { duration: 620, easing: EASE_OUT })
+  }, [runnerFrac, trackW, x, reduced])
   const runnerStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }))
-  // accent trail fills the track behind the runner
   const trailStyle = useAnimatedStyle(() => ({
     width: Math.max(0, x.value + SPRITE_W / 2),
   }))
 
-  // level-up moment: cheer + haptic when today's points cross a level boundary
-  const [levelBurst, setLevelBurst] = useState(false)
+  // level-up: a one-shot cheer, not an ambience
+  const [burstKey, setBurstKey] = useState(0)
+  const [cheering, setCheering] = useState(false)
   const prevLevel = useRef(level)
   useEffect(() => {
     const prev = prevLevel.current
     prevLevel.current = level
     if (level > prev) {
-      setLevelBurst(true)
+      setBurstKey((k) => k + 1)
+      setCheering(true)
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
-      const t = setTimeout(() => setLevelBurst(false), 2200)
+      const t = setTimeout(() => setCheering(false), 1800)
       return () => clearTimeout(t)
     }
   }, [level])
 
-  const gap = Math.max(0, pastPts - todayTotals.points)
-  const pastLevel = baseline ? levelForPoints(pastPts) : 0
+  // celebrate crossing the pacer once, not for the rest of the day
+  const [paceKey, setPaceKey] = useState(0)
+  const wasAhead = useRef(race.ahead)
+  useEffect(() => {
+    if (race.ahead && !wasAhead.current) setPaceKey((k) => k + 1)
+    wasAhead.current = race.ahead
+  }, [race.ahead])
 
-  const msg = !baseline
-    ? 'Day one. No ghosts yet — every point today becomes tomorrow’s pace-marker.'
-    : ahead
-      ? 'Past you would be proud — you’re ahead of yesterday.'
-      : todayTotals.points === 0
-        ? `Yesterday you reached ${pastPts} pts. No rush — one session starts the climb.`
-        : `Just ${gap} pts to meet yesterday. Totally reachable.`
-  const subMsg = !baseline
-    ? 'Finish anything — even tiny — and the race begins.'
-    : ahead
-      ? 'However today goes from here, it already counts.'
-      : 'Bad days count too. Showing up is the win.'
+  // The runner sprints only while it's actually moving, then settles. A
+  // permanent 500ms run cycle is fast ambient motion in the primary card —
+  // it re-grabs the eye every loop for the whole day and says nothing new.
+  const [moving, setMoving] = useState(false)
+  const prevPts = useRef(pts)
+  useEffect(() => {
+    if (pts === prevPts.current) return
+    prevPts.current = pts
+    setMoving(true)
+    const t = setTimeout(() => setMoving(false), 2600)
+    return () => clearTimeout(t)
+  }, [pts])
+
+  const { headline, sub } = message(race, pts)
+  const pacerLevel = levelForPoints(race.pacer)
 
   return (
     <View
       className="bg-surface border border-soft"
-      style={{ borderRadius: 22, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 14, overflow: 'hidden' }}
+      style={{
+        borderRadius: 22,
+        paddingHorizontal: 16,
+        paddingTop: 14,
+        paddingBottom: 13,
+        overflow: 'hidden',
+      }}
     >
-      {ahead && <Confetti />}
+      {burstKey + paceKey > 0 && <Confetti key={`c${burstKey}-${paceKey}`} />}
 
-      <View className="flex-row items-center justify-between">
+      <View className="flex-row items-center justify-between" style={{ minHeight: 22 }}>
         <Text className="font-hk700 text-muted text-[11px]" style={{ letterSpacing: 0.5 }}>
-          YOU &amp; YESTERDAY
+          {race.hasField ? `PASSED ${race.passed} OF ${race.ghosts.length}` : 'YOUR FIRST DAY'}
         </Text>
-        {ahead && <AheadBadge />}
+        {race.ahead && <Badge label="PAST A TYPICAL DAY" />}
       </View>
 
       <View
-        style={{ height: 84, marginTop: 8, overflow: 'hidden' }}
+        style={{ height: TRACK_H, marginTop: 6 }}
         onLayout={(e) => setTrackW(e.nativeEvent.layout.width)}
       >
-        {/* track */}
         <View
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
-            bottom: 20,
+            bottom: 18,
             height: 4,
             borderRadius: 3,
             backgroundColor: palette.soft,
           }}
         />
-        {/* trail the runner has covered */}
         <Animated.View
           style={[
             {
               position: 'absolute',
               left: 0,
-              bottom: 20,
+              bottom: 18,
               height: 4,
               borderRadius: 3,
-              backgroundColor: hexA(palette.accent, 0.35),
+              backgroundColor: hexA(palette.accent, 0.4),
             },
             trailStyle,
           ]}
         />
-        {baseline && (
+
+        {/* one tick per recent day — fills in as you pass it */}
+        {trackW > 0 &&
+          race.ghosts.map((g) => (
+            <View
+              key={g.day}
+              style={{
+                position: 'absolute',
+                left: frac(g.points) * trackW - 1.5,
+                bottom: 14,
+                width: 3,
+                height: 12,
+                borderRadius: 2,
+                backgroundColor: g.passed ? palette.accent : palette.soft,
+              }}
+            />
+          ))}
+
+        {/* the pacer: a typical day, with a past self standing on it */}
+        {race.hasField && trackW > 0 && (
           <>
-            {/* yesterday's finish line + ghost */}
+            {/* stops at the ghost's feet — a taller rule reads as a flagpole */}
             <View
               style={{
                 position: 'absolute',
-                left: '90%',
-                bottom: 16,
-                top: 8,
+                left: pacerFrac * trackW,
+                bottom: 14,
+                top: 34,
                 width: 2,
                 borderRadius: 2,
                 backgroundColor: palette.muted,
-                opacity: 0.4,
+                opacity: 0.35,
               }}
             />
             <View
               style={{
                 position: 'absolute',
-                left: '90%',
-                top: -2,
-                marginLeft: (-130 * GHOST_SCALE) / 2,
+                left: pacerFrac * trackW - (130 * GHOST_SCALE) / 2,
+                top: -6,
               }}
             >
-              <Sprite ghost level={pastLevel} scale={GHOST_SCALE} />
+              <Sprite ghost level={pacerLevel} scale={GHOST_SCALE} />
             </View>
+            {/* clamped so the label can never run off the card edge */}
             <Text
               className="font-hk700 text-muted"
               style={{
                 position: 'absolute',
-                left: '90%',
-                bottom: 1,
+                left: Math.max(0, Math.min(trackW - 64, pacerFrac * trackW - 32)),
+                bottom: 0,
+                width: 64,
+                textAlign: 'center',
                 fontSize: 8.5,
                 letterSpacing: 0.3,
-                transform: [{ translateX: -24 }],
               }}
             >
-              YESTERDAY
+              TYPICAL DAY
             </Text>
           </>
         )}
+
         {/* you */}
-        <Animated.View style={[{ position: 'absolute', left: 0, top: 2 }, runnerStyle]}>
+        <Animated.View style={[{ position: 'absolute', left: 0, top: -2 }, runnerStyle]}>
           <Sprite
-            pose={
-              ahead || levelBurst ? 'cheer' : todayTotals.points > 0 ? 'run' : 'idle'
-            }
-            level={Math.max(level, ahead ? pastLevel : 0)}
+            pose={cheering ? 'cheer' : moving ? 'run' : race.ahead ? 'cheer' : 'idle'}
+            // animates while it's saying something, then holds the pose
+            calm={!cheering && !moving}
+            level={level}
             scale={SPRITE_SCALE}
           />
         </Animated.View>
       </View>
 
       <Text
-        className="font-hk600 text-ink text-center text-[13.5px] mt-1.5"
-        style={{ lineHeight: 19 }}
+        className="font-hk600 text-ink text-center text-[13.5px]"
+        style={{ lineHeight: 19, marginTop: 2 }}
       >
-        {msg}
+        {headline}
       </Text>
-      <Text className="font-hk400 text-muted text-center text-[11.5px] mt-1" style={{ lineHeight: 15 }}>
-        {subMsg}
+      <Text
+        className="font-hk400 text-muted text-center text-[11.5px]"
+        style={{ lineHeight: 15, marginTop: 3 }}
+      >
+        {sub}
       </Text>
     </View>
   )
+}
+
+/**
+ * Copy stays descriptive, never evaluative. The response to failure feedback
+ * runs hotter than the response to success, so a shortfall is stated as a
+ * distance to cover — never as a verdict on the day.
+ */
+function message(race: RaceField, pts: number): { headline: string; sub: string } {
+  if (!race.hasField) {
+    return {
+      headline: 'Nothing to race yet — today sets the pace.',
+      sub: 'Finish anything, even tiny, and the field starts filling in.',
+    }
+  }
+  if (race.ahead) {
+    return {
+      headline:
+        race.passed === race.ghosts.length
+          ? 'Past every one of your recent days.'
+          : `Past a typical day — ${race.passed} of ${race.ghosts.length} behind you.`,
+      sub: 'However the rest of today goes, this already counts.',
+    }
+  }
+  if (pts === 0) {
+    return {
+      headline: `A typical day for you is ${race.pacer} pts.`,
+      sub: 'No rush. One small session puts a runner on the board.',
+    }
+  }
+  if (race.passed > 0) {
+    return {
+      headline: `${race.passed} of ${race.ghosts.length} passed · ${race.pacer - pts} to typical`,
+      sub: 'Every one you pass stays passed.',
+    }
+  }
+  return {
+    headline: `${race.pacer - pts} pts to a typical day.`,
+    sub: 'Quiet days count too. Showing up is the part that compounds.',
+  }
 }

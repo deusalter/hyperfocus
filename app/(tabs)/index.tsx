@@ -10,15 +10,20 @@ import TaskRow from '@/components/home/TaskRow'
 import Sprite from '@/components/Sprite'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
-import { greeting, dayKey } from '@/lib/points'
+import { AWAY_DAYS, greeting } from '@/lib/points'
 import { palette, hexA } from '@/lib/theme'
 
-function FlameIcon() {
+/** Growth, not a burning streak — nothing here can go out. */
+function SproutIcon() {
   return (
-    <Svg width={14} height={16} viewBox="0 0 14 16">
+    <Svg width={14} height={14} viewBox="0 0 24 24">
       <Path
-        d="M7 0c1 3-1 4-2 6-1.5 3 .5 4 .5 4S4 9 6 7c0 2 3 3 3 6a4.5 4.5 0 1 1-9 0C0 8 6 7 7 0Z"
-        fill={palette.accent}
+        d="M12 21v-8M12 13C12 9 9 6 5 6c0 4 3 7 7 7ZM12 13c0-3.4 2.6-6 6-6 0 3.4-2.6 6-6 6Z"
+        stroke={palette.accent}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
       />
     </Svg>
   )
@@ -29,7 +34,7 @@ function WarnIcon() {
     <Svg width={18} height={18} viewBox="0 0 24 24">
       <Path
         d="M10.3 4.3 2.6 18a1.5 1.5 0 0 0 1.3 2.3h16.2a1.5 1.5 0 0 0 1.3-2.3L13.7 4.3a1.5 1.5 0 0 0-2.6 0zM12 9v4M12 16.5h.01"
-        stroke="#cc5b3e"
+        stroke={palette.danger}
         strokeWidth={2.2}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -44,35 +49,38 @@ export default function HomeScreen() {
   const {
     settings,
     todayTotals,
-    baseline,
+    race,
     ahead,
-    streak,
+    showedUp,
+    away,
+    todayKey: todayISO,
     inbox,
     today,
     later,
     tasks,
+    focus,
+    focusTask,
     promoteToToday,
     startFocus,
   } = useApp()
   const [laterOpen, setLaterOpen] = useState(false)
 
-  const todayISO = dayKey()
   const overdueCount = tasks.filter(
     (t) => t.bucket !== 'inbox' && t.due && t.due < todayISO
   ).length
 
-  const pastPts = baseline?.totals.points
-  const ptsDeltaLabel = ahead && pastPts != null
-    ? `+${todayTotals.points - pastPts} past yesterday`
-    : pastPts != null
-      ? `Yesterday · ${pastPts}`
-      : 'First day — set the pace'
-  const doneDelta = baseline ? todayTotals.completed - baseline.totals.completed : 0
-  const doneDeltaLabel = baseline
-    ? doneDelta > 0
-      ? `+${doneDelta} vs yesterday`
-      : `Yesterday · ${baseline.totals.completed}`
-    : 'Everything counts'
+  const ptsDeltaLabel = !race.hasField
+    ? 'First day — set the pace'
+    : ahead
+      ? `+${todayTotals.points - race.pacer} past typical`
+      : `Typical day · ${race.pacer}`
+  // concrete and non-comparative — the points tile already carries the race
+  const doneDeltaLabel =
+    todayTotals.minutes > 0
+      ? `${todayTotals.minutes}m focused today`
+      : todayTotals.completed > 0
+        ? 'Checked off directly'
+        : 'Everything counts'
 
   const hello = `${greeting()}${settings.name.trim() ? `, ${settings.name.trim()}` : ''}`
 
@@ -93,16 +101,56 @@ export default function HomeScreen() {
               {hello}
             </Text>
           </View>
-          {!settings.gentle && streak > 0 && (
+          {/* Days active in the last month — not consecutive. A counter that
+              zeroes on one miss punishes exactly the day you most need to
+              come back, so this one only ever goes up within its window. */}
+          {!settings.gentle && showedUp > 0 && (
             <View
               className="flex-row items-center bg-surface border border-soft rounded-full"
               style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7, marginTop: 4 }}
+              accessibilityLabel={`${showedUp} days showed up in the last month`}
             >
-              <FlameIcon />
-              <Text className="font-hk800 text-ink text-[13px]">{streak}</Text>
+              <SproutIcon />
+              <Text className="font-hk800 text-ink text-[13px]">{showedUp}</Text>
+              <Text className="font-hk500 text-muted text-[11px]">days</Text>
             </View>
           )}
         </Animated.View>
+
+        {/* A session survives being force-quit, so it needs somewhere to be
+            seen — otherwise the clock runs where nobody can find it. */}
+        {focus && (
+          <Animated.View entering={FadeInUp.duration(220)}>
+            <PressableScale
+              haptic
+              onPress={() => router.push('/focus')}
+              className="bg-accent-soft flex-row items-center mt-3.5"
+              style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, gap: 11 }}
+            >
+              <View
+                className="bg-accent items-center justify-center"
+                style={{ width: 30, height: 30, borderRadius: 15 }}
+              >
+                <Svg width={12} height={12} viewBox="0 0 24 24">
+                  {focus.running ? (
+                    <Path d="M8 5v14l11-7z" fill="#fff" />
+                  ) : (
+                    <Path d="M8 5h3v14H8zM13 5h3v14h-3z" fill="#fff" />
+                  )}
+                </Svg>
+              </View>
+              <View className="flex-1" style={{ minWidth: 0 }}>
+                <Text className="font-hk800 text-ink text-[13.5px]">
+                  {focus.running ? 'Session in progress' : 'Session paused'}
+                </Text>
+                <Text className="font-hk400 text-muted text-[11.5px] mt-0.5" numberOfLines={1}>
+                  {focusTask?.title ?? 'One thing'}
+                </Text>
+              </View>
+              <Text className="font-hk700 text-accent text-[12.5px]">Resume ›</Text>
+            </PressableScale>
+          </Animated.View>
+        )}
 
         {/* race card */}
         <Animated.View entering={FadeInUp.delay(40).duration(260)} className="mt-3.5">
@@ -138,8 +186,43 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        {/* debrief banner */}
-        {overdueCount > 0 && (
+        {/* Coming back after a gap. This is the highest-stakes screen in the
+            app: the dominant failure mode is abandonment after a lapse, so it
+            shows zero accumulated debt and exactly one small next action. It
+            deliberately replaces the overdue banner — being greeted by a
+            backlog is the thing that makes people close the app again. */}
+        {away != null && away >= AWAY_DAYS ? (
+          <Animated.View entering={FadeInUp.delay(105).duration(260)}>
+            <View
+              className="bg-surface border border-soft mt-3"
+              style={{ borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14 }}
+            >
+              <Text className="font-hk800 text-ink text-[14.5px]">Good to see you.</Text>
+              <Text
+                className="font-hk400 text-muted text-[12.5px] mt-1"
+                style={{ lineHeight: 18 }}
+              >
+                It&apos;s been {away} days. Nothing piled up and nothing was lost — the
+                race starts from wherever you are.
+              </Text>
+              {today.length > 0 && (
+                <PressableScale
+                  haptic
+                  onPress={() => {
+                    startFocus(today[0].id)
+                    router.push('/focus')
+                  }}
+                  className="bg-accent-soft items-center mt-3"
+                  style={{ borderRadius: 12, paddingVertical: 11 }}
+                >
+                  <Text className="font-hk700 text-accent text-[13px]">
+                    Start with one small thing
+                  </Text>
+                </PressableScale>
+              )}
+            </View>
+          </Animated.View>
+        ) : overdueCount > 0 && (
           <Animated.View entering={FadeInUp.delay(105).duration(260)}>
             <PressableScale
               onPress={() => router.push('/debrief')}
@@ -151,7 +234,7 @@ export default function HomeScreen() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: hexA('#cc5b3e', 0.12),
+                  backgroundColor: hexA(palette.danger, 0.12),
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -231,9 +314,25 @@ export default function HomeScreen() {
                 <Text className="font-hk400 text-white text-[11.5px] mt-0.5" style={{ opacity: 0.85 }} numberOfLines={1}>
                   {today[0].title}
                 </Text>
+                {/* The plan belongs at the point of performance. Knowing the
+                    first physical move before you commit is what lowers the
+                    activation cost — seeing it only after starting is too late
+                    to help with the part that's actually hard. */}
+                {today[0].firstStep && (
+                  <Text
+                    className="font-hk600 text-white text-[11px] mt-1"
+                    style={{ opacity: 0.95 }}
+                    numberOfLines={1}
+                  >
+                    → {today[0].firstStep}
+                  </Text>
+                )}
               </View>
-              <Text className="font-hk700 text-white text-[10px]" style={{ opacity: 0.8, letterSpacing: 0.3 }}>
-                NO PICKING
+              <Text
+                className="font-hk700 text-white text-[10px]"
+                style={{ opacity: 0.85, letterSpacing: 0.3 }}
+              >
+                {settings.focusLen}m
               </Text>
             </PressableScale>
           </Animated.View>

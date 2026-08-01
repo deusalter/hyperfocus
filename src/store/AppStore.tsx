@@ -4,20 +4,26 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   ReactNode,
 } from 'react'
+import { AppState } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Haptics from 'expo-haptics'
 import { Cat } from '@/lib/theme'
 import { Completion, DEFAULT_SETTINGS, Settings, Task } from '@/lib/types'
 import {
   DayTotals,
+  RaceField,
+  WeekSummary,
+  buildRaceField,
   dayKey,
+  daysAway,
   levelForPoints,
-  pickBaseline,
   scoreCompletion,
-  showedUpStreak,
+  showedUpCount,
+  summarize,
   totalsByDay,
   weekBars,
   WeekBar,
@@ -28,6 +34,7 @@ const KEYS = {
   tasks: 'hf2-tasks',
   history: 'hf2-history',
   settings: 'hf2-settings',
+  focus: 'hf2-focus',
 } as const
 
 // v1 storage keys — migrated once, then left untouched
@@ -60,10 +67,17 @@ interface Store {
   today: Task[]
   later: Task[]
 
+  /** YYYY-MM-DD, kept live across midnight and app resume */
+  todayKey: string
   byDay: Map<string, DayTotals>
   todayTotals: DayTotals
-  baseline: { day: string; totals: DayTotals } | null
-  streak: number
+  race: RaceField
+  /** days active in the last 28 — never resets on a miss */
+  showedUp: number
+  /** days since the last active day, null if today already counts */
+  away: number | null
+  /** what the last 7 days contained — the debrief's opening */
+  week: WeekSummary
   level: number
   companionLevel: number
   ahead: boolean
@@ -152,6 +166,49 @@ function migrateV1(rawTasks: string | null, rawSessions: string | null): {
   return { tasks, history }
 }
 
+/**
+ * The current day key, kept honest.
+ *
+ * Deriving `dayKey()` inside a memo froze "today" at whatever it was when the
+ * app launched, so an app left open overnight kept scoring into yesterday.
+ * This re-checks on resume and schedules a wake-up for the next local midnight.
+ */
+function useTodayKey(): string {
+  const [today, setToday] = useState(dayKey)
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>
+
+    const sync = () => {
+      setToday((prev) => {
+        const next = dayKey()
+        return next === prev ? prev : next
+      })
+      schedule()
+    }
+
+    const schedule = () => {
+      clearTimeout(timer)
+      const now = new Date()
+      const midnight = new Date(now)
+      midnight.setHours(24, 0, 0, 0)
+      // +1s of slack so we land firmly inside the new day
+      timer = setTimeout(sync, midnight.getTime() - now.getTime() + 1000)
+    }
+
+    schedule()
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') sync()
+    })
+    return () => {
+      clearTimeout(timer)
+      sub.remove()
+    }
+  }, [])
+
+  return today
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false)
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
@@ -159,15 +216,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<Completion[]>([])
   const [focus, setFocus] = useState<FocusSession | null>(null)
   const [lastRecap, setLastRecap] = useState<Recap | null>(null)
+  const todayKey = useTodayKey()
+
+  // completeTask/finishFocus need current state without taking it as a
+  // dependency — otherwise every action identity churns on each keystroke.
+  // focusRef also acts as the guard that keeps finishFocus single-shot when
+  // the countdown reaching zero races a Done tap.
+  const tasksRef = useRef(tasks)
+  tasksRef.current = tasks
+  const focusRef = useRef(focus)
+  focusRef.current = focus
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
-        const [s, t, h, v1t, v1s] = await Promise.all([
+        const [s, t, h, f, v1t, v1s] = await Promise.all([
           AsyncStorage.getItem(KEYS.settings),
           AsyncStorage.getItem(KEYS.tasks),
           AsyncStorage.getItem(KEYS.history),
+          AsyncStorage.getItem(KEYS.focus),
           AsyncStorage.getItem(V1.tasks),
           AsyncStorage.getItem(V1.sessions),
         ])
@@ -182,6 +250,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setHistory(migrated.history)
           persist(KEYS.tasks, migrated.tasks)
           persist(KEYS.history, migrated.history)
+        }
+        // A focus session survives a cold start: endsAt is absolute epoch ms,
+        // so a running timer resumes at the right place instead of vanishing.
+        if (f) {
+          const saved = JSON.parse(f) as FocusSession
+          const stale =
+            saved.running && Date.now() - saved.endsAt > 12 * 60 * 60 * 1000
+          if (!stale) setFocus(saved)
+          else AsyncStorage.removeItem(KEYS.focus).catch(() => {})
         }
       } catch (err) {
         console.warn('hydrate error:', err)
@@ -284,7 +361,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const completeTask = useCallback(
     (id: string) => {
-      const task = tasks.find((t) => t.id === id)
+      const task = tasksRef.current.find((t) => t.id === id)
       if (!task) return
       const cat = task.cat ?? 'sprint'
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
@@ -298,16 +375,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
       removeTask(id)
     },
-    [tasks, pushHistory, removeTask]
+    [pushHistory, removeTask]
   )
 
   // ---- focus session ----
+
+  // one writer for the session so every path persists
+  const writeFocus = useCallback((next: FocusSession | null) => {
+    setFocus(next)
+    if (next) persist(KEYS.focus, next)
+    else AsyncStorage.removeItem(KEYS.focus).catch(() => {})
+  }, [])
 
   const startFocus = useCallback(
     (taskId: string) => {
       const totalSec = settings.focusLen * 60
       setLastRecap(null)
-      setFocus({
+      writeFocus({
         taskId,
         totalSec,
         running: true,
@@ -315,35 +399,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
         pausedRemaining: totalSec,
       })
     },
-    [settings.focusLen]
+    [settings.focusLen, writeFocus]
   )
 
   const toggleFocusRun = useCallback(() => {
     setFocus((prev) => {
       if (!prev) return prev
-      if (prev.running) {
-        const remaining = Math.max(0, Math.round((prev.endsAt - Date.now()) / 1000))
-        return { ...prev, running: false, pausedRemaining: remaining }
-      }
-      return { ...prev, running: true, endsAt: Date.now() + prev.pausedRemaining * 1000 }
+      const next = prev.running
+        ? {
+            ...prev,
+            running: false,
+            pausedRemaining: Math.max(0, Math.round((prev.endsAt - Date.now()) / 1000)),
+          }
+        : { ...prev, running: true, endsAt: Date.now() + prev.pausedRemaining * 1000 }
+      persist(KEYS.focus, next)
+      return next
     })
   }, [])
 
   const finishFocus = useCallback((): Recap | null => {
-    if (!focus) return null
-    const remaining = focus.running
-      ? Math.max(0, Math.round((focus.endsAt - Date.now()) / 1000))
-      : focus.pausedRemaining
-    const minutes = Math.max(1, Math.round((focus.totalSec - remaining) / 60))
-    const task = tasks.find((t) => t.id === focus.taskId)
+    const current = focusRef.current
+    if (!current) return null
+    // guard: the timer hitting zero and a Done tap can race
+    focusRef.current = null
+
+    const remaining = current.running
+      ? Math.max(0, Math.round((current.endsAt - Date.now()) / 1000))
+      : current.pausedRemaining
+    const minutes = Math.max(1, Math.round((current.totalSec - remaining) / 60))
+    const task = tasksRef.current.find((t) => t.id === current.taskId)
     const cat: Cat = task?.cat ?? 'sprint'
     const points = scoreCompletion(cat, minutes)
-    const recap: Recap = {
-      title: task?.title ?? 'Focus session',
-      cat,
-      points,
-      minutes,
-    }
+    const recap: Recap = { title: task?.title ?? 'Focus session', cat, points, minutes }
+
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
     pushHistory({
       id: generateId(),
@@ -354,18 +442,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       completedAt: new Date().toISOString(),
     })
     if (task) removeTask(task.id)
-    setFocus(null)
+    writeFocus(null)
     setLastRecap(recap)
     return recap
-  }, [focus, tasks, pushHistory, removeTask])
+  }, [pushHistory, removeTask, writeFocus])
 
-  const abandonFocus = useCallback(() => setFocus(null), [])
+  const abandonFocus = useCallback(() => {
+    focusRef.current = null
+    writeFocus(null)
+  }, [writeFocus])
 
   const resetAll = useCallback(() => {
     AsyncStorage.multiRemove([...Object.values(KEYS), ...Object.values(V1)]).catch(() => {})
     setTasks([])
     setHistory([])
     setSettings(DEFAULT_SETTINGS)
+    focusRef.current = null
     setFocus(null)
     setLastRecap(null)
   }, [])
@@ -373,26 +465,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ---- derived ----
 
   const derived = useMemo(() => {
-    const today = dayKey()
     const byDay = totalsByDay(history)
-    const todayTotals = byDay.get(today) ?? { points: 0, completed: 0, minutes: 0 }
-    const baseline = pickBaseline(byDay, today)
+    const todayTotals = byDay.get(todayKey) ?? { points: 0, completed: 0, minutes: 0 }
+    const race = buildRaceField(byDay, todayKey, todayTotals.points)
     const level = levelForPoints(todayTotals.points)
-    const pastLevel = baseline ? levelForPoints(baseline.totals.points) : 0
     return {
+      todayKey,
       byDay,
       todayTotals,
-      baseline,
-      streak: showedUpStreak(byDay, today),
+      race,
+      showedUp: showedUpCount(byDay, todayKey),
+      away: daysAway(byDay, todayKey),
+      week: summarize(byDay, todayKey),
       level,
-      // cumulative feel — the companion never regresses below yesterday
-      companionLevel: Math.max(level, pastLevel),
-      ahead:
-        todayTotals.points > 0 &&
-        (!baseline || todayTotals.points >= baseline.totals.points),
-      bars: weekBars(byDay, today),
+      // the companion reflects your typical self, so it never shrinks back on
+      // a quiet morning — growth you earned stays earned
+      companionLevel: Math.max(level, levelForPoints(race.pacer)),
+      ahead: race.ahead,
+      bars: weekBars(byDay, todayKey),
     }
-  }, [history])
+  }, [history, todayKey])
 
   const inbox = useMemo(() => tasks.filter((t) => t.bucket === 'inbox'), [tasks])
   const today = useMemo(() => tasks.filter((t) => t.bucket === 'today'), [tasks])
