@@ -69,6 +69,7 @@ Everything degrades under Reduce Motion.
 - **Not overwhelming.** Flat surfaces, hairline borders, one accent, progressive disclosure. Today is soft-capped at five.
 - **No punishment.** No streak to break, no accumulating failure counter. Days you showed up only ever counts up.
 - **Race a field, not a bar.** Racing a single past day ratchets — a good day sets a target you must then clear, so success guarantees a later failure. The field gives graded credit instead, and the pacer is a median day, never a record.
+- **Starting is the thing being rewarded.** A score built only from elapsed minutes measures how much time you had, not what it cost you to begin. Each completion banks a fixed reward for having started, and focused minutes count full value up to a session length before tapering — so deep work still earns the most of any single completion without a long block dwarfing a day made of several starts.
 - **Descriptive, not evaluative.** A shortfall is a distance to cover, never a verdict on the day.
 - **Coming back is free.** After a gap the app greets you with zero debt and one small action, because the screen shown after an absence decides whether there's another one.
 
@@ -81,5 +82,3 @@ Text clears WCAG AA (4.5:1) throughout while deliberately staying short of maxim
 Core loop is complete and running: capture → triage → focus → recap → race → weekly debrief.
 
 Not yet wired (shown as "Soon" in-app): reminders, focus sounds, Canvas import. Lock-screen widgets and Live Activities are the natural next step for a timer this app wants you to trust in the background.
-
-**Open question — scoring.** Points are still `base + rate × minutes`, which rewards how much time you had rather than how many times you got started. Initiation is the actual bottleneck this app exists for, so there's a case for scoring *starts* with a capped duration bonus. It's not done because it directly contradicts the Grind category's stated purpose of rewarding deep time, and that's a product call, not a bug.

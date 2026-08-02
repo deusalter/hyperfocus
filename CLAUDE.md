@@ -15,4 +15,5 @@ ADHD-friendly productivity app on Expo SDK 54 + React Native + NativeWind. See `
 ## Gotchas worth remembering
 - `PressableScale` puts `className`/`style` on the node that also carries the animated transform. Keep it that way — an inner wrapper swallows layout props and silently collapses `flex-1` button rows.
 - Score by **local** day. `Completion.completedAt` is an ISO UTC stamp, so slicing its date prefix files evening sessions under tomorrow. `totalsByDay` goes through `dayKey(new Date(...))` for this reason.
+- `totalsByDay` **recomputes** points from `(cat, minutes)` and ignores the stored `Completion.points`. Keep it that way — if the formula changes and history keeps old values, the pacer gets set by differently-priced days and becomes unreachable. The stored field is kept only so the recap can show the number banked at the time.
 - Nothing in the UI loops. See the doctrine at the top of `src/lib/motion.ts` before adding any animation.

@@ -7,6 +7,7 @@ import Sprite from '@/components/Sprite'
 import Confetti from '@/components/Confetti'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
+import { scoreParts } from '@/lib/points'
 
 /** Counts 0 → target with an ease-out curve — makes the points feel earned. */
 function useCountUp(target: number, duration = 700, delay = 380) {
@@ -39,6 +40,7 @@ export default function RecapScreen() {
 
   const sessionPts = useCountUp(lastRecap?.points ?? 0)
   const momentumPts = useCountUp(todayTotals.points, 700, 500)
+  const parts = scoreParts(lastRecap?.cat ?? 'sprint', lastRecap?.minutes ?? 0)
 
   // nothing to celebrate — bounce home
   useEffect(() => {
@@ -98,6 +100,12 @@ export default function RecapScreen() {
               +{sessionPts}
             </Text>
             <Text className="font-hk600 text-muted text-[11px]">PTS THIS SESSION</Text>
+            {/* Naming the start portion once per session is the point of the
+                scoring change — the reward for beginning should be something
+                you can see, not a number folded invisibly into a total. */}
+            <Text className="font-hk400 text-muted text-[10.5px] mt-1.5" style={{ lineHeight: 14 }}>
+              {parts.start} for starting{parts.focus > 0 ? ` · ${parts.focus} focused` : ''}
+            </Text>
           </View>
           <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, padding: 14 }}>
             <Text className="font-mono text-ink text-[24px]" style={{ letterSpacing: -0.5 }}>

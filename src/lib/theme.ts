@@ -33,9 +33,13 @@ export interface CatMeta {
    * its own 13% tint, which is fine for a glyph and fails for a word.
    */
   textColor: string
-  /** points awarded for completing a task of this kind */
+  /**
+   * Banked for finishing a thing of this kind at all — the reward for having
+   * started. Deliberately large relative to `rate`: beginning is the expensive
+   * part, and a score built only from minutes measures free time instead.
+   */
   base: number
-  /** points per focused minute — grind rewards deep time */
+  /** points per focused minute — grind still rewards deep time */
   rate: number
   blurb: string
 }
@@ -45,7 +49,7 @@ export const CATS: Record<Cat, CatMeta> = {
     label: 'Sprint',
     color: '#2f8f9c',
     textColor: '#277580',
-    base: 8,
+    base: 18,
     rate: 1,
     blurb: 'Quick wins, low activation energy',
   },
@@ -53,7 +57,7 @@ export const CATS: Record<Cat, CatMeta> = {
     label: 'Fire',
     color: '#cc5b3e',
     textColor: '#af4e35',
-    base: 20,
+    base: 30,
     rate: 2,
     blurb: 'Urgent or overdue — clears the most',
   },
@@ -61,7 +65,7 @@ export const CATS: Record<Cat, CatMeta> = {
     label: 'Grind',
     color: '#5a6f9c',
     textColor: '#566b96',
-    base: 14,
+    base: 24,
     rate: 3,
     blurb: 'Deep, effortful, long-haul',
   },

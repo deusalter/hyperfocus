@@ -1,10 +1,50 @@
 import { CATS, Cat } from './theme'
 import { Completion } from './types'
 
+/**
+ * Minutes up to here count at full value; past it they count at half.
+ *
+ * Set to the default session length on purpose — finish the session you
+ * planned and every minute of it paid full. Beyond that the returns taper, so
+ * a long block still earns the most of any single completion without being
+ * able to dwarf a day made of several starts.
+ */
+export const FULL_VALUE_MIN = 25
+const DEEP_SLOPE = 0.5
+
+function effortMinutes(minutes: number): number {
+  return minutes <= FULL_VALUE_MIN
+    ? minutes
+    : FULL_VALUE_MIN + (minutes - FULL_VALUE_MIN) * DEEP_SLOPE
+}
+
+export interface ScoreParts {
+  /** banked the moment the thing is finished, regardless of clock time */
+  start: number
+  /** earned from focused minutes, with returns tapering past FULL_VALUE_MIN */
+  focus: number
+  total: number
+}
+
+/**
+ * What a completion is worth, split into the two things it rewards.
+ *
+ * Scoring purely by elapsed minutes measured how much *time you had*, not how
+ * much it cost you to begin — so a three-hour day always beat a scattered one
+ * even when the scattered day took four separate acts of starting. Initiation
+ * is the part that's actually hard here, so it carries a real fixed reward and
+ * deep time tapers rather than compounding forever.
+ */
+export function scoreParts(cat: Cat, minutes: number): ScoreParts {
+  const m = CATS[cat]
+  const start = m.base
+  const focus = Math.round(m.rate * effortMinutes(minutes))
+  return { start, focus, total: start + focus }
+}
+
 /** Points for finishing a task after `minutes` of focus (0 = direct check-off). */
 export function scoreCompletion(cat: Cat, minutes: number): number {
-  const m = CATS[cat]
-  return m.base + m.rate * minutes
+  return scoreParts(cat, minutes).total
 }
 
 /**
@@ -60,7 +100,11 @@ export function totalsByDay(history: Completion[]): Map<string, DayTotals> {
     // silently stops counting.
     const key = dayKey(new Date(c.completedAt))
     const day = map.get(key) ?? { ...EMPTY_DAY }
-    day.points += c.points
+    // Recomputed from (cat, minutes) rather than read from the stored value.
+    // The scoring formula has changed once and may again; deriving it here
+    // keeps every day on the same scale, so the pacer can't end up set by
+    // history priced under old rules and become permanently unreachable.
+    day.points += scoreCompletion(c.cat, c.minutes)
     day.completed += 1
     day.minutes += c.minutes
     map.set(key, day)
