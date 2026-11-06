@@ -11,7 +11,7 @@ import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
 import { STALE_DAYS, ageInDays } from '@/lib/points'
 import { daysBetween, noon } from '@/lib/tasks'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 import { Task } from '@/lib/types'
 
 function SectionHeading({ color, label, count }: { color: string; label: string; count?: number }) {
@@ -68,6 +68,7 @@ function dueLabel(due: string, todayISO: string): string {
 }
 
 export default function DebriefScreen() {
+  const palette = useColors()
   const { tasks, week, showedUp, todayKey: todayISO, updateTask, letGo, settings } = useApp()
   const router = useRouter()
   const openTask = (id: string) => router.push({ pathname: '/task/[id]', params: { id } })

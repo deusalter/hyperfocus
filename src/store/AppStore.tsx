@@ -48,6 +48,7 @@ import {
   syncSessionAlert,
 } from '@/lib/notifications'
 import { silenceFocusSound, syncFocusSound } from '@/lib/sound'
+import { applyAppearance } from '@/lib/appearance'
 import { generateId } from '@/lib/utils'
 
 const KEYS = {
@@ -825,6 +826,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return
     syncFocusSound(settings.sound, running)
   }, [hydrated, running, settings.sound])
+
+  useEffect(() => {
+    if (hydrated) applyAppearance(settings.appearance)
+  }, [hydrated, settings.appearance])
 
   // ---- derived ----
 

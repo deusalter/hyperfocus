@@ -22,7 +22,7 @@ import UndoToast from '@/components/UndoToast'
 import { useApp } from '@/store/AppStore'
 import { goBackOrHome } from '@/lib/nav'
 import { TODAY_CAP } from '@/lib/points'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 
 const COMMIT_DX = 80
 /** a flick this fast counts even if it hasn't travelled the distance */
@@ -34,6 +34,7 @@ function thresholdBuzz() {
 }
 
 export default function TriageScreen() {
+  const palette = useColors()
   const { inbox, today, triageAssign, updateTask, level } = useApp()
   const router = useRouter()
   const current = inbox[0]

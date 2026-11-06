@@ -3,12 +3,13 @@ import { Tabs } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import GlassTabBar from '@/components/GlassTabBar'
 import UndoToast from '@/components/UndoToast'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 
 /** Tab bar height plus the FAB's rise, so the toast clears both. */
 const TOAST_CLEARANCE = 92
 
 export default function TabsLayout() {
+  const palette = useColors()
   const insets = useSafeAreaInsets()
   return (
     <View style={{ flex: 1 }}>

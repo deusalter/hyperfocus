@@ -27,7 +27,7 @@ import { notificationsAllowed, requestNotifications } from '@/lib/notifications'
 import { REMINDER_HOURS } from '@/lib/reminders'
 import { FOCUS_OPTIONS } from '@/lib/session'
 import { SOUNDS, SOUND_ORDER, previewSound } from '@/lib/sound'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 import { SoundKind } from '@/lib/types'
 
 function SectionLabel({ children }: { children: string }) {
@@ -62,6 +62,7 @@ function Segments<T extends string | number>({
   onChange: (next: T) => void
   groupLabel: string
 }) {
+  const palette = useColors()
   return (
     <View
       className="flex-row"
@@ -90,7 +91,7 @@ function Segments<T extends string | number>({
             <Text
               className="font-hk700 text-[14px]"
               numberOfLines={1}
-              style={{ color: active ? '#fff' : palette.ink }}
+              style={{ color: active ? palette.onAccent : palette.ink }}
               maxFontSizeMultiplier={1.3}
             >
               {o.label}
@@ -115,6 +116,7 @@ function ToggleRow({
   onToggle: () => void
   last?: boolean
 }) {
+  const palette = useColors()
   return (
     <Pressable
       onPress={onToggle}
@@ -153,6 +155,7 @@ function LinkRow({
   last?: boolean
   hint?: string
 }) {
+  const palette = useColors()
   return (
     <Pressable
       onPress={onPress}
@@ -185,6 +188,7 @@ const FEED_ERRORS = {
 } as const
 
 function FeedCard() {
+  const palette = useColors()
   const { settings, feed, tasks, connectFeed, syncFeed, disconnectFeed } = useApp()
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
@@ -345,6 +349,7 @@ function FeedCard() {
 }
 
 export default function YouScreen() {
+  const palette = useColors()
   const router = useRouter()
   const { settings, updateSettings, showedUp, companionLevel, focus, exportData, resetAll } = useApp()
   const [editingName, setEditingName] = useState(false)
@@ -572,8 +577,22 @@ export default function YouScreen() {
               subtitle="No comparisons. Hides the race field, day counts and week-over-week."
               on={settings.gentle}
               onToggle={() => updateSettings({ gentle: !settings.gentle })}
-              last
             />
+            <View style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
+              <Text className="font-hk700 text-ink text-[14.5px]">Appearance</Text>
+              <View className="mt-2.5">
+                <Segments
+                  groupLabel="Appearance"
+                  value={settings.appearance}
+                  onChange={(mode) => updateSettings({ appearance: mode })}
+                  options={[
+                    { value: 'light', label: 'Light' },
+                    { value: 'dark', label: 'Dark' },
+                    { value: 'system', label: 'Auto', a11y: 'Match my phone' },
+                  ]}
+                />
+              </View>
+            </View>
           </Card>
 
           <SectionLabel>ABOUT</SectionLabel>

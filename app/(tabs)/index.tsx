@@ -14,10 +14,11 @@ import { ArrowRight, ChevronDown, ChevronRight, PauseIcon, PlayIcon } from '@/co
 import { useApp } from '@/store/AppStore'
 import { useStartFocus } from '@/lib/useStartFocus'
 import { AWAY_DAYS, greeting } from '@/lib/points'
-import { palette, hexA } from '@/lib/theme'
+import { hexA, useColors } from '@/lib/theme'
 
 /** Growth, not a burning streak — nothing here can go out. */
 function SproutIcon() {
+  const palette = useColors()
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24">
       <Path
@@ -33,6 +34,7 @@ function SproutIcon() {
 }
 
 function WarnIcon() {
+  const palette = useColors()
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24">
       <Path
@@ -52,7 +54,7 @@ function StatTile({
   value,
   unit,
   note,
-  noteColor = palette.muted,
+  noteColor,
 }: {
   label: string
   value: number
@@ -60,6 +62,7 @@ function StatTile({
   note: string
   noteColor?: string
 }) {
+  const palette = useColors()
   return (
     <View
       className="flex-1 bg-surface border border-soft"
@@ -84,7 +87,7 @@ function StatTile({
       </View>
       <Text
         className="font-hk700 text-[12px] mt-0.5"
-        style={{ color: noteColor }}
+        style={{ color: noteColor ?? palette.muted }}
         maxFontSizeMultiplier={1.2}
       >
         {note}
@@ -94,6 +97,7 @@ function StatTile({
 }
 
 export default function HomeScreen() {
+  const palette = useColors()
   const router = useRouter()
   const {
     settings,
@@ -359,7 +363,7 @@ export default function HomeScreen() {
                   width: 34,
                   height: 34,
                   borderRadius: 17,
-                  backgroundColor: 'rgba(255,255,255,.2)',
+                  backgroundColor: hexA(palette.onAccent, 0.18),
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}

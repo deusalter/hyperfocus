@@ -17,12 +17,13 @@ import PressableScale from '@/components/ui/PressableScale'
 import { Task } from '@/lib/types'
 import { useApp } from '@/store/AppStore'
 import { useStartFocus } from '@/lib/useStartFocus'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 
 const CHECK_DELAY_MS = 320
 
 /** One task on the Home Today list: check-off circle, title, Focus pill, category. */
 export default function TaskRow({ task }: { task: Task }) {
+  const palette = useColors()
   const { completeTask, updateTask, todayKey, focus } = useApp()
   const router = useRouter()
   const start = useStartFocus()
@@ -84,7 +85,7 @@ export default function TaskRow({ task }: { task: Task }) {
               <Svg width={12} height={12} viewBox="0 0 24 24">
                 <Path
                   d="M5 12.5 10 17.5 19 7"
-                  stroke="#fff"
+                  stroke={palette.onAccent}
                   strokeWidth={3.2}
                   strokeLinecap="round"
                   strokeLinejoin="round"

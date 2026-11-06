@@ -8,9 +8,10 @@ import PressableScale from '@/components/ui/PressableScale'
 import { ArrowRight, CloseIcon, PlusIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { MAX_TITLE } from '@/lib/tasks'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 
 export default function DumpScreen() {
+  const palette = useColors()
   const { inbox, addToInbox, removeTask } = useApp()
   const [draft, setDraft] = useState('')
   const router = useRouter()

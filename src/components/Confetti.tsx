@@ -9,12 +9,12 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 import { BURST_MS } from '@/lib/motion'
 
 interface Piece {
   left: string
-  color: string
+  tone: 'accent' | 'accent2'
   duration: number
   delay: number
   /** horizontal drift while falling, px */
@@ -23,17 +23,18 @@ interface Piece {
 }
 
 const PIECES: Piece[] = [
-  { left: '6%', color: palette.accent, duration: 1100, delay: 0, drift: 14, size: 7 },
-  { left: '18%', color: palette.accent2, duration: 1250, delay: 120, drift: -10, size: 6 },
-  { left: '31%', color: palette.accent, duration: 1000, delay: 220, drift: 8, size: 8 },
-  { left: '44%', color: palette.accent2, duration: 1200, delay: 60, drift: -16, size: 7 },
-  { left: '57%', color: palette.accent, duration: 1120, delay: 180, drift: 12, size: 6 },
-  { left: '70%', color: palette.accent2, duration: 1050, delay: 100, drift: -8, size: 8 },
-  { left: '82%', color: palette.accent, duration: 1180, delay: 30, drift: 15, size: 7 },
-  { left: '93%', color: palette.accent2, duration: 1090, delay: 240, drift: -12, size: 6 },
+  { left: '6%', tone: 'accent', duration: 1100, delay: 0, drift: 14, size: 7 },
+  { left: '18%', tone: 'accent2', duration: 1250, delay: 120, drift: -10, size: 6 },
+  { left: '31%', tone: 'accent', duration: 1000, delay: 220, drift: 8, size: 8 },
+  { left: '44%', tone: 'accent2', duration: 1200, delay: 60, drift: -16, size: 7 },
+  { left: '57%', tone: 'accent', duration: 1120, delay: 180, drift: 12, size: 6 },
+  { left: '70%', tone: 'accent2', duration: 1050, delay: 100, drift: -8, size: 8 },
+  { left: '82%', tone: 'accent', duration: 1180, delay: 30, drift: 15, size: 7 },
+  { left: '93%', tone: 'accent2', duration: 1090, delay: 240, drift: -12, size: 6 },
 ]
 
 function ConfettiPiece({ piece, fall }: { piece: Piece; fall: number }) {
+  const palette = useColors()
   const t = useSharedValue(0)
   useEffect(() => {
     // One fall, then done — no withRepeat. A looping burst re-captures
@@ -62,7 +63,7 @@ function ConfettiPiece({ piece, fall }: { piece: Piece; fall: number }) {
           width: piece.size,
           height: piece.size + 5,
           borderRadius: 1,
-          backgroundColor: piece.color,
+          backgroundColor: palette[piece.tone],
         },
         style,
       ]}

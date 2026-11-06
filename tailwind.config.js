@@ -1,30 +1,41 @@
+const plugin = require('tailwindcss/plugin')
+const colors = require('./src/lib/colors.json')
+
+/**
+ * The palette's class names, one per token, each with a light value and a dark one.
+ * Done here rather than with `dark:` on every element, so a screen can say text-ink
+ * and mean it in either theme.
+ */
+const TOKENS = {
+  background: 'background',
+  ink: 'ink',
+  surface: 'surface',
+  muted: 'muted',
+  soft: 'soft',
+  accent: 'accent',
+  'on-accent': 'onAccent',
+  'accent-soft': 'accentSoft',
+}
+const DARK = '@media (prefers-color-scheme: dark)'
+
+const themedColors = plugin(({ addUtilities }) => {
+  const rules = {}
+  for (const [name, token] of Object.entries(TOKENS)) {
+    const light = colors.light[token]
+    const dark = colors.dark[token]
+    rules[`.bg-${name}`] = { backgroundColor: light, [DARK]: { backgroundColor: dark } }
+    rules[`.text-${name}`] = { color: light, [DARK]: { color: dark } }
+    rules[`.border-${name}`] = { borderColor: light, [DARK]: { borderColor: dark } }
+  }
+  addUtilities(rules)
+})
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    './app/**/*.{js,jsx,ts,tsx}',
-    './src/**/*.{js,jsx,ts,tsx}',
-  ],
+  content: ['./app/**/*.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
-      colors: {
-        // "Rival" palette — calm paper-and-sky light theme.
-        // Tuned to clear WCAG AA (4.5:1) for body text while staying short of
-        // maximal contrast: pure-black-on-pure-white is a documented source of
-        // visual stress, so ink is near-black on warm off-white, not #000/#fff.
-        background: '#eef0f0',
-        ink: '#1d2023',
-        surface: '#ffffff',
-        muted: '#62686b', // was #858c91 — 2.98:1 on background, an AA failure
-        soft: '#e0e4e4',
-        accent: '#456a90', // was #4f7aa6 — white-on-accent landed at 4.4998:1
-        'accent-2': '#d98a4f',
-        'accent-soft': '#dde8f1',
-        // task energy categories — vivid fills for icons and dots
-        sprint: '#2f8f9c',
-        fire: '#cc5b3e',
-        grind: '#5a6f9c',
-      },
       fontFamily: {
         // each RN weight is its own family — utilities per weight
         hk400: ['HankenGrotesk_400Regular'],
@@ -37,5 +48,5 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [themedColors],
 }

@@ -7,7 +7,7 @@ import Sprite from '@/components/Sprite'
 import { TriangleUp } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { addDays } from '@/lib/points'
-import { palette, hexA } from '@/lib/theme'
+import { hexA, useColors } from '@/lib/theme'
 
 const CHART_H = 132
 
@@ -35,6 +35,7 @@ function Tile({ label, value, unit, a11y }: { label: string; value: string; unit
 }
 
 export default function InsightsScreen() {
+  const palette = useColors()
   const { bars, race, byDay, showedUp, companionLevel, todayKey, settings } = useApp()
   const gentle = settings.gentle
 

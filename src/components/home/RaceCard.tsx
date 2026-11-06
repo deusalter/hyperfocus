@@ -11,7 +11,7 @@ import * as Haptics from 'expo-haptics'
 import Sprite from '@/components/Sprite'
 import Confetti from '@/components/Confetti'
 import { useApp } from '@/store/AppStore'
-import { palette, hexA } from '@/lib/theme'
+import { hexA, useColors } from '@/lib/theme'
 import { levelForPoints, RaceField } from '@/lib/points'
 import { EASE_OUT } from '@/lib/motion'
 
@@ -57,6 +57,7 @@ function Badge({ label }: { label: string }) {
  * however kindly it's worded, so there the runner only ever shows today's progress.
  */
 export default function RaceCard() {
+  const palette = useColors()
   const { todayTotals, race, level, settings, hydrated } = useApp()
   const [trackW, setTrackW] = useState(0)
   const reduced = useReducedMotion()

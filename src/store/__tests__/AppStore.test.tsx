@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AppProvider, useApp } from '../AppStore'
 import { syncReminders, syncSessionAlert, clearAllNotifications } from '@/lib/notifications'
 import { silenceFocusSound, syncFocusSound } from '@/lib/sound'
+import { applyAppearance } from '@/lib/appearance'
 import { dayKey } from '@/lib/points'
 import { DEFAULT_SETTINGS, Task } from '@/lib/types'
 
@@ -28,6 +29,9 @@ jest.mock('@/lib/notifications', () => ({
   requestNotifications: jest.fn(() => Promise.resolve(true)),
   syncReminders: jest.fn(() => Promise.resolve()),
   syncSessionAlert: jest.fn(() => Promise.resolve()),
+}))
+jest.mock('@/lib/appearance', () => ({
+  applyAppearance: jest.fn(),
 }))
 jest.mock('@/lib/sound', () => ({
   silenceFocusSound: jest.fn(),
@@ -532,6 +536,20 @@ describe('what the store asks of the device', () => {
     expect(lastCall(syncReminders)).toEqual([18, false])
     act(() => result.current.completeTask('a'))
     await waitFor(() => expect(lastCall(syncReminders)).toEqual([18, true]))
+  })
+
+  it('starts light unless told otherwise, and follows the choice', async () => {
+    const { result } = await boot({ 'hf2-settings': SETTINGS })
+    expect(lastCall(applyAppearance)).toEqual(['light'])
+    act(() => result.current.updateSettings({ appearance: 'dark' }))
+    await waitFor(() => expect(lastCall(applyAppearance)).toEqual(['dark']))
+    act(() => result.current.resetAll())
+    await waitFor(() => expect(lastCall(applyAppearance)).toEqual(['light']))
+  })
+
+  it('applies a saved choice when the app opens', async () => {
+    await boot({ 'hf2-settings': { ...SETTINGS, appearance: 'system' } })
+    expect(lastCall(applyAppearance)).toEqual(['system'])
   })
 
   it('reset clears scheduled notifications and silences sound', async () => {

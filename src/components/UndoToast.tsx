@@ -3,7 +3,7 @@ import { AccessibilityInfo, Pressable, Text, View } from 'react-native'
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated'
 import { useIsFocused } from '@react-navigation/native'
 import { useApp } from '@/store/AppStore'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 
 // the accent, lifted until it clears AA against the toast's ink background
 const UNDO_COLOR = '#a9c8e8'
@@ -18,6 +18,7 @@ const UNDO_COLOR = '#a9c8e8'
  * root view, so a single toast at the root would be hidden behind the sheet.
  */
 export default function UndoToast({ bottom = 20 }: { bottom?: number }) {
+  const palette = useColors()
   const { undoOffer, undo } = useApp()
   const focused = useIsFocused()
   const id = undoOffer?.id
@@ -40,7 +41,7 @@ export default function UndoToast({ bottom = 20 }: { bottom?: number }) {
         exiting={FadeOutDown.duration(120)}
         className="flex-row items-center"
         style={{
-          backgroundColor: palette.ink,
+          backgroundColor: palette.toast,
           borderRadius: 14,
           paddingLeft: 16,
           paddingRight: 6,

@@ -77,7 +77,7 @@ scripts/                 # End-to-end checks and the screenshot pipeline
 
 ## Design
 
-Light editorial. Warm off-white ground (`#eef0f0`), near-black ink, one slate-blue accent (`#4f7aa6`) with a warm secondary. Hanken Grotesk for UI, Spline Sans Mono for numerals.
+Light editorial. Warm off-white ground (`#eef0f0`), near-black ink, one slate-blue accent (`#456a90`) with a warm secondary. Hanken Grotesk for UI, Spline Sans Mono for numerals. Light is the designed look and the default; a dark theme and "match my phone" are there to choose under You.
 
 **Motion has two rules**, both in `src/lib/motion.ts`:
 
@@ -100,7 +100,7 @@ Everything degrades under Reduce Motion.
 
 ## Accessibility
 
-Text clears WCAG AA (4.5:1) throughout while deliberately staying short of maximal contrast — pure black on pure white is a documented source of visual stress, so the palette is near-black ink on warm off-white. Touch targets meet Apple's 44pt, with asymmetric `hitSlop` where controls sit close enough that uniform slop would overlap. All motion degrades under Reduce Motion, the tab bar goes solid under Reduce Transparency, and Gentle mode removes every comparison for anyone who finds even a kindly worded one stressful. Buttons, charts and the race are labelled for VoiceOver.
+Text clears WCAG AA (4.5:1) throughout, in both themes, which `npm run e2e` measures on every screen from what actually renders. It deliberately stays short of maximal contrast — pure black on pure white is a documented source of visual stress, so the palette is near-black ink on warm off-white. Touch targets meet Apple's 44pt, with asymmetric `hitSlop` where controls sit close enough that uniform slop would overlap. All motion degrades under Reduce Motion, the tab bar goes solid under Reduce Transparency, and Gentle mode removes every comparison for anyone who finds even a kindly worded one stressful. Buttons, charts and the race are labelled for VoiceOver.
 
 ## Privacy
 

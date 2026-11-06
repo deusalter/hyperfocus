@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 import { SNAP } from '@/lib/motion'
 
 /**
@@ -14,6 +14,7 @@ import { SNAP } from '@/lib/motion'
  * switch role and state there so the row's whole label reads as one control.
  */
 export default function Toggle({ on }: { on: boolean }) {
+  const palette = useColors()
   const t = useSharedValue(on ? 1 : 0)
   useEffect(() => {
     t.value = withTiming(on ? 1 : 0, SNAP)

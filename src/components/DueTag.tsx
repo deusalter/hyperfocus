@@ -1,5 +1,5 @@
 import { Text, View } from 'react-native'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 import { dueChip } from '@/lib/tasks'
 
 /**
@@ -7,6 +7,7 @@ import { dueChip } from '@/lib/tasks'
  * colour with no alarm shape around it: a date is a fact, not a verdict.
  */
 export default function DueTag({ due, today }: { due: string; today: string }) {
+  const palette = useColors()
   const { text, overdue } = dueChip(due, today)
   return (
     <View

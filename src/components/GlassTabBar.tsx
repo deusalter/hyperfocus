@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { GLIDE } from '@/lib/motion'
 import Svg, { Path, Rect, Circle } from 'react-native-svg'
-import { palette, hexA } from '@/lib/theme'
+import { hexA, useColors } from '@/lib/theme'
 import PressableScale from '@/components/ui/PressableScale'
 
 const H_PAD = 14
@@ -64,6 +64,7 @@ function BarContent({
   navigation,
   barW,
 }: Pick<BottomTabBarProps, 'state' | 'navigation'> & { barW: number }) {
+  const palette = useColors()
   const tabW = barW > 0 ? (barW - H_PAD * 2 - FAB_GAP) / 4 : 0
 
   // the "lens" that glides under the active tab — smooth, no bounce
@@ -156,6 +157,7 @@ function useReducedTransparency() {
 }
 
 export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
+  const palette = useColors()
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const [barW, setBarW] = useState(0)
@@ -176,7 +178,7 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
         style={{
           borderRadius: 28,
           borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.7)',
+          borderColor: palette.glassBorder,
           shadowColor: '#141e2d',
           shadowOpacity: 0.18,
           shadowRadius: 24,
@@ -191,15 +193,15 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
             // see-through and it reads as words competing with the tab labels.
             <BlurView
               intensity={40}
-              tint="light"
-              style={{ backgroundColor: 'rgba(255,255,255,0.72)' }}
+              tint={palette.blurTint as 'light' | 'dark'}
+              style={{ backgroundColor: palette.glass }}
             >
               <BarContent state={state} navigation={navigation} barW={barW} />
             </BlurView>
           ) : (
             // Android, where blur is unreliable, and anyone with Reduce Transparency
             // on: near-opaque glass reads the same
-            <View style={{ backgroundColor: 'rgba(255,255,255,0.96)' }}>
+            <View style={{ backgroundColor: palette.glassSolid }}>
               <BarContent state={state} navigation={navigation} barW={barW} />
             </View>
           )}
@@ -223,7 +225,7 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 4,
-              borderColor: 'rgba(255,255,255,0.85)',
+              borderColor: palette.fabBorder,
               shadowColor: palette.accent,
               shadowOpacity: 0.32,
               shadowRadius: 20,
@@ -232,7 +234,7 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
             }}
           >
             <Svg width={24} height={24} viewBox="0 0 24 24">
-              <Path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth={2.6} strokeLinecap="round" />
+              <Path d="M12 5v14M5 12h14" stroke={palette.onAccent} strokeWidth={2.6} strokeLinecap="round" />
             </Svg>
           </PressableScale>
         </View>

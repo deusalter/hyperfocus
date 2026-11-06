@@ -1,38 +1,40 @@
-// Single source of truth for the Rival design language.
-// Mirrors tailwind.config.js — import these when a value is needed
-// programmatically (SVG strokes, animated styles, dot fills).
+import { useColorScheme } from 'react-native'
+import colors from './colors.json'
+
+// Every colour lives in colors.json, which tailwind.config.js reads too, so the
+// class names and these values can't drift apart. Import from here when a value is
+// needed programmatically (SVG strokes, animated styles, dot fills).
 
 /**
- * Tuned so body text clears WCAG AA (4.5:1) while staying short of maximal
- * contrast — pure black on pure white is a documented source of visual stress,
- * so this is near-black ink on warm off-white rather than #000 on #fff.
+ * Tuned so body text clears WCAG AA (4.5:1) in both themes while staying short of
+ * maximal contrast. Pure black on pure white is a documented source of visual
+ * stress, so light is near-black ink on warm off-white, and dark is the reverse of
+ * that rather than white on black. `npm run e2e` measures this on every screen.
+ *
+ * A note on a few of the less obvious ones:
+ * - `accent` has to work as text on a card and as a button fill. In dark no colour
+ *   can carry both white text and read on a dark card, so filled controls take
+ *   `onAccent` for what sits on them.
+ * - `danger` is the vivid tone, for icons and tints. `dangerText` is the same intent
+ *   adjusted to clear AA as words.
+ * - Each category's `color` is for icons and dots, where 3:1 is the bar. `textColor`
+ *   is its sibling for the 11px chip label, which the vivid fill fails on its own
+ *   13% tint.
  */
-export const palette = {
-  background: '#eef0f0',
-  ink: '#1d2023',
-  surface: '#ffffff',
-  muted: '#62686b', // was #858c91: 2.98:1 on background, an AA failure
-  soft: '#e0e4e4',
-  accent: '#456a90', // was #4f7aa6: white-on-accent landed at 4.4998:1
-  accent2: '#d98a4f',
-  accentSoft: '#dde8f1',
-  /** overdue / destructive — the vivid tone, for icons and tints only */
-  danger: '#cc5b3e',
-  /** same intent as text: the vivid one is 4.09:1 on surface, under AA */
-  dangerText: '#af4e35',
-} as const
+export type Palette = typeof colors.light
+
+export const lightPalette: Palette = colors.light
+export const darkPalette: Palette = colors.dark
+
+/** The colours for the current appearance. Re-renders when it changes. */
+export function useColors(): Palette {
+  return useColorScheme() === 'dark' ? darkPalette : lightPalette
+}
 
 export type Cat = 'sprint' | 'fire' | 'grind'
 
 export interface CatMeta {
   label: string
-  /** vivid fill for icons and dots — non-text, so 3:1 is the bar */
-  color: string
-  /**
-   * Darker sibling for the 11px chip label. The vivid fill sits at ~3.3:1 on
-   * its own 13% tint, which is fine for a glyph and fails for a word.
-   */
-  textColor: string
   /**
    * Banked for finishing a thing of this kind at all — the reward for having
    * started. Deliberately large relative to `rate`: beginning is the expensive
@@ -47,24 +49,18 @@ export interface CatMeta {
 export const CATS: Record<Cat, CatMeta> = {
   sprint: {
     label: 'Sprint',
-    color: '#2f8f9c',
-    textColor: '#277580',
     base: 18,
     rate: 1,
     blurb: 'Quick wins, low activation energy',
   },
   fire: {
     label: 'Fire',
-    color: '#cc5b3e',
-    textColor: '#af4e35',
     base: 30,
     rate: 2,
     blurb: 'Urgent or overdue — clears the most',
   },
   grind: {
     label: 'Grind',
-    color: '#5a6f9c',
-    textColor: '#566b96',
     base: 24,
     rate: 3,
     blurb: 'Deep, effortful, long-haul',
@@ -76,6 +72,19 @@ export const CAT_ORDER: Cat[] = ['sprint', 'fire', 'grind']
 export function hexA(hex: string, alpha: number): string {
   const n = parseInt(hex.slice(1), 16)
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`
+}
+
+/**
+ * A tint as a solid colour. Use for a tint that has text on it and isn't on a card:
+ * a translucent one shows whatever is behind it, and the page ground is dark enough
+ * to take a category's label under AA.
+ */
+export function tintOn(background: string, hex: string, alpha: number): string {
+  const channel = (h: string, shift: number) => (parseInt(h.slice(1), 16) >> shift) & 255
+  const mixed = [16, 8, 0].map((shift) =>
+    Math.round(channel(hex, shift) * alpha + channel(background, shift) * (1 - alpha))
+  )
+  return `rgb(${mixed.join(',')})`
 }
 
 export const fonts = {

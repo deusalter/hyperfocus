@@ -12,7 +12,7 @@ import { ChevronRight, PlusIcon, SyncIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { dayKey } from '@/lib/points'
 import { MAX_TITLE, noon } from '@/lib/tasks'
-import { CATS, palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 import { Task } from '@/lib/types'
 
 /** Which calendar day a task belongs to — explicit due date, or today for the Today bucket. */
@@ -23,6 +23,7 @@ function taskDay(task: Task, todayISO: string): string | null {
 }
 
 export default function CalendarScreen() {
+  const palette = useColors()
   const router = useRouter()
   const { tasks, history, overdue, addTask, todayKey: todayISO } = useApp()
   const [selected, setSelected] = useState(todayISO)
@@ -133,7 +134,7 @@ export default function CalendarScreen() {
               setAdding(false)
             }}
             onJump={jumpWeek}
-            dotsFor={(key) => (byDay.get(key) ?? []).map((t) => CATS[t.cat ?? 'sprint'].color)}
+            dotsFor={(key) => (byDay.get(key) ?? []).map((t) => palette.cats[t.cat ?? 'sprint'].color)}
           />
         </Animated.View>
 

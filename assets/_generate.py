@@ -128,6 +128,39 @@ def icon(size=1024):
     return img.resize((size, size), Image.LANCZOS)
 
 
+def icon_dark(size=1024):
+    """Same drawing on a dark ground, for the Home Screen in dark mode."""
+    S = size * SS
+    top, bottom = (39, 46, 54), (20, 24, 28)
+    ground = Image.new("RGB", (size, size))
+    px = ground.load()
+    for y in range(size):
+        for x in range(size):
+            t = (x * 0.25 + y * 0.75) / size
+            px[x, y] = tuple(int(a + (b - a) * t) for a, b in zip(top, bottom))
+    img = ground.resize((S, S), Image.BILINEAR)
+
+    body = (143, 180, 218)  # dark theme accent
+    unit = S / 1024 * 5.5
+    hip_x, hip_y = S * 0.585, S * 0.575
+    past = ghost(S, hip_x - 45 * unit, hip_y, unit, body, 0.26)
+    img.paste(past, (0, 0), past)
+    runner(ImageDraw.Draw(img), hip_x, hip_y, unit, body, band=WARM, face=(16, 22, 28))
+    return img.resize((size, size), Image.LANCZOS)
+
+
+def icon_tinted(size=1024):
+    """Greyscale on black. iOS applies the user's tint colour to it."""
+    S = size * SS
+    img = Image.new("RGB", (S, S), (0, 0, 0))
+    unit = S / 1024 * 5.5
+    hip_x, hip_y = S * 0.585, S * 0.575
+    past = ghost(S, hip_x - 45 * unit, hip_y, unit, (255, 255, 255), 0.3)
+    img.paste(past, (0, 0), past)
+    runner(ImageDraw.Draw(img), hip_x, hip_y, unit, (255, 255, 255), band=(150, 150, 150), face=(0, 0, 0))
+    return img.resize((size, size), Image.LANCZOS)
+
+
 def transparent_runner(size, fit, body, band=None, face=None, past_alpha=None):
     """Runner on transparency. `fit` is the fraction of the canvas it may use."""
     S = size * SS
@@ -155,6 +188,8 @@ def transparent_runner(size, fit, body, band=None, face=None, past_alpha=None):
 def main():
     # App Store icon: 1024x1024 with no alpha channel, or App Store Connect rejects it.
     icon().convert("RGB").save(ASSETS / "icon.png", "PNG")
+    icon_dark().convert("RGB").save(ASSETS / "icon-dark.png", "PNG")
+    icon_tinted().convert("RGB").save(ASSETS / "icon-tinted.png", "PNG")
 
     # Splash mark on a transparent canvas. The background comes from app.json,
     # so launch hands straight off to the app's ground colour with no flash.
@@ -168,7 +203,7 @@ def main():
     )
 
     icon(64).convert("RGB").save(ASSETS / "favicon.png", "PNG")
-    print("wrote: icon.png, splash-icon.png, adaptive-icon.png, favicon.png")
+    print("wrote: icon.png, icon-dark.png, icon-tinted.png, splash-icon.png, adaptive-icon.png, favicon.png")
 
 
 if __name__ == "__main__":

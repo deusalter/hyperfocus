@@ -1,0 +1,10 @@
+appId: com.deusalter.hyperfocus
+name: The icon on the Home Screen
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 45000
+- pressKey: Home
+- waitForAnimationToEnd
+- takeScreenshot: home-screen

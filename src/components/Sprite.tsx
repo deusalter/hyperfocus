@@ -12,7 +12,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 
 export type SpritePose = 'run' | 'idle' | 'wave' | 'cheer'
 
@@ -76,6 +76,7 @@ function Limb({
   height: number
   style: ViewStyle
 }) {
+  const palette = useColors()
   const animated = useAnimatedStyle(() => ({
     transform: [
       { translateY: -height / 2 },
@@ -110,6 +111,7 @@ function BandTail({
   width: number
   style: ViewStyle
 }) {
+  const palette = useColors()
   const animated = useAnimatedStyle(() => ({
     transform: [
       { translateX: -width / 2 },
@@ -125,7 +127,7 @@ function BandTail({
           width,
           height: 4,
           borderRadius: 3,
-          backgroundColor: '#fff',
+          backgroundColor: palette.onAccent,
         },
         style,
         animated,
@@ -160,6 +162,7 @@ function DustPiece({
   opacity: number
   delay: number
 }) {
+  const palette = useColors()
   const t = useSharedValue(0)
   useEffect(() => {
     t.value = withDelay(
@@ -197,6 +200,7 @@ export default function Sprite({
   scale = 1,
   calm = false,
 }: SpriteProps) {
+  const palette = useColors()
   const reducedMotion = useReducedMotion()
   const effectivePose: SpritePose = ghost ? 'idle' : pose
 
@@ -376,15 +380,15 @@ export default function Sprite({
                   right: -2,
                   height: 6,
                   borderRadius: 4,
-                  backgroundColor: '#fff',
+                  backgroundColor: palette.onAccent,
                   opacity: 0.85,
                 }}
               />
               <BandTail angle={band} width={11} style={{ top: 7, right: -9, opacity: 0.8 }} />
               <BandTail angle={band2} width={13} style={{ top: 12, right: -10, opacity: 0.55 }} />
               {/* eyes */}
-              <View style={{ position: 'absolute', top: 19, left: 12, width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />
-              <View style={{ position: 'absolute', top: 19, left: 21, width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' }} />
+              <View style={{ position: 'absolute', top: 19, left: 12, width: 5, height: 5, borderRadius: 3, backgroundColor: palette.onAccent }} />
+              <View style={{ position: 'absolute', top: 19, left: 21, width: 5, height: 5, borderRadius: 3, backgroundColor: palette.onAccent }} />
               {/* mouth */}
               {openMouth ? (
                 <View
@@ -398,7 +402,7 @@ export default function Sprite({
                     borderTopRightRadius: 5,
                     borderBottomLeftRadius: 6,
                     borderBottomRightRadius: 6,
-                    backgroundColor: '#fff',
+                    backgroundColor: palette.onAccent,
                   }}
                 />
               ) : (
@@ -411,7 +415,7 @@ export default function Sprite({
                     height: 6,
                     borderWidth: 2,
                     borderTopWidth: 0,
-                    borderColor: '#fff',
+                    borderColor: palette.onAccent,
                     borderBottomLeftRadius: 9,
                     borderBottomRightRadius: 9,
                   }}

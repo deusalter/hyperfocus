@@ -18,14 +18,20 @@ import { HankenGrotesk_800ExtraBold } from '@expo-google-fonts/hanken-grotesk/80
 import { SplineSansMono_500Medium } from '@expo-google-fonts/spline-sans-mono/500Medium'
 import { SplineSansMono_600SemiBold } from '@expo-google-fonts/spline-sans-mono/600SemiBold'
 import { AppProvider, useApp } from '@/store/AppStore'
-import { palette } from '@/lib/theme'
+import { applyAppearance } from '@/lib/appearance'
+import { useColors } from '@/lib/theme'
 
 SplashScreen.preventAutoHideAsync().catch(() => {})
+
+// Before the first render, so a phone set to dark doesn't start this app dark. A
+// saved choice takes over once storage has loaded, which is still under the splash.
+applyAppearance('light')
 
 const SPLASH_WATCHDOG_MS = 4000
 
 /** Friendly crash screen — shown by expo-router if anything below throws. */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  const palette = useColors()
   // a crash before the first paint would otherwise sit behind the splash forever
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => {})
@@ -75,7 +81,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
           paddingHorizontal: 28,
         }}
       >
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Try again</Text>
+        <Text style={{ color: palette.onAccent, fontWeight: '700', fontSize: 15 }}>Try again</Text>
       </Pressable>
     </View>
   )
@@ -83,6 +89,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 /** Decides what's on screen before the first real paint, and when to reveal it. */
 function AppGate() {
+  const palette = useColors()
   const { hydrated, settings, recapPending } = useApp()
   const segments = useSegments()
   const router = useRouter()
@@ -133,6 +140,7 @@ function AppGate() {
 }
 
 export default function RootLayout() {
+  const palette = useColors()
   const [fontsLoaded, fontError] = useFonts({
     HankenGrotesk_400Regular,
     HankenGrotesk_500Medium,
@@ -164,7 +172,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AppProvider>
-          <StatusBar style="dark" />
+          <StatusBar style={palette.statusBar as 'light' | 'dark'} />
           <Stack
             screenOptions={{
               headerShown: false,

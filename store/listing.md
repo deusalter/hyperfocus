@@ -54,6 +54,7 @@ MADE FOR HOW YOUR ATTENTION WORKS
 • One daily nudge at most. It skips days you've already started, and goes quiet if you've been away a week
 • Undo on anything quick, so an impulsive tap costs nothing
 • Gentle mode turns off every comparison
+• Dark mode for late nights, or follow your phone
 • No flashing or pulsing for attention, and everything respects Reduce Motion
 
 COMING BACK IS FREE
@@ -109,9 +110,9 @@ These are the app's real interface, rendered from the web build into a phone fra
 
 App Store Connect lets you declare these per device. Only declare what you've confirmed on a real phone, using the checks in `RELEASE.md`:
 
-- Sufficient Contrast and Reduced Motion: designed and measured for
-- VoiceOver and Larger Text: built for, but untested on a device so far
-- Dark Interface: don't declare, the app is light only
+- Sufficient Contrast and Dark Interface: every screen is measured against AA in both themes
+- Reduced Motion: built for it
+- VoiceOver and Larger Text: built for them, and checked on the simulator, but listen through VoiceOver yourself before declaring
 
 ## Notes for App Review
 

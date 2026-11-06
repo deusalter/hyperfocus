@@ -17,11 +17,12 @@ import Toggle from '@/components/ui/Toggle'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
 import { FOCUS_OPTIONS } from '@/lib/session'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 
 const STEPS = 3
 
 function StepIcon({ kind }: { kind: 'dump' | 'start' | 'grow' }) {
+  const palette = useColors()
   const stroke = { stroke: palette.accent, strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' }
   return (
     <View
@@ -62,6 +63,7 @@ function HowItem({ kind, title, body }: { kind: 'dump' | 'start' | 'grow'; title
 }
 
 export default function OnboardingScreen() {
+  const palette = useColors()
   const router = useRouter()
   const { settings, updateSettings } = useApp()
   const [step, setStep] = useState(0)
@@ -207,7 +209,7 @@ export default function OnboardingScreen() {
                         >
                           <Text
                             className="font-hk700 text-[14px]"
-                            style={{ color: active ? '#fff' : palette.ink }}
+                            style={{ color: active ? palette.onAccent : palette.ink }}
                           >
                             {n}m
                           </Text>

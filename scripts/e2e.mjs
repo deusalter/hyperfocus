@@ -17,13 +17,14 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true })
 let passed = 0
 const failures = []
 
-async function scenario(name, state, run, { allowErrors = false } = {}) {
+async function scenario(name, state, run, { allowErrors = false, colorScheme = 'light' } = {}) {
   if (only && !name.includes(only)) return
   const ctx = await browser.newContext({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 1,
     hasTouch: true,
     isMobile: true,
+    colorScheme,
   })
   const page = await ctx.newPage()
   const errors = []
@@ -312,10 +313,11 @@ await scenario('a recap waits for an open sheet instead of interrupting it', nea
   await see(page, "TIME'S UP", 6000)
 })
 
-await scenario('a session that ran out overnight is credited to when it ended', seed({
+await scenario('a session that ran out long ago is credited to when it ended', seed({
   focus: {
     ...runningSession('t1', 'Draft intro for history essay', 'grind'),
-    endsAt: daysFromNow(-1, 23).getTime(),
+    // two days back, so it's past the recap cutoff whatever time of day this runs
+    endsAt: daysFromNow(-2, 23).getTime(),
   },
 }), async (page) => {
   await open(page)
@@ -324,7 +326,7 @@ await scenario('a session that ran out overnight is credited to when it ended', 
   const entry = history.find((c) => c.title === 'Draft intro for history essay')
   assert(entry, 'session was not banked')
   assert(
-    dayKey(new Date(entry.completedAt)) === dayKey(daysFromNow(-1)),
+    dayKey(new Date(entry.completedAt)) === dayKey(daysFromNow(-2)),
     `credited to ${entry.completedAt}, not the day it ended`
   )
   assert(!(await stored(page, 'hf2-focus')), 'stale session still stored')
@@ -706,6 +708,140 @@ await scenario('screens that do not scroll still fit on the smallest phones', se
   over = await clipped()
   assert(over.length === 0, `triage at 320x568: ${over.join('; ')}`)
 })
+
+// ---- contrast: measured on the rendered page, in both themes ----
+
+/** Every visible text node whose contrast with what's really behind it is under AA. */
+const contrastFailures = (page) =>
+  page.evaluate(() => {
+    const parse = (c) => {
+      const m = c.match(/rgba?\(([^)]+)\)/)
+      if (!m) return [0, 0, 0, 0]
+      const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number)
+      return [p[0], p[1], p[2], p[3] ?? 1]
+    }
+    const over = (top, under) => {
+      const a = top[3] + under[3] * (1 - top[3])
+      if (a === 0) return [0, 0, 0, 0]
+      return [0, 1, 2].map((i) => (top[i] * top[3] + under[i] * under[3] * (1 - top[3])) / a).concat(a)
+    }
+    const lum = ([r, g, b]) => {
+      const f = (v) => {
+        const c = v / 255
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+      }
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+    }
+    const ratio = (a, b) => {
+      const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x)
+      return (hi + 0.05) / (lo + 0.05)
+    }
+    const hex = (c) => '#' + c.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')
+
+    const found = []
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    let node
+    while ((node = walker.nextNode())) {
+      const text = node.textContent.trim()
+      const el = node.parentElement
+      if (!text || !el || ['SCRIPT', 'STYLE'].includes(el.tagName)) continue
+      const box = el.getBoundingClientRect()
+      if (!box.width || !box.height || getComputedStyle(el).visibility === 'hidden') continue
+      if (box.bottom < 0 || box.top > innerHeight) continue
+      // Only what's actually on top at this spot. Screens underneath a modal stay in
+      // the DOM on web, and their text isn't something anyone can see.
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+      if (!hit || !(el.contains(hit) || hit.contains(el))) continue
+
+      const style = getComputedStyle(el)
+      let opacity = 1
+      const layers = []
+      for (let cur = el; cur; cur = cur.parentElement) {
+        const cs = getComputedStyle(cur)
+        opacity *= Number(cs.opacity)
+        const bg = parse(cs.backgroundColor)
+        if (bg[3] > 0) {
+          layers.push(bg)
+          if (bg[3] === 1) break
+        }
+      }
+      // Dimmed this far means deliberately not content: a disabled control, the
+      // peek of the next card, a swipe hint that strengthens as you drag.
+      if (opacity < 0.6) continue
+
+      let back = [255, 255, 255, 1]
+      for (const layer of layers.reverse()) back = over(layer, back)
+      const fg = parse(style.color)
+      const seen = over([fg[0], fg[1], fg[2], fg[3] * opacity], back)
+      const r = ratio(seen, back)
+      const size = parseFloat(style.fontSize)
+      const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700)
+      if (r < (large ? 3 : 4.5) - 0.005) {
+        found.push(`${r.toFixed(2)}:1 "${text.slice(0, 26)}" ${hex(seen)} on ${hex(back)}`)
+      }
+    }
+    return [...new Set(found)]
+  })
+
+const CONTRAST_TASKS = () => [
+  { id: 'o', title: 'Physics problem set', cat: 'grind', bucket: 'later', due: dayKey(daysFromNow(-3)), createdAt: daysFromNow(-6).toISOString() },
+  { id: 'c', title: 'Group project notes', cat: 'fire', bucket: 'today', due: dayKey(daysFromNow(1)), course: 'BIO 10', createdAt: daysFromNow(-1).toISOString() },
+  { id: 's', title: 'Clear the desk', cat: 'sprint', bucket: 'today', firstStep: 'move the mugs', createdAt: daysFromNow(-1).toISOString() },
+  { id: 'w', title: 'Old idea', cat: 'sprint', bucket: 'later', createdAt: daysFromNow(-40).toISOString() },
+  { id: 'n', title: 'Newer idea', cat: 'grind', bucket: 'later', createdAt: daysFromNow(-1).toISOString() },
+  { id: 'i', title: 'Text Maya back', bucket: 'inbox', createdAt: daysFromNow(0).toISOString() },
+]
+
+for (const colorScheme of ['light', 'dark']) {
+  await scenario(`text clears AA on every screen, ${colorScheme}`, seed({ tasks: CONTRAST_TASKS() }), async (page) => {
+    const bad = []
+    const audit = async (label) => {
+      await page.waitForTimeout(650) // entrance animations finish
+      for (const f of await contrastFailures(page)) bad.push(`${label}: ${f}`)
+    }
+    for (const path of ['/', '/calendar', '/insights', '/you', '/dump', '/triage', '/debrief', '/task/s', '/onboarding']) {
+      await open(page, path)
+      await audit(path)
+    }
+
+    // states that only exist part-way through something
+    await open(page)
+    await page.getByLabel(/^Later, /).click()
+    await audit('home, Later open')
+    await page.getByLabel('Mark Clear the desk done').click()
+    await see(page, 'Done. +18 pts')
+    await audit('undo toast')
+    await open(page, '/you')
+    await tap(page, 'Connect')
+    await page.getByPlaceholder('Paste the link here').fill('not a link')
+    await page.getByText('Connect', { exact: true }).last().click()
+    await see(page, "doesn't look like a calendar link")
+    await audit('feed error')
+    await open(page)
+    await page.getByText('Start one thing').first().click()
+    await see(page, 'FOCUSING ON')
+    await audit('focus')
+    await tap(page, 'Pause')
+    await audit('paused')
+    await page.getByText('Resume', { exact: true }).last().click()
+    await page.getByLabel(/^Done with /).click()
+    await see(page, 'SESSION COMPLETE')
+    await page.waitForTimeout(1200)
+    await audit('recap')
+
+    assert(bad.length === 0, `\n${[...new Set(bad)].join('\n')}`)
+  }, { colorScheme })
+
+  await scenario(`gentle mode clears AA, ${colorScheme}`, seed({ settings: { gentle: true }, tasks: CONTRAST_TASKS() }), async (page) => {
+    const bad = []
+    for (const path of ['/', '/insights']) {
+      await open(page, path)
+      await page.waitForTimeout(650)
+      for (const f of await contrastFailures(page)) bad.push(`${path}: ${f}`)
+    }
+    assert(bad.length === 0, `\n${bad.join('\n')}`)
+  }, { colorScheme })
+}
 
 await browser.close()
 console.log(`\n${passed} passed, ${failures.length} failed`)

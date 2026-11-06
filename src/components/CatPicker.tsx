@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
 import * as Haptics from 'expo-haptics'
-import { Cat, CAT_ORDER, CATS, hexA } from '@/lib/theme'
+import { CATS, CAT_ORDER, Cat, hexA, useColors } from '@/lib/theme'
 import { CatIcon } from '@/components/CatTag'
 import { ChevronDown } from '@/components/ui/Icon'
 
@@ -19,7 +19,9 @@ function Chip({
   onPress: () => void
   index: number
 }) {
+  const palette = useColors()
   const meta = CATS[cat]
+  const tone = palette.cats[cat]
   return (
     // Chips sit 6px apart, so horizontal slop is capped at half the gap —
     // overlapping hit regions resolve unpredictably and would make the
@@ -39,13 +41,13 @@ function Chip({
           gap: 5,
           // selected fills with the darker tone: white on the vivid fill sits
           // at 3.8:1 for sprint, which is under AA for an 11px label
-          backgroundColor: selected ? meta.textColor : hexA(meta.color, 0.12),
+          backgroundColor: selected ? tone.textColor : hexA(tone.color, 0.12),
         }}
       >
-        <CatIcon cat={cat} color={selected ? '#fff' : meta.color} />
+        <CatIcon cat={cat} color={selected ? palette.onAccent : tone.color} />
         <Text
           className="font-hk800 text-[11px]"
-          style={{ color: selected ? '#fff' : meta.textColor, letterSpacing: 0.2 }}
+          style={{ color: selected ? palette.onAccent : tone.textColor, letterSpacing: 0.2 }}
         >
           {meta.label}
         </Text>
@@ -65,6 +67,7 @@ export default function CatPicker({
   value: Cat
   onChange: (cat: Cat) => void
 }) {
+  const palette = useColors()
   const [open, setOpen] = useState(false)
 
   const select = (cat: Cat) => {
@@ -85,6 +88,7 @@ export default function CatPicker({
   }
 
   const meta = CATS[value]
+  const tone = palette.cats[value]
   return (
     <Pressable
       onPress={() => {
@@ -106,16 +110,16 @@ export default function CatPicker({
           paddingHorizontal: 9,
           paddingVertical: 4,
           gap: 5,
-          backgroundColor: hexA(meta.color, 0.13),
+          backgroundColor: hexA(tone.color, 0.13),
         }}
       >
         <CatIcon cat={value} />
-        <Text className="font-hk800 text-[11px]" style={{ color: meta.textColor, letterSpacing: 0.2 }}>
+        <Text className="font-hk800 text-[11px]" style={{ color: tone.textColor, letterSpacing: 0.2 }}>
           {meta.label}
         </Text>
         {/* a caret carries "this opens" without a sentence repeated on every
             row — instructional text that never goes away is just clutter */}
-        <ChevronDown size={10} color={meta.textColor} strokeWidth={3} />
+        <ChevronDown size={10} color={tone.textColor} strokeWidth={3} />
       </Animated.View>
     </Pressable>
   )

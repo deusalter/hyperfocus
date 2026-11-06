@@ -1,3 +1,4 @@
+import { AppearanceMode } from './appearance'
 import { Cat } from './theme'
 
 export type Bucket = 'inbox' | 'today' | 'later'
@@ -53,6 +54,8 @@ export interface Settings {
   reminderHour: number | null
   /** plays during a focus session */
   sound: SoundKind
+  /** light by default. See appearance.ts */
+  appearance: AppearanceMode
   /** subscribed calendar link. Stays on the device. */
   feedUrl: string | null
   feedSyncedAt: number | null
@@ -67,6 +70,7 @@ export const DEFAULT_SETTINGS: Settings = {
   gentle: false,
   reminderHour: null,
   sound: 'off',
+  appearance: 'light',
   feedUrl: null,
   feedSyncedAt: null,
   onboarded: false,

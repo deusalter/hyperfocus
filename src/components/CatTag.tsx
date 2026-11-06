@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
-import { Cat, CATS, hexA } from '@/lib/theme'
+import { CATS, Cat, hexA, useColors } from '@/lib/theme'
 
 // exact glyphs from the design system
 const ICON_PATHS: Record<Cat, string> = {
@@ -10,9 +10,10 @@ const ICON_PATHS: Record<Cat, string> = {
 }
 
 export function CatIcon({ cat, size = 12, color }: { cat: Cat; size?: number; color?: string }) {
+  const palette = useColors()
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path d={ICON_PATHS[cat]} fill={color ?? CATS[cat].color} />
+      <Path d={ICON_PATHS[cat]} fill={color ?? palette.cats[cat].color} />
     </Svg>
   )
 }
@@ -24,14 +25,16 @@ export default function CatTag({
   cat: Cat
   showLabel?: boolean
 }) {
+  const palette = useColors()
   const meta = CATS[cat]
+  const tone = palette.cats[cat]
   return (
     <View
       className="flex-row items-center rounded-[9px]"
       accessible
       accessibilityLabel={meta.label}
       style={{
-        backgroundColor: hexA(meta.color, 0.13),
+        backgroundColor: hexA(tone.color, 0.13),
         paddingHorizontal: showLabel ? 9 : 7,
         paddingVertical: showLabel ? 4 : 6,
         gap: 5,
@@ -42,7 +45,7 @@ export default function CatTag({
       {showLabel && (
         <Text
           className="font-hk800 text-[11px]"
-          style={{ color: meta.textColor, letterSpacing: 0.2 }}
+          style={{ color: tone.textColor, letterSpacing: 0.2 }}
         >
           {meta.label}
         </Text>

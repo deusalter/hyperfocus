@@ -7,6 +7,21 @@
   --accent: #456a90;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #14171a;
+    --ink: #e6e9ea;
+    --muted: #a2aaae;
+    --surface: #1e2226;
+    --soft: #30363b;
+    --accent: #8fb4da;
+  }
+
+  .links a {
+    color: #10161c !important;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

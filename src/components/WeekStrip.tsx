@@ -2,7 +2,7 @@ import { Pressable, Text, View } from 'react-native'
 import { addDays as dfAddDays, format, startOfWeek } from 'date-fns'
 import { ChevronLeft, ChevronRight } from '@/components/ui/Icon'
 import { dayKey } from '@/lib/points'
-import { palette } from '@/lib/theme'
+import { useColors } from '@/lib/theme'
 
 export interface WeekDay {
   key: string
@@ -46,6 +46,7 @@ export default function WeekStrip({
   /** earlier days can be seen but not chosen */
   minDate?: string
 }) {
+  const palette = useColors()
   return (
     <View>
       <View className="flex-row items-center justify-between" style={{ paddingHorizontal: 2 }}>
@@ -119,7 +120,7 @@ export default function WeekStrip({
                   className="font-hk800 text-[13.5px]"
                   maxFontSizeMultiplier={1.2}
                   style={{
-                    color: isSelected ? '#fff' : isToday ? palette.accent : palette.ink,
+                    color: isSelected ? palette.onAccent : isToday ? palette.accent : palette.ink,
                   }}
                 >
                   {cell.num}

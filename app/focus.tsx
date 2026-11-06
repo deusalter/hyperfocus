@@ -26,7 +26,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
 import { SoundIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
-import { CATS, palette } from '@/lib/theme'
+import { CATS, useColors } from '@/lib/theme'
 import { formatClock, scoreCompletion } from '@/lib/points'
 import { canAdjust, focusedMinutes, remainingSec } from '@/lib/session'
 import { goBackOrHome } from '@/lib/nav'
@@ -74,6 +74,7 @@ function AdjustButton({
 }
 
 export default function FocusScreen() {
+  const palette = useColors()
   useKeepAwake() // a focus session shouldn't die to auto-lock
   const router = useRouter()
   const { width } = useWindowDimensions()

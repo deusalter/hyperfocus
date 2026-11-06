@@ -13,7 +13,7 @@ import { useApp } from '@/store/AppStore'
 import { useStartFocus } from '@/lib/useStartFocus'
 import { goBackOrHome } from '@/lib/nav'
 import { MAX_TITLE, isOnToday, noon, quickDates } from '@/lib/tasks'
-import { CATS, CAT_ORDER, hexA, palette } from '@/lib/theme'
+import { CATS, CAT_ORDER, tintOn, useColors } from '@/lib/theme'
 
 function Label({ children }: { children: string }) {
   return (
@@ -37,6 +37,7 @@ function Choice({
   onPress: () => void
   hint?: string
 }) {
+  const palette = useColors()
   return (
     <Pressable
       onPress={onPress}
@@ -56,7 +57,7 @@ function Choice({
     >
       <Text
         className="font-hk700 text-[13px]"
-        style={{ color: selected ? '#fff' : palette.ink }}
+        style={{ color: selected ? palette.onAccent : palette.ink }}
       >
         {label}
       </Text>
@@ -69,6 +70,7 @@ function Choice({
  * more thing to remember on the way out, and forgetting it loses the edit.
  */
 export default function TaskScreen() {
+  const palette = useColors()
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const { hydrated, tasks, todayKey, updateTask, letGo, completeTask } = useApp()
@@ -188,6 +190,7 @@ export default function TaskScreen() {
         <View className="flex-row" style={{ gap: 8 }}>
           {CAT_ORDER.map((c) => {
             const meta = CATS[c]
+            const tone = palette.cats[c]
             const selected = c === cat
             return (
               <Pressable
@@ -201,16 +204,16 @@ export default function TaskScreen() {
                   gap: 6,
                   paddingVertical: 11,
                   borderRadius: 11,
-                  backgroundColor: selected ? meta.textColor : hexA(meta.color, 0.13),
+                  backgroundColor: selected ? tone.textColor : tintOn(palette.surface, tone.color, 0.13),
                 }}
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
                 accessibilityLabel={`${meta.label}. ${meta.blurb}`}
               >
-                <CatIcon cat={c} size={13} color={selected ? '#fff' : meta.color} />
+                <CatIcon cat={c} size={13} color={selected ? palette.onAccent : tone.color} />
                 <Text
                   className="font-hk800 text-[12.5px]"
-                  style={{ color: selected ? '#fff' : meta.textColor }}
+                  style={{ color: selected ? palette.onAccent : tone.textColor }}
                 >
                   {meta.label}
                 </Text>

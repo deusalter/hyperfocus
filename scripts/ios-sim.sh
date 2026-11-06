@@ -86,6 +86,10 @@ run_flow pro 05-tour
 run_flow pro 06-edit
 seed_state full
 run_flow pro 07-keyboard
+seed_state full
+run_flow pro 10-appearance
+seed_state full
+run_flow pro 11-springboard
 seed_state gentle
 run_flow pro 08-gentle
 seed_state away
@@ -126,8 +130,13 @@ new_device hf-a11y "iPhone 17 Pro"
 xcrun simctl ui "$UDID" appearance dark
 xcrun simctl spawn "$UDID" defaults write com.apple.Accessibility ReduceMotionEnabled -bool true
 xcrun simctl spawn "$UDID" defaults write com.apple.Accessibility EnhancedBackgroundContrastEnabled -bool true
+# default settings on a dark phone: this should still come up light
 seed_state full
 run_flow reduced 05-tour
+seed_state full
+run_flow reduced 11-springboard
+seed_state full
+run_flow reduced 10-appearance
 xcrun simctl shutdown "$UDID"
 
 echo
