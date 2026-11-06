@@ -6,24 +6,63 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "hyperfocus",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#eef0f0",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#eef0f0"
-    },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.hyperfocus.app"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.deusalter.hyperfocus",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "0A2A.1",
+              "3B52.1",
+              "C617.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "85F4.1",
+              "E174.1"
+            ]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#eef0f0"
+        "backgroundColor": "#456a90"
       },
-      "package": "com.hyperfocus.app",
-      "edgeToEdgeEnabled": true
+      "package": "com.deusalter.hyperfocus",
+      "edgeToEdgeEnabled": true,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -33,14 +72,29 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      "expo-web-browser",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#07070a",
-          "image": "./assets/splash.png",
-          "imageWidth": 200
+          "backgroundColor": "#eef0f0",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180
         }
-      ]
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#456a90"
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
