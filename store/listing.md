@@ -68,6 +68,8 @@ No account, no ads, no tracking. Everything stays on your device.
 Made by someone with ADHD. Hyperfocus is a productivity tool. It isn't medical advice and doesn't diagnose or treat any condition.
 ```
 
+The closing line is true to the README, but the seller's name appears right above the description on the listing. If that's a parent's name, "Made by someone with ADHD" could read as being about them, so reword it if that matters to you.
+
 ## Screenshots
 
 Upload in this order from `store/screenshots/`. The first three are what most people see, so they carry the idea, the action and the capture. Apple now also indexes caption text.
