@@ -1,0 +1,32 @@
+appId: com.deusalter.hyperfocus
+name: Keyboard never covers the field
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 45000
+- tapOn: "You"
+- scrollUntilVisible:
+    element: "Connect"
+    direction: DOWN
+- tapOn: "Connect"
+- waitForAnimationToEnd
+- takeScreenshot: 01-feed-field-with-keyboard
+- assertVisible: "Calendar feed link"
+- inputText: "not a link"
+- tapOn:
+    text: "Connect"
+    index: 1
+- waitForAnimationToEnd
+- takeScreenshot: 02-feed-error
+- tapOn: "Calendar"
+- waitForAnimationToEnd
+- tapOn: "Add something for today"
+- waitForAnimationToEnd
+- takeScreenshot: 03-calendar-add-with-keyboard
+- inputText: "From the calendar"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "From the calendar"
+    timeout: 5000
+- takeScreenshot: 04-calendar-after-add

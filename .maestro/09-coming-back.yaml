@@ -1,0 +1,9 @@
+appId: com.deusalter.hyperfocus
+name: Coming back after a gap
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Good to see you."
+    timeout: 45000
+- waitForAnimationToEnd
+- takeScreenshot: 01-welcome-back

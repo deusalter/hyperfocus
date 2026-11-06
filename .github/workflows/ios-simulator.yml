@@ -1,0 +1,104 @@
+name: iOS simulator
+
+# The real Release app, compiled with the same Xcode line EAS uses for SDK 54, then
+# driven on iOS simulators. No Apple account or signing is involved. macOS runners
+# are free on public repos, but they're slow, so this only runs when asked for:
+#
+#   gh workflow run ios-simulator.yml
+#   gh workflow run ios-simulator.yml -f reuse_build=<run id>   # skip the compile
+
+on:
+  workflow_dispatch:
+    inputs:
+      reuse_build:
+        description: Run ID to take the compiled app from, instead of building it
+        required: false
+        default: ''
+
+permissions:
+  actions: read
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+
+jobs:
+  build:
+    if: ${{ inputs.reuse_build == '' }}
+    runs-on: macos-15
+    timeout-minutes: 75
+    env:
+      CI: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Generate the native project
+        run: npx expo prebuild --platform ios --no-install
+      - name: Install pods
+        run: cd ios && pod install
+      - name: Compile
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace ios/Hyperfocus.xcworkspace \
+            -scheme Hyperfocus \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath ios/build \
+            ONLY_ACTIVE_ARCH=YES ARCHS=arm64 \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            | tee xcodebuild.log | grep -E "^(\*\*|error:|warning: unable|.*: error:)|Compiling Hyperfocus" || true
+          test -d ios/build/Build/Products/Release-iphonesimulator/Hyperfocus.app
+      - name: Package
+        run: ditto -c -k --keepParent ios/build/Build/Products/Release-iphonesimulator/Hyperfocus.app Hyperfocus.app.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: Hyperfocus.app.zip
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
+          retention-days: 7
+
+  drive:
+    needs: build
+    if: ${{ !cancelled() && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: actions/download-artifact@v4
+        with:
+          name: app
+          run-id: ${{ inputs.reuse_build || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Unpack
+        run: ditto -x -k Hyperfocus.app.zip .
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+      - name: Drive the app
+        run: bash scripts/ios-sim.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulator-output
+          path: sim-output
+          retention-days: 14

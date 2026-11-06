@@ -1,0 +1,47 @@
+appId: com.deusalter.hyperfocus
+name: Every screen on realistic data
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 60000
+- waitForAnimationToEnd
+- takeScreenshot: 01-home
+- scroll
+- takeScreenshot: 02-home-scrolled
+- tapOn: "Calendar"
+- waitForAnimationToEnd
+- takeScreenshot: 03-calendar
+- tapOn: "Insights"
+- waitForAnimationToEnd
+- takeScreenshot: 04-insights
+- tapOn: "You"
+- waitForAnimationToEnd
+- takeScreenshot: 05-you
+- scroll
+- takeScreenshot: 06-you-scrolled
+- scroll
+- takeScreenshot: 07-you-bottom
+- tapOn: "Home"
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 5000
+- tapOn: "Sort 2 captured things"
+- waitForAnimationToEnd
+- takeScreenshot: 08-triage
+- tapOn: "Close"
+- tapOn: "Brain dump"
+- waitForAnimationToEnd
+- takeScreenshot: 09-dump
+- tapOn: "Close"
+- tapOn: "Clear the desk"
+- waitForAnimationToEnd
+- takeScreenshot: 10-task-editor
+- tapOn: "Close"
+- tapOn: "Calendar"
+- scrollUntilVisible:
+    element: "Weekly debrief.*"
+    direction: DOWN
+- tapOn: "Weekly debrief.*"
+- waitForAnimationToEnd
+- takeScreenshot: 11-debrief

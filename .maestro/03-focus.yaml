@@ -1,0 +1,56 @@
+appId: com.deusalter.hyperfocus
+name: Focus session
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 45000
+- tapOn: "Start one thing.*"
+# the system asks about notifications on the very first session
+- extendedWaitUntil:
+    visible: "Allow"
+    timeout: 6000
+    optional: true
+- takeScreenshot: 01-notification-prompt
+- tapOn:
+    text: "Allow"
+    optional: true
+- extendedWaitUntil:
+    visible: "FOCUSING ON"
+    timeout: 8000
+- takeScreenshot: 02-focus
+- tapOn: "Add 5 minutes"
+- takeScreenshot: 03-after-adding-time
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Session in progress.*"
+    timeout: 5000
+- takeScreenshot: 04-home-banner
+- tapOn: "Session in progress.*"
+- extendedWaitUntil:
+    visible: "FOCUSING ON"
+    timeout: 5000
+- tapOn: "Pause"
+- extendedWaitUntil:
+    visible: "Resume"
+    timeout: 5000
+- takeScreenshot: 05-paused
+- tapOn: "Resume"
+- tapOn: "Can't start.*"
+- extendedWaitUntil:
+    visible: "The very first move"
+    timeout: 4000
+- inputText: "wipe one corner"
+- takeScreenshot: 06-first-move-with-keyboard
+- tapOn: "Set"
+- tapOn: "Done with .*"
+- extendedWaitUntil:
+    visible: "SESSION COMPLETE"
+    timeout: 6000
+- waitForAnimationToEnd
+- takeScreenshot: 07-recap
+- tapOn: "Back home"
+- extendedWaitUntil:
+    visible: "Today"
+    timeout: 5000
+- takeScreenshot: 08-home-after

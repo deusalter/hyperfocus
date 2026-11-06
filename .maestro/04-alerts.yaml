@@ -1,0 +1,44 @@
+appId: com.deusalter.hyperfocus
+name: System alerts
+---
+# react-native-web's Alert does nothing, so these have never been exercised
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 45000
+- tapOn: "Start one thing.*"
+- tapOn:
+    text: "Allow"
+    optional: true
+- extendedWaitUntil:
+    visible: "FOCUSING ON"
+    timeout: 8000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Session in progress.*"
+    timeout: 5000
+# a second session while one is running has to ask
+- tapOn: "Focus on .*"
+- extendedWaitUntil:
+    visible: "Already focusing"
+    timeout: 5000
+- takeScreenshot: 01-already-focusing
+- tapOn: "Back to it"
+- extendedWaitUntil:
+    visible: "FOCUSING ON"
+    timeout: 5000
+- tapOn: "Stop without saving"
+# under a minute in, so this one stops straight away
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 5000
+- tapOn: "You"
+- scrollUntilVisible:
+    element: "Reset everything"
+    direction: DOWN
+- tapOn: "Reset everything"
+- extendedWaitUntil:
+    visible: "Reset everything\\?"
+    timeout: 5000
+- takeScreenshot: 02-reset-alert
+- tapOn: "Cancel"

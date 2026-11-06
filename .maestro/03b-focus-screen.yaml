@@ -1,0 +1,22 @@
+appId: com.deusalter.hyperfocus
+name: Focus and recap screens
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 60000
+- tapOn: "Start one thing.*"
+- tapOn:
+    text: "Allow"
+    optional: true
+- extendedWaitUntil:
+    visible: "FOCUSING ON"
+    timeout: 8000
+- waitForAnimationToEnd
+- takeScreenshot: focus
+- tapOn: "Done with .*"
+- extendedWaitUntil:
+    visible: "SESSION COMPLETE"
+    timeout: 6000
+- waitForAnimationToEnd
+- takeScreenshot: recap
