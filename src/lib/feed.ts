@@ -1,4 +1,5 @@
 import { addDays, dayKey } from './points'
+import { MAX_TITLE } from './tasks'
 import { Task } from './types'
 import { generateId } from './utils'
 
@@ -31,13 +32,11 @@ export interface FeedEvent {
   date: string
 }
 
+const ESCAPES: Record<string, string> = { n: ' ', N: ' ', ',': ',', ';': ';', '\\': '\\' }
+
+/** One pass, so an escaped backslash followed by an n isn't read as a line break. */
 function unescapeText(value: string): string {
-  return value
-    .replace(/\\[nN]/g, ' ')
-    .replace(/\\,/g, ',')
-    .replace(/\\;/g, ';')
-    .replace(/\\\\/g, '\\')
-    .trim()
+  return value.replace(/\\([nN,;\\])/g, (_, c: string) => ESCAPES[c]).trim()
 }
 
 /** DTSTART value → local day. UTC times convert; everything else keeps its written date. */
@@ -45,6 +44,10 @@ function parseDate(value: string): string | null {
   const m = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/.exec(value.trim())
   if (!m) return null
   const [, y, mo, d, h, mi, s, utc] = m
+  // A malformed feed can say November 31st. Stored, that date throws every time
+  // the task renders, so it has to be stopped here.
+  const real = new Date(+y, +mo - 1, +d)
+  if (real.getMonth() !== +mo - 1 || real.getDate() !== +d) return null
   if (utc) {
     return dayKey(new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi, +s)))
   }
@@ -62,26 +65,46 @@ function nameEnd(line: string): number {
 }
 
 export function parseIcs(text: string): FeedEvent[] {
-  if (!text.includes('BEGIN:VCALENDAR')) return []
   // RFC 5545 folds long lines by starting the continuation with a space or tab
   const lines = text.replace(/\r?\n[ \t]/g, '').split(/\r?\n/)
   const events: FeedEvent[] = []
-  let current: Partial<FeedEvent> | null = null
+  let current: (Partial<FeedEvent> & { cancelled?: boolean; instance?: string }) | null = null
+  // Components nested in an event, like an alarm, have a SUMMARY and UID of their
+  // own. Google's say "Alarm notification", which is no name for a task.
+  let nested = 0
 
   for (const line of lines) {
-    if (line === 'BEGIN:VEVENT') {
+    const upper = line.toUpperCase()
+    if (upper === 'BEGIN:VEVENT') {
       current = {}
-    } else if (line === 'END:VEVENT') {
-      if (current?.uid && current.summary && current.date) events.push(current as FeedEvent)
+      nested = 0
+    } else if (!current) {
+      continue
+    } else if (upper === 'END:VEVENT') {
+      if (current.uid && current.summary && current.date && !current.cancelled) {
+        events.push({
+          // an edited instance of a series shares the series' UID, and left that
+          // way the two would fight over one task on every sync
+          uid: current.instance ? `${current.uid}#${current.instance}` : current.uid,
+          summary: current.summary,
+          date: current.date,
+        })
+      }
       current = null
-    } else if (current) {
+    } else if (upper.startsWith('BEGIN:')) {
+      nested += 1
+    } else if (upper.startsWith('END:')) {
+      nested = Math.max(0, nested - 1)
+    } else if (nested === 0) {
       const end = nameEnd(line)
       if (end < 0) continue
-      const name = line.slice(0, end).split(';')[0].toUpperCase()
+      const name = upper.slice(0, end).split(';')[0]
       const value = line.slice(end + 1)
       if (name === 'UID') current.uid = value.trim()
       else if (name === 'SUMMARY') current.summary = unescapeText(value)
       else if (name === 'DTSTART') current.date = parseDate(value) ?? undefined
+      else if (name === 'RECURRENCE-ID') current.instance = value.trim()
+      else if (name === 'STATUS') current.cancelled = value.trim().toUpperCase() === 'CANCELLED'
     }
   }
   return events
@@ -100,8 +123,12 @@ export function normalizeFeedUrl(raw: string): string | null {
   return url
 }
 
+/**
+ * Canvas's own feed path, plus its hosted domain. Schools on their own domains
+ * still use that path, and plenty of unrelated links contain the word "canvas".
+ */
 export function isCanvasUrl(url: string): boolean {
-  return /instructure\.com|canvas/i.test(url)
+  return /\.instructure\.com\//i.test(url) || /\/feeds\/calendars\/user_/i.test(url)
 }
 
 export interface MergeInput {
@@ -143,9 +170,10 @@ export function mergeFeed({ tasks, seen, events, today, now, url }: MergeInput):
 
     const existing = byExternal.get(e.uid)
     if (existing) {
-      // A deadline moving is the one thing worth following. Whatever else the
-      // user changed about the task (title, category, bucket) is theirs.
-      if (existing.due !== e.date) moved.set(existing.id, e.date)
+      // The deadline moving is the one thing worth following. Compared against
+      // what the feed said last time, not against `due`, or every sync would undo
+      // a task the user rescheduled. Everything else about it is theirs too.
+      if (existing.feedDue !== e.date) moved.set(existing.id, e.date)
       continue
     }
     if (seenSet.has(e.uid) || e.date < today || e.date > horizon) continue
@@ -153,11 +181,12 @@ export function mergeFeed({ tasks, seen, events, today, now, url }: MergeInput):
     const { title, course } = splitCourse(e.summary)
     fresh.push({
       id: generateId(),
-      title,
+      title: title.slice(0, MAX_TITLE),
       course,
       cat: 'grind',
       bucket: 'later',
       due: e.date,
+      feedDue: e.date,
       source: canvas ? 'canvas' : 'feed',
       externalId: e.uid,
       createdAt: new Date(now).toISOString(),
@@ -168,7 +197,13 @@ export function mergeFeed({ tasks, seen, events, today, now, url }: MergeInput):
   const changed = fresh.length > 0 || moved.size > 0
   return {
     tasks: changed
-      ? [...fresh, ...tasks.map((t) => (moved.has(t.id) ? { ...t, due: moved.get(t.id) } : t))]
+      ? [
+          ...fresh,
+          ...tasks.map((t) => {
+            const date = moved.get(t.id)
+            return date ? { ...t, due: date, feedDue: date } : t
+          }),
+        ]
       : tasks,
     seen: fresh.length > 0 ? [...seenSet].slice(-MAX_SEEN) : seen,
     added: fresh.length,

@@ -1,6 +1,14 @@
 import { Task } from '../types'
-import { FEED_WINDOW_DAYS, mergeFeed, normalizeFeedUrl, parseIcs, splitCourse } from '../feed'
+import {
+  FEED_WINDOW_DAYS,
+  isCanvasUrl,
+  mergeFeed,
+  normalizeFeedUrl,
+  parseIcs,
+  splitCourse,
+} from '../feed'
 import { addDays } from '../points'
+import { MAX_TITLE } from '../tasks'
 
 const TODAY = '2026-11-05'
 const NOW = new Date('2026-11-05T18:00:00.000Z').getTime()
@@ -62,6 +70,76 @@ describe('parseIcs', () => {
     expect(e.summary).toBe('Read chapters 3, 4; then write a summary')
   })
 
+  it('does not let an alarm inside an event overwrite its title or id', () => {
+    const [e] = parseIcs(
+      BEGIN +
+        [
+          'BEGIN:VEVENT',
+          'UID:real-id',
+          'DTSTART;VALUE=DATE:20261110',
+          'SUMMARY:The actual event',
+          'BEGIN:VALARM',
+          'ACTION:EMAIL',
+          'SUMMARY:Alarm notification',
+          'UID:alarm-id',
+          'END:VALARM',
+          'END:VEVENT',
+        ].join('\n') +
+        '\n' +
+        END
+    )
+    expect(e.summary).toBe('The actual event')
+    expect(e.uid).toBe('real-id')
+  })
+
+  it('still closes an event that has an alarm inside it', () => {
+    const events = parseIcs(
+      BEGIN +
+        'BEGIN:VEVENT\nUID:a\nDTSTART;VALUE=DATE:20261110\nBEGIN:VALARM\nEND:VALARM\nSUMMARY:After the alarm\nEND:VEVENT\n' +
+        'BEGIN:VEVENT\nUID:b\nDTSTART;VALUE=DATE:20261111\nSUMMARY:Next\nEND:VEVENT\n' +
+        END
+    )
+    expect(events.map((e) => e.summary)).toEqual(['After the alarm', 'Next'])
+  })
+
+  it('leaves out cancelled events', () => {
+    const events = parseIcs(
+      BEGIN +
+        'BEGIN:VEVENT\nUID:a\nDTSTART;VALUE=DATE:20261110\nSUMMARY:Off\nSTATUS:CANCELLED\nEND:VEVENT\n' +
+        END
+    )
+    expect(events).toEqual([])
+  })
+
+  it('gives an edited instance of a series its own id, so the two never fight over one task', () => {
+    const events = parseIcs(
+      BEGIN +
+        'BEGIN:VEVENT\nUID:s\nDTSTART;VALUE=DATE:20261110\nSUMMARY:Series\nEND:VEVENT\n' +
+        'BEGIN:VEVENT\nUID:s\nRECURRENCE-ID;VALUE=DATE:20261117\nDTSTART;VALUE=DATE:20261118\nSUMMARY:Moved\nEND:VEVENT\n' +
+        END
+    )
+    expect(new Set(events.map((e) => e.uid)).size).toBe(2)
+  })
+
+  it('rejects dates that do not exist instead of storing one that crashes rendering', () => {
+    const events = parseIcs(
+      BEGIN +
+        'BEGIN:VEVENT\nUID:a\nDTSTART;VALUE=DATE:20261131\nSUMMARY:November 31st\nEND:VEVENT\n' +
+        'BEGIN:VEVENT\nUID:b\nDTSTART:20261345T120000Z\nSUMMARY:Month 13\nEND:VEVENT\n' +
+        END
+    )
+    expect(events).toEqual([])
+  })
+
+  it('reads escapes in one pass, so an escaped backslash before n is not a line break', () => {
+    const [e] = parseIcs(
+      BEGIN +
+        'BEGIN:VEVENT\nUID:a\nDTSTART;VALUE=DATE:20261110\nSUMMARY:Read C:\\\\new\\nthen stop\nEND:VEVENT\n' +
+        END
+    )
+    expect(e.summary).toBe('Read C:\\new then stop')
+  })
+
   it('skips events with no id, no date, or no title', () => {
     const events = parseIcs(
       BEGIN +
@@ -107,6 +185,17 @@ describe('normalizeFeedUrl', () => {
     expect(normalizeFeedUrl('not a link')).toBeNull()
     expect(normalizeFeedUrl('')).toBeNull()
     expect(normalizeFeedUrl('https://a b.com/x')).toBeNull()
+  })
+})
+
+describe('isCanvasUrl', () => {
+  it('recognises hosted Canvas and schools on their own domains', () => {
+    expect(isCanvasUrl('https://school.instructure.com/feeds/calendars/user_abc.ics')).toBe(true)
+    expect(isCanvasUrl('https://bcourses.berkeley.edu/feeds/calendars/user_abc.ics')).toBe(true)
+  })
+
+  it('is not fooled by the word canvas in some other calendar link', () => {
+    expect(isCanvasUrl('https://calendar.google.com/calendar/ical/canvas.club/basic.ics')).toBe(false)
   })
 })
 
@@ -174,12 +263,37 @@ describe('mergeFeed', () => {
       cat: 'fire',
       bucket: 'today',
       due: '2026-11-10',
+      feedDue: '2026-11-10',
       externalId: 'a',
       createdAt: '2026-11-01T00:00:00.000Z',
     }
     const r = merge([existing], ['a'], [event('a', '2026-11-12')])
     expect(r.updated).toBe(1)
-    expect(r.tasks[0]).toEqual({ ...existing, due: '2026-11-12' })
+    expect(r.tasks[0]).toEqual({ ...existing, due: '2026-11-12', feedDue: '2026-11-12' })
+  })
+
+  it('leaves alone a date the user changed themselves', () => {
+    const imported = merge([], [], [event('a', '2026-11-12')]).tasks[0]
+    const rescheduled: Task = { ...imported, due: '2026-11-08' }
+    const noDate: Task = { ...imported, due: undefined }
+    for (const task of [rescheduled, noDate]) {
+      const r = merge([task], ['a'], [event('a', '2026-11-12')])
+      expect(r.updated).toBe(0)
+      expect(r.tasks[0]).toBe(task)
+    }
+  })
+
+  it('still follows the school if it moves the deadline after the user rescheduled', () => {
+    const imported = merge([], [], [event('a', '2026-11-12')]).tasks[0]
+    const rescheduled: Task = { ...imported, due: '2026-11-08' }
+    const r = merge([rescheduled], ['a'], [event('a', '2026-11-20')])
+    expect(r.tasks[0].due).toBe('2026-11-20')
+  })
+
+  it('keeps imported titles to the same length as typed ones', () => {
+    const long = 'x'.repeat(MAX_TITLE + 500)
+    const r = merge([], [], [{ uid: 'a', date: '2026-11-10', summary: long }])
+    expect(r.tasks[0].title).toHaveLength(MAX_TITLE)
   })
 
   it('changes nothing on a repeat sync', () => {

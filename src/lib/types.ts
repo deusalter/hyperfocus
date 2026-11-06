@@ -19,6 +19,12 @@ export interface Task {
   course?: string
   /** the feed's own id, so a re-sync updates this task instead of duplicating it */
   externalId?: string
+  /**
+   * The date the feed last gave. Kept apart from `due`, which is the user's to
+   * change: a sync only touches `due` when this moves, meaning the school moved
+   * the deadline, and otherwise leaves a rescheduled task alone.
+   */
+  feedDue?: string
   createdAt: string
 }
 
