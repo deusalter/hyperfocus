@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
@@ -139,170 +139,166 @@ export default function TaskScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        automaticallyAdjustKeyboardInsets
       >
-        <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <ScreenHeader title="Task" onBack={close} />
+        <ScreenHeader title="Task" onBack={close} />
 
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            onEndEditing={flush}
-            multiline
-            maxLength={MAX_TITLE}
-            placeholder="What is it?"
-            placeholderTextColor={palette.muted}
-            accessibilityLabel="Task title"
-            submitBehavior="blurAndSubmit"
-            returnKeyType="done"
-            className="bg-surface border border-soft font-hk700 text-ink text-[18px] mt-4"
-            style={{ borderRadius: 16, paddingHorizontal: 15, paddingTop: 13, paddingBottom: 13, lineHeight: 24 }}
-          />
-          {task.course && (
-            <Text className="font-hk600 text-muted text-[12px] mt-2" style={{ marginHorizontal: 2 }}>
-              {task.source === 'canvas' ? 'From Canvas' : 'From your calendar'} · {task.course}
-            </Text>
-          )}
-
-          <Label>WHEN I START, I WILL…</Label>
-          {/* The same if-then plan the focus screen asks for. Filling it in here
-              means the move is already on the Start card before you commit. */}
-          <TextInput
-            value={step}
-            onChangeText={setStep}
-            onEndEditing={flush}
-            maxLength={120}
-            placeholder="open the doc and type one line"
-            placeholderTextColor={palette.muted}
-            accessibilityLabel="The very first move"
-            returnKeyType="done"
-            className="bg-surface border border-soft font-hk400 text-ink text-[14px]"
-            style={{ borderRadius: 13, paddingHorizontal: 14, paddingVertical: 12 }}
-          />
-
-          <Label>WHAT KIND</Label>
-          <View className="flex-row" style={{ gap: 8 }}>
-            {CAT_ORDER.map((c) => {
-              const meta = CATS[c]
-              const selected = c === cat
-              return (
-                <Pressable
-                  key={c}
-                  onPress={() => {
-                    Haptics.selectionAsync().catch(() => {})
-                    updateTask(task.id, { cat: c })
-                  }}
-                  className="flex-1 flex-row items-center justify-center"
-                  style={{
-                    gap: 6,
-                    paddingVertical: 11,
-                    borderRadius: 11,
-                    backgroundColor: selected ? meta.textColor : hexA(meta.color, 0.13),
-                  }}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={`${meta.label}. ${meta.blurb}`}
-                >
-                  <CatIcon cat={c} size={13} color={selected ? '#fff' : meta.color} />
-                  <Text
-                    className="font-hk800 text-[12.5px]"
-                    style={{ color: selected ? '#fff' : meta.textColor }}
-                  >
-                    {meta.label}
-                  </Text>
-                </Pressable>
-              )
-            })}
-          </View>
-          <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ marginHorizontal: 2 }}>
-            {CATS[cat].blurb}
+        <TextInput
+          value={title}
+          onChangeText={setTitle}
+          onEndEditing={flush}
+          multiline
+          maxLength={MAX_TITLE}
+          placeholder="What is it?"
+          placeholderTextColor={palette.muted}
+          accessibilityLabel="Task title"
+          submitBehavior="blurAndSubmit"
+          returnKeyType="done"
+          className="bg-surface border border-soft font-hk700 text-ink text-[18px] mt-4"
+          style={{ borderRadius: 16, paddingHorizontal: 15, paddingTop: 13, paddingBottom: 13, lineHeight: 24 }}
+        />
+        {task.course && (
+          <Text className="font-hk600 text-muted text-[12px] mt-2" style={{ marginHorizontal: 2 }}>
+            {task.source === 'canvas' ? 'From Canvas' : 'From your calendar'} · {task.course}
           </Text>
+        )}
 
-          <Label>WHEN</Label>
-          <View className="flex-row flex-wrap" style={{ gap: 7 }}>
-            <Choice label="No date" selected={!task.due} onPress={() => setDue(undefined)} />
-            {quick.map((q) => (
-              <Choice
-                key={q.label}
-                label={q.label}
-                selected={task.due === q.key}
-                onPress={() => setDue(q.key)}
-              />
-            ))}
+        <Label>WHEN I START, I WILL…</Label>
+        {/* The same if-then plan the focus screen asks for. Filling it in here
+            means the move is already on the Start card before you commit. */}
+        <TextInput
+          value={step}
+          onChangeText={setStep}
+          onEndEditing={flush}
+          maxLength={120}
+          placeholder="open the doc and type one line"
+          placeholderTextColor={palette.muted}
+          accessibilityLabel="The very first move"
+          returnKeyType="done"
+          className="bg-surface border border-soft font-hk400 text-ink text-[14px]"
+          style={{ borderRadius: 13, paddingHorizontal: 14, paddingVertical: 12 }}
+        />
+
+        <Label>WHAT KIND</Label>
+        <View className="flex-row" style={{ gap: 8 }}>
+          {CAT_ORDER.map((c) => {
+            const meta = CATS[c]
+            const selected = c === cat
+            return (
+              <Pressable
+                key={c}
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {})
+                  updateTask(task.id, { cat: c })
+                }}
+                className="flex-1 flex-row items-center justify-center"
+                style={{
+                  gap: 6,
+                  paddingVertical: 11,
+                  borderRadius: 11,
+                  backgroundColor: selected ? meta.textColor : hexA(meta.color, 0.13),
+                }}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                accessibilityLabel={`${meta.label}. ${meta.blurb}`}
+              >
+                <CatIcon cat={c} size={13} color={selected ? '#fff' : meta.color} />
+                <Text
+                  className="font-hk800 text-[12.5px]"
+                  style={{ color: selected ? '#fff' : meta.textColor }}
+                >
+                  {meta.label}
+                </Text>
+              </Pressable>
+            )
+          })}
+        </View>
+        <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ marginHorizontal: 2 }}>
+          {CATS[cat].blurb}
+        </Text>
+
+        <Label>WHEN</Label>
+        <View className="flex-row flex-wrap" style={{ gap: 7 }}>
+          <Choice label="No date" selected={!task.due} onPress={() => setDue(undefined)} />
+          {quick.map((q) => (
             <Choice
-              label={customDate ? format(new Date(`${task.due}T12:00:00`), 'MMM d') : 'Pick a date'}
-              selected={!!customDate}
-              onPress={() => setPickingDate((v) => !v)}
-              hint="Shows a week of days to choose from"
+              key={q.label}
+              label={q.label}
+              selected={task.due === q.key}
+              onPress={() => setDue(q.key)}
+            />
+          ))}
+          <Choice
+            label={customDate ? format(new Date(`${task.due}T12:00:00`), 'MMM d') : 'Pick a date'}
+            selected={!!customDate}
+            onPress={() => setPickingDate((v) => !v)}
+            hint="Shows a week of days to choose from"
+          />
+        </View>
+        {pickingDate && (
+          <View className="mt-3">
+            <WeekStrip
+              days={days}
+              today={todayKey}
+              selected={task.due ?? null}
+              offset={weekOffset}
+              onJump={setWeekOffset}
+              onSelect={(key) => setDue(key)}
             />
           </View>
-          {pickingDate && (
-            <View className="mt-3">
-              <WeekStrip
-                days={days}
-                today={todayKey}
-                selected={task.due ?? null}
-                offset={weekOffset}
-                onJump={setWeekOffset}
-                onSelect={(key) => setDue(key)}
-              />
-            </View>
-          )}
+        )}
 
-          <Label>WHICH LIST</Label>
-          <View className="flex-row" style={{ gap: 8 }}>
-            <View className="flex-1">
-              <Choice label="Today" selected={onToday} onPress={() => moveTo('today')} />
-            </View>
-            <View className="flex-1">
-              <Choice label="Later" selected={!onToday} onPress={() => moveTo('later')} />
-            </View>
+        <Label>WHICH LIST</Label>
+        <View className="flex-row" style={{ gap: 8 }}>
+          <View className="flex-1">
+            <Choice label="Today" selected={onToday} onPress={() => moveTo('today')} />
           </View>
+          <View className="flex-1">
+            <Choice label="Later" selected={!onToday} onPress={() => moveTo('later')} />
+          </View>
+        </View>
 
+        <PressableScale
+          haptic
+          onPress={() => {
+            flush()
+            close()
+            start(task.id)
+          }}
+          className="bg-accent items-center"
+          style={{ borderRadius: 16, paddingVertical: 15, marginTop: 26 }}
+        >
+          <Text className="font-hk700 text-white text-[15px]">Start focusing</Text>
+        </PressableScale>
+        <View className="flex-row mt-2.5" style={{ gap: 9 }}>
           <PressableScale
             haptic
-            onPress={() => {
-              flush()
-              close()
-              start(task.id)
-            }}
-            className="bg-accent items-center"
-            style={{ borderRadius: 16, paddingVertical: 15, marginTop: 26 }}
+            onPress={() => completeTask(task.id)}
+            className="flex-1 items-center bg-surface border border-soft"
+            style={{ borderRadius: 14, paddingVertical: 13 }}
           >
-            <Text className="font-hk700 text-white text-[15px]">Start focusing</Text>
+            <Text className="font-hk700 text-ink text-[14px]">Mark done</Text>
           </PressableScale>
-          <View className="flex-row mt-2.5" style={{ gap: 9 }}>
-            <PressableScale
-              haptic
-              onPress={() => completeTask(task.id)}
-              className="flex-1 items-center bg-surface border border-soft"
-              style={{ borderRadius: 14, paddingVertical: 13 }}
-            >
-              <Text className="font-hk700 text-ink text-[14px]">Mark done</Text>
-            </PressableScale>
-            <PressableScale
-              haptic
-              onPress={() => letGo(task.id)}
-              className="flex-1 items-center"
-              style={{
-                borderRadius: 14,
-                paddingVertical: 13,
-                borderWidth: 1,
-                borderStyle: 'dashed',
-                borderColor: palette.muted,
-              }}
-            >
-              <Text className="font-hk600 text-muted text-[14px]">Let go</Text>
-            </PressableScale>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <PressableScale
+            haptic
+            onPress={() => letGo(task.id)}
+            className="flex-1 items-center"
+            style={{
+              borderRadius: 14,
+              paddingVertical: 13,
+              borderWidth: 1,
+              borderStyle: 'dashed',
+              borderColor: palette.muted,
+            }}
+          >
+            <Text className="font-hk600 text-muted text-[14px]">Let go</Text>
+          </PressableScale>
+        </View>
+      </ScrollView>
       <UndoToast />
     </SafeAreaView>
   )

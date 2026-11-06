@@ -1,9 +1,7 @@
 import { ReactNode, useState } from 'react'
 import {
   Alert,
-  KeyboardAvoidingView,
   Linking,
-  Platform,
   Pressable,
   ScrollView,
   Share,
@@ -400,180 +398,178 @@ export default function YouScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
+      {/* Adjusting insets rather than avoiding the keyboard: the feed field sits low
+          on this screen, and this also scrolls whichever input has focus into view. */}
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
-        <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Animated.View entering={FadeInUp.duration(260)}>
-            <Text
-              className="font-hk800 text-ink text-[24px]"
-              style={{ letterSpacing: -0.5 }}
-              accessibilityRole="header"
-            >
-              You
-            </Text>
-          </Animated.View>
-
-          {/* profile card */}
-          <Animated.View
-            entering={FadeInUp.delay(40).duration(260)}
-            className="bg-surface border border-soft items-center mt-4"
-            style={{ borderRadius: 20, paddingVertical: 18, paddingHorizontal: 16 }}
+        <Animated.View entering={FadeInUp.duration(260)}>
+          <Text
+            className="font-hk800 text-ink text-[24px]"
+            style={{ letterSpacing: -0.5 }}
+            accessibilityRole="header"
           >
-            <Sprite pose="idle" level={companionLevel} />
-            {editingName ? (
-              <TextInput
-                value={nameDraft}
-                onChangeText={setNameDraft}
-                onSubmitEditing={saveName}
-                onBlur={saveName}
-                autoFocus
-                maxLength={40}
-                returnKeyType="done"
-                placeholder="Your name"
-                placeholderTextColor={palette.muted}
-                accessibilityLabel="Your name"
-                className="font-hk800 text-ink text-[20px] text-center mt-1"
-                style={{ minWidth: 160, paddingVertical: 2, borderBottomWidth: 1.5, borderBottomColor: palette.accent }}
-              />
-            ) : (
-              <Pressable
-                onPress={() => {
-                  setNameDraft(settings.name)
-                  setEditingName(true)
-                }}
-                hitSlop={10}
-                accessibilityRole="button"
-                accessibilityHint="Change your name"
-              >
-                <Text className="font-hk800 text-ink text-[20px] mt-1" style={{ letterSpacing: -0.3 }}>
-                  {settings.name.trim() || 'Add your name'}
-                </Text>
-              </Pressable>
-            )}
-            <View className="flex-row flex-wrap justify-center mt-2.5" style={{ gap: 8 }}>
-              <View className="bg-accent-soft rounded-full" style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
-                <Text className="font-hk700 text-accent text-[12px]">Level {companionLevel}</Text>
-              </View>
-              {!settings.gentle && showedUp > 0 && (
-                <View className="bg-accent-soft rounded-full" style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
-                  <Text className="font-hk700 text-accent text-[12px]">
-                    {showedUp} {showedUp === 1 ? 'day' : 'days'} in 4 weeks
-                  </Text>
-                </View>
-              )}
+            You
+          </Text>
+        </Animated.View>
+
+        {/* profile card */}
+        <Animated.View
+          entering={FadeInUp.delay(40).duration(260)}
+          className="bg-surface border border-soft items-center mt-4"
+          style={{ borderRadius: 20, paddingVertical: 18, paddingHorizontal: 16 }}
+        >
+          <Sprite pose="idle" level={companionLevel} />
+          {editingName ? (
+            <TextInput
+              value={nameDraft}
+              onChangeText={setNameDraft}
+              onSubmitEditing={saveName}
+              onBlur={saveName}
+              autoFocus
+              maxLength={40}
+              returnKeyType="done"
+              placeholder="Your name"
+              placeholderTextColor={palette.muted}
+              accessibilityLabel="Your name"
+              className="font-hk800 text-ink text-[20px] text-center mt-1"
+              style={{ minWidth: 160, paddingVertical: 2, borderBottomWidth: 1.5, borderBottomColor: palette.accent }}
+            />
+          ) : (
+            <Pressable
+              onPress={() => {
+                setNameDraft(settings.name)
+                setEditingName(true)
+              }}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityHint="Change your name"
+            >
+              <Text className="font-hk800 text-ink text-[20px] mt-1" style={{ letterSpacing: -0.3 }}>
+                {settings.name.trim() || 'Add your name'}
+              </Text>
+            </Pressable>
+          )}
+          <View className="flex-row flex-wrap justify-center mt-2.5" style={{ gap: 8 }}>
+            <View className="bg-accent-soft rounded-full" style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
+              <Text className="font-hk700 text-accent text-[12px]">Level {companionLevel}</Text>
             </View>
-          </Animated.View>
-
-          <Animated.View entering={FadeInUp.delay(80).duration(260)}>
-            <SectionLabel>FOCUS</SectionLabel>
-            <Card style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
-              <Text className="font-hk700 text-ink text-[14px]">Session length</Text>
-              <View className="mt-2.5">
-                <Segments
-                  groupLabel="Session length"
-                  value={settings.focusLen}
-                  onChange={(n) => updateSettings({ focusLen: n })}
-                  options={FOCUS_OPTIONS.map((n) => ({
-                    value: n,
-                    label: `${n}m`,
-                    a11y: `${n} minutes`,
-                  }))}
-                />
+            {!settings.gentle && showedUp > 0 && (
+              <View className="bg-accent-soft rounded-full" style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
+                <Text className="font-hk700 text-accent text-[12px]">
+                  {showedUp} {showedUp === 1 ? 'day' : 'days'} in 4 weeks
+                </Text>
               </View>
-              <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ lineHeight: 17 }}>
-                You can always add or take off time during a session.
-              </Text>
+            )}
+          </View>
+        </Animated.View>
 
-              <View style={{ height: 1, backgroundColor: palette.soft, marginVertical: 14 }} />
-
-              <Text className="font-hk700 text-ink text-[14px]">Focus sound</Text>
-              <View className="mt-2.5">
-                <Segments
-                  groupLabel="Focus sound"
-                  value={sound}
-                  onChange={chooseSound}
-                  options={SOUND_ORDER.map((k) => ({
-                    value: k,
-                    label: k === 'off' ? 'Off' : SOUNDS[k].short,
-                    a11y: k === 'off' ? 'Off' : SOUNDS[k].label,
-                  }))}
-                />
-              </View>
-              <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ lineHeight: 17 }}>
-                {sound === 'off'
-                  ? 'Plays during sessions and mixes with your own music.'
-                  : `${SOUNDS[sound].blurb}. Plays during sessions and mixes with your own music.`}
-              </Text>
-            </Card>
-
-            <SectionLabel>REMINDERS</SectionLabel>
-            <Card style={{ overflow: 'hidden' }}>
-              <ToggleRow
-                title="A daily nudge"
-                subtitle="One a day at most. Skips days you've already started, and goes quiet if you've been away a week."
-                on={reminderOn}
-                onToggle={toggleReminder}
-                last={!reminderOn}
+        <Animated.View entering={FadeInUp.delay(80).duration(260)}>
+          <SectionLabel>FOCUS</SectionLabel>
+          <Card style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
+            <Text className="font-hk700 text-ink text-[14px]">Session length</Text>
+            <View className="mt-2.5">
+              <Segments
+                groupLabel="Session length"
+                value={settings.focusLen}
+                onChange={(n) => updateSettings({ focusLen: n })}
+                options={FOCUS_OPTIONS.map((n) => ({
+                  value: n,
+                  label: `${n}m`,
+                  a11y: `${n} minutes`,
+                }))}
               />
-              {reminderOn && (
-                <Animated.View entering={FadeIn.duration(160)} style={{ padding: 14 }}>
-                  <Segments
-                    groupLabel="Reminder time"
-                    value={settings.reminderHour as number}
-                    onChange={(hour) => updateSettings({ reminderHour: hour })}
-                    options={REMINDER_HOURS.map((h) => ({ value: h.hour, label: h.label }))}
-                  />
-                </Animated.View>
-              )}
-            </Card>
-
-            <SectionLabel>IMPORT</SectionLabel>
-            <FeedCard />
-
-            <SectionLabel>PREFERENCES</SectionLabel>
-            <Card style={{ overflow: 'hidden' }}>
-              <ToggleRow
-                title="Gentle mode"
-                subtitle="No comparisons. Hides the race field, day counts and week-over-week."
-                on={settings.gentle}
-                onToggle={() => updateSettings({ gentle: !settings.gentle })}
-                last
-              />
-            </Card>
-
-            <SectionLabel>ABOUT</SectionLabel>
-            <Card style={{ overflow: 'hidden' }}>
-              <LinkRow title="Replay welcome" onPress={() => router.push('/onboarding')} />
-              <LinkRow
-                title="Help and support"
-                onPress={() => WebBrowser.openBrowserAsync(SUPPORT_URL).catch(() => {})}
-              />
-              <LinkRow
-                title="Privacy policy"
-                onPress={() => WebBrowser.openBrowserAsync(PRIVACY_URL).catch(() => {})}
-              />
-              <LinkRow
-                title="Export my data"
-                hint="Shares your tasks and history as text"
-                onPress={exportMyData}
-              />
-              <LinkRow title="Reset everything" danger last onPress={confirmReset} />
-            </Card>
-
-            <Text className="font-hk400 text-muted text-center text-[12px]" style={{ marginTop: 22, lineHeight: 18 }}>
-              Hyperfocus{version ? ` · v${version}` : ''}
-              {'\n'}
-              Everything stays on this phone. A productivity tool, not medical advice or treatment.
+            </View>
+            <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ lineHeight: 17 }}>
+              You can always add or take off time during a session.
             </Text>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+            <View style={{ height: 1, backgroundColor: palette.soft, marginVertical: 14 }} />
+
+            <Text className="font-hk700 text-ink text-[14px]">Focus sound</Text>
+            <View className="mt-2.5">
+              <Segments
+                groupLabel="Focus sound"
+                value={sound}
+                onChange={chooseSound}
+                options={SOUND_ORDER.map((k) => ({
+                  value: k,
+                  label: k === 'off' ? 'Off' : SOUNDS[k].short,
+                  a11y: k === 'off' ? 'Off' : SOUNDS[k].label,
+                }))}
+              />
+            </View>
+            <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ lineHeight: 17 }}>
+              {sound === 'off'
+                ? 'Plays during sessions and mixes with your own music.'
+                : `${SOUNDS[sound].blurb}. Plays during sessions and mixes with your own music.`}
+            </Text>
+          </Card>
+
+          <SectionLabel>REMINDERS</SectionLabel>
+          <Card style={{ overflow: 'hidden' }}>
+            <ToggleRow
+              title="A daily nudge"
+              subtitle="One a day at most. Skips days you've already started, and goes quiet if you've been away a week."
+              on={reminderOn}
+              onToggle={toggleReminder}
+              last={!reminderOn}
+            />
+            {reminderOn && (
+              <Animated.View entering={FadeIn.duration(160)} style={{ padding: 14 }}>
+                <Segments
+                  groupLabel="Reminder time"
+                  value={settings.reminderHour as number}
+                  onChange={(hour) => updateSettings({ reminderHour: hour })}
+                  options={REMINDER_HOURS.map((h) => ({ value: h.hour, label: h.label }))}
+                />
+              </Animated.View>
+            )}
+          </Card>
+
+          <SectionLabel>IMPORT</SectionLabel>
+          <FeedCard />
+
+          <SectionLabel>PREFERENCES</SectionLabel>
+          <Card style={{ overflow: 'hidden' }}>
+            <ToggleRow
+              title="Gentle mode"
+              subtitle="No comparisons. Hides the race field, day counts and week-over-week."
+              on={settings.gentle}
+              onToggle={() => updateSettings({ gentle: !settings.gentle })}
+              last
+            />
+          </Card>
+
+          <SectionLabel>ABOUT</SectionLabel>
+          <Card style={{ overflow: 'hidden' }}>
+            <LinkRow title="Replay welcome" onPress={() => router.push('/onboarding')} />
+            <LinkRow
+              title="Help and support"
+              onPress={() => WebBrowser.openBrowserAsync(SUPPORT_URL).catch(() => {})}
+            />
+            <LinkRow
+              title="Privacy policy"
+              onPress={() => WebBrowser.openBrowserAsync(PRIVACY_URL).catch(() => {})}
+            />
+            <LinkRow
+              title="Export my data"
+              hint="Shares your tasks and history as text"
+              onPress={exportMyData}
+            />
+            <LinkRow title="Reset everything" danger last onPress={confirmReset} />
+          </Card>
+
+          <Text className="font-hk400 text-muted text-center text-[12px]" style={{ marginTop: 22, lineHeight: 18 }}>
+            Hyperfocus{version ? ` · v${version}` : ''}
+            {'\n'}
+            Everything stays on this phone. A productivity tool, not medical advice or treatment.
+          </Text>
+        </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, Pressable, Platform } from 'react-native'
+import { AccessibilityInfo, View, Text, Pressable, Platform } from 'react-native'
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { BlurView } from 'expo-blur'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -133,10 +133,33 @@ function BarContent({
   )
 }
 
+/** The system's Reduce Transparency setting, kept live while the app runs. */
+function useReducedTransparency() {
+  const [reduced, setReduced] = useState(false)
+  useEffect(() => {
+    // an iOS setting; the call doesn't exist on web, and the fallback path below
+    // is already opaque everywhere else
+    if (Platform.OS !== 'ios') return
+    let alive = true
+    AccessibilityInfo.isReduceTransparencyEnabled()
+      .then((on) => {
+        if (alive) setReduced(on)
+      })
+      .catch(() => {})
+    const sub = AccessibilityInfo.addEventListener('reduceTransparencyChanged', setReduced)
+    return () => {
+      alive = false
+      sub.remove()
+    }
+  }, [])
+  return reduced
+}
+
 export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const [barW, setBarW] = useState(0)
+  const solid = useReducedTransparency()
 
   return (
     <View
@@ -163,17 +186,20 @@ export default function GlassTabBar({ state, navigation }: BottomTabBarProps) {
         }}
       >
         <View style={{ borderRadius: 27, overflow: 'hidden' }}>
-          {Platform.OS === 'ios' ? (
+          {Platform.OS === 'ios' && !solid ? (
+            // Opaque enough that text scrolling underneath stays a texture. Any more
+            // see-through and it reads as words competing with the tab labels.
             <BlurView
               intensity={40}
               tint="light"
-              style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}
+              style={{ backgroundColor: 'rgba(255,255,255,0.72)' }}
             >
               <BarContent state={state} navigation={navigation} barW={barW} />
             </BlurView>
           ) : (
-            // Android: blur is unreliable — near-opaque glass reads the same
-            <View style={{ backgroundColor: 'rgba(255,255,255,0.94)' }}>
+            // Android, where blur is unreliable, and anyone with Reduce Transparency
+            // on: near-opaque glass reads the same
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.96)' }}>
               <BarContent state={state} navigation={navigation} barW={barW} />
             </View>
           )}
