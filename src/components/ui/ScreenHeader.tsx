@@ -2,6 +2,7 @@ import { View, Text, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { ReactNode } from 'react'
 import { ChevronLeft, CloseIcon } from '@/components/ui/Icon'
+import { goBackOrHome } from '@/lib/nav'
 
 /**
  * Flow header: back or close control + title + optional right slot + subtitle.
@@ -26,7 +27,7 @@ export default function ScreenHeader({
     <View>
       <View className="flex-row items-center" style={{ gap: 10 }}>
         <Pressable
-          onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))}
+          onPress={onBack ?? (() => goBackOrHome(router))}
           // the glyph is ~24pt, so slop carries the target to 44pt without
           // moving the title
           hitSlop={10}

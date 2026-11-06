@@ -42,6 +42,16 @@ export async function requestNotifications(): Promise<boolean> {
   }
 }
 
+/** Whether notifications can reach the user right now. Never prompts. */
+export async function notificationsAllowed(): Promise<boolean> {
+  if (!SUPPORTED) return true
+  try {
+    return (await Notifications.getPermissionsAsync()).granted
+  } catch {
+    return true
+  }
+}
+
 // A later call supersedes an earlier one still awaiting. Pause then resume in
 // quick succession must not leave the stale schedule standing.
 let sessionRun = 0

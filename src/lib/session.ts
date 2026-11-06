@@ -25,6 +25,9 @@ export interface FocusSession {
  */
 export const STALE_SESSION_MS = 12 * 60 * 60 * 1000
 
+/** The session lengths on offer. */
+export const FOCUS_OPTIONS = [15, 25, 45]
+
 /** Longest a session can be stretched to. */
 const MAX_SESSION_SEC = 3 * 60 * 60
 
@@ -49,7 +52,8 @@ export function newSession(
 }
 
 export function remainingSec(s: FocusSession, now: number): number {
-  return s.running ? Math.max(0, Math.round((s.endsAt - now) / 1000)) : s.pausedRemaining
+  if (!s.running) return s.pausedRemaining
+  return Math.min(s.totalSec, Math.max(0, Math.round((s.endsAt - now) / 1000)))
 }
 
 export function pauseSession(s: FocusSession, now: number): FocusSession {
@@ -65,16 +69,21 @@ export function focusedMinutes(s: FocusSession, now: number): number {
   return Math.max(1, Math.round((s.totalSec - remainingSec(s, now)) / 60))
 }
 
+/** Whether this much time can be added (or, if negative, taken off) right now. */
+export function canAdjust(s: FocusSession, deltaMin: number, now: number): boolean {
+  const delta = deltaMin * 60
+  return remainingSec(s, now) + delta >= MIN_LEFT_SEC && s.totalSec + delta <= MAX_SESSION_SEC
+}
+
 /**
  * Add or take away time. Returns the session unchanged if the change isn't
  * allowed, so a caller can compare identity to know whether anything happened.
  */
 export function adjustSession(s: FocusSession, deltaMin: number, now: number): FocusSession {
+  if (!canAdjust(s, deltaMin, now)) return s
   const delta = deltaMin * 60
-  const left = remainingSec(s, now)
-  const nextLeft = left + delta
+  const nextLeft = remainingSec(s, now) + delta
   const nextTotal = s.totalSec + delta
-  if (nextLeft < MIN_LEFT_SEC || nextTotal > MAX_SESSION_SEC) return s
   return s.running
     ? { ...s, totalSec: nextTotal, endsAt: s.endsAt + delta * 1000 }
     : { ...s, totalSec: nextTotal, pausedRemaining: nextLeft }

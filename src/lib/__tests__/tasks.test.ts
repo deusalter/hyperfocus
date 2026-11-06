@@ -1,5 +1,5 @@
 import { Task } from '../types'
-import { dueChip, isOverdue, quickDates, rankForStart, splitBuckets } from '../tasks'
+import { daysBetween, dueChip, isOnToday, isOverdue, quickDates, rankForStart, splitBuckets } from '../tasks'
 
 const TODAY = '2026-11-05' // a Thursday
 
@@ -39,6 +39,28 @@ describe('splitBuckets', () => {
     )
     expect(today).toEqual([])
     expect(later.map((t) => t.id)).toEqual(['soon', 'past'])
+  })
+})
+
+describe('isOnToday', () => {
+  it('matches how the lists are actually split', () => {
+    expect(isOnToday(task({ id: 'a' }), TODAY)).toBe(true)
+    expect(isOnToday(task({ id: 'b', bucket: 'later', due: TODAY }), TODAY)).toBe(true)
+    expect(isOnToday(task({ id: 'c', bucket: 'later', due: '2026-11-06' }), TODAY)).toBe(false)
+  })
+
+  it('leaves an unsorted task in the inbox even if it has a date', () => {
+    const inbox = task({ id: 'i', bucket: 'inbox', due: TODAY })
+    expect(isOnToday(inbox, TODAY)).toBe(false)
+    expect(splitBuckets([inbox], TODAY).inbox).toEqual([inbox])
+  })
+})
+
+describe('daysBetween', () => {
+  it('counts whole days in either direction, across a clock change', () => {
+    expect(daysBetween('2026-11-05', '2026-11-06')).toBe(1)
+    expect(daysBetween('2026-11-05', '2026-11-02')).toBe(-3)
+    expect(daysBetween('2026-03-07', '2026-03-09')).toBe(2)
   })
 })
 

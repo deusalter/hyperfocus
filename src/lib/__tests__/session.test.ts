@@ -2,6 +2,7 @@ import {
   FocusSession,
   STALE_SESSION_MS,
   adjustSession,
+  canAdjust,
   completedStamp,
   focusedMinutes,
   hasExpired,
@@ -44,6 +45,13 @@ describe('remainingSec', () => {
   it('freezes at the snapshot while paused', () => {
     const paused = pauseSession(running(), T0 + min(5))
     expect(remainingSec(paused, T0 + min(60))).toBe(1200)
+  })
+
+  it('never reports more than the whole session, even against a stale clock', () => {
+    // a resume re-aims the end time; a render holding an older "now" would
+    // otherwise show more time left than the session has
+    const resumed = resumeSession(pauseSession(running(), T0 + min(5)), T0 + min(30))
+    expect(remainingSec(resumed, T0)).toBeLessThanOrEqual(resumed.totalSec)
   })
 })
 
@@ -109,6 +117,16 @@ describe('adjustSession', () => {
     let s = running()
     for (let i = 0; i < 60; i++) s = adjustSession(s, 5, T0)
     expect(s.totalSec).toBeLessThanOrEqual(3 * 60 * 60)
+  })
+})
+
+describe('canAdjust', () => {
+  it('matches what adjustSession will actually do', () => {
+    const s = running()
+    expect(canAdjust(s, 5, T0)).toBe(true)
+    expect(canAdjust(s, -5, T0)).toBe(true)
+    expect(canAdjust(s, -5, T0 + min(22))).toBe(false)
+    expect(canAdjust({ ...s, totalSec: 3 * 60 * 60 }, 5, T0)).toBe(false)
   })
 })
 

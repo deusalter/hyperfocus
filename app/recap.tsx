@@ -73,7 +73,7 @@ export default function RecapScreen() {
 
   // nothing to celebrate — bounce home
   useEffect(() => {
-    if (!lastRecap && !leaving.current) router.replace('/')
+    if (!lastRecap && !leaving.current) router.dismissTo('/')
   }, [lastRecap, router])
 
   if (!lastRecap) return <View className="flex-1 bg-background" />

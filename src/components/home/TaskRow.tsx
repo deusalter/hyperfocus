@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { View, Text, Pressable } from 'react-native'
 import Animated, {
   FadeIn,
@@ -22,7 +22,7 @@ import { palette } from '@/lib/theme'
 const CHECK_DELAY_MS = 320
 
 /** One task on the Home Today list: check-off circle, title, Focus pill, category. */
-function TaskRow({ task }: { task: Task }) {
+export default function TaskRow({ task }: { task: Task }) {
   const { completeTask, updateTask, todayKey, focus } = useApp()
   const router = useRouter()
   const start = useStartFocus()
@@ -142,4 +142,3 @@ function TaskRow({ task }: { task: Task }) {
   )
 }
 
-export default memo(TaskRow)

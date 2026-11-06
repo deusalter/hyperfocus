@@ -5,7 +5,6 @@ import { useIsFocused } from '@react-navigation/native'
 import { useApp } from '@/store/AppStore'
 import { palette } from '@/lib/theme'
 
-const VISIBLE_MS = 5000
 // the accent, lifted until it clears AA against the toast's ink background
 const UNDO_COLOR = '#a9c8e8'
 
@@ -19,16 +18,10 @@ const UNDO_COLOR = '#a9c8e8'
  * root view, so a single toast at the root would be hidden behind the sheet.
  */
 export default function UndoToast({ bottom = 20 }: { bottom?: number }) {
-  const { undoOffer, undo, dismissUndo } = useApp()
+  const { undoOffer, undo } = useApp()
   const focused = useIsFocused()
   const id = undoOffer?.id
   const message = undoOffer?.message
-
-  useEffect(() => {
-    if (id == null) return
-    const timer = setTimeout(dismissUndo, VISIBLE_MS)
-    return () => clearTimeout(timer)
-  }, [id, dismissUndo])
 
   useEffect(() => {
     if (focused && message) AccessibilityInfo.announceForAccessibility(`${message}. Undo available.`)

@@ -11,7 +11,8 @@ import { CatIcon } from '@/components/CatTag'
 import UndoToast from '@/components/UndoToast'
 import { useApp } from '@/store/AppStore'
 import { useStartFocus } from '@/lib/useStartFocus'
-import { MAX_TITLE, quickDates } from '@/lib/tasks'
+import { goBackOrHome } from '@/lib/nav'
+import { MAX_TITLE, isOnToday, noon, quickDates } from '@/lib/tasks'
 import { CATS, CAT_ORDER, hexA, palette } from '@/lib/theme'
 
 function Label({ children }: { children: string }) {
@@ -88,7 +89,7 @@ export default function TaskScreen() {
   const [weekOffset, setWeekOffset] = useState(0)
   const days = useMemo(() => weekDays(todayKey, weekOffset), [todayKey, weekOffset])
 
-  const close = () => (router.canGoBack() ? router.back() : router.replace('/'))
+  const close = () => goBackOrHome(router)
 
   // The task can go out from under this screen, by finishing or letting it go.
   // Gated on hydrated: until storage loads every task looks missing, and a cold
@@ -118,7 +119,7 @@ export default function TaskScreen() {
   if (!task) return <View className="flex-1 bg-background" />
 
   const cat = task.cat ?? 'sprint'
-  const onToday = task.bucket === 'today' || task.due === todayKey
+  const onToday = isOnToday(task, todayKey)
   const quick = quickDates(todayKey)
   const customDate = task.due && !quick.some((q) => q.key === task.due)
 
@@ -233,7 +234,7 @@ export default function TaskScreen() {
             />
           ))}
           <Choice
-            label={customDate ? format(new Date(`${task.due}T12:00:00`), 'MMM d') : 'Pick a date'}
+            label={customDate ? format(noon(task.due!), 'MMM d') : 'Pick a date'}
             selected={!!customDate}
             onPress={() => setPickingDate((v) => !v)}
             hint="Shows a week of days to choose from"
@@ -248,6 +249,8 @@ export default function TaskScreen() {
               offset={weekOffset}
               onJump={setWeekOffset}
               onSelect={(key) => setDue(key)}
+              // a date in the past would make the task overdue the moment it's set
+              minDate={todayKey}
             />
           </View>
         )}
@@ -277,7 +280,11 @@ export default function TaskScreen() {
         <View className="flex-row mt-2.5" style={{ gap: 9 }}>
           <PressableScale
             haptic
-            onPress={() => completeTask(task.id)}
+            onPress={() => {
+              // the keyboard can still be up with an unsaved edit
+              flush()
+              completeTask(task.id)
+            }}
             className="flex-1 items-center bg-surface border border-soft"
             style={{ borderRadius: 14, paddingVertical: 13 }}
           >
@@ -285,7 +292,10 @@ export default function TaskScreen() {
           </PressableScale>
           <PressableScale
             haptic
-            onPress={() => letGo(task.id)}
+            onPress={() => {
+              flush()
+              letGo(task.id)
+            }}
             className="flex-1 items-center"
             style={{
               borderRadius: 14,

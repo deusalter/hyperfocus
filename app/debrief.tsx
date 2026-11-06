@@ -10,6 +10,7 @@ import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
 import { STALE_DAYS, ageInDays } from '@/lib/points'
+import { daysBetween, noon } from '@/lib/tasks'
 import { palette } from '@/lib/theme'
 import { Task } from '@/lib/types'
 
@@ -62,9 +63,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 }
 
 function dueLabel(due: string, todayISO: string): string {
-  const diff = Math.round(
-    (new Date(`${todayISO}T12:00:00`).getTime() - new Date(`${due}T12:00:00`).getTime()) / 86400000
-  )
+  const diff = daysBetween(due, todayISO)
   return diff === 1 ? 'Due yesterday' : `Due ${diff} days ago`
 }
 
@@ -82,9 +81,7 @@ export default function DebriefScreen() {
     const isStale = (t: Task) => ageInDays(t.createdAt, todayISO) >= STALE_DAYS
     return {
       overdue: active.filter((t) => t.due && t.due < todayISO),
-      todayItems: active.filter(
-        (t) => t.due === todayISO || (t.bucket === 'today' && (!t.due || t.due === todayISO))
-      ),
+      todayItems: active.filter((t) => t.due === todayISO || (t.bucket === 'today' && !t.due)),
       upcoming: active
         .filter((t) => t.due && t.due > todayISO)
         .sort((a, b) => a.due!.localeCompare(b.due!)),
@@ -93,7 +90,11 @@ export default function DebriefScreen() {
     }
   }, [tasks, todayISO])
 
+  // Something overdue had a real deadline, so doing it today re-dates it.
   const doToday = (task: Task) => updateTask(task.id, { bucket: 'today', due: todayISO })
+  // Something undated only changes lists. Giving it a date here would make it
+  // "overdue" tomorrow, against a deadline nobody ever set.
+  const pullToToday = (task: Task) => updateTask(task.id, { bucket: 'today' })
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
@@ -238,7 +239,7 @@ export default function DebriefScreen() {
                     className="font-hk800 text-muted text-center text-[11px]"
                     style={{ width: 34 }}
                   >
-                    {format(new Date(`${item.due}T12:00:00`), 'EEE')}
+                    {format(noon(item.due!), 'EEE')}
                   </Text>
                   <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
                   <View className="flex-1" style={{ minWidth: 0 }}>
@@ -274,7 +275,7 @@ export default function DebriefScreen() {
                     <Text className="font-hk500 text-ink text-[14px]">{item.title}</Text>
                   </Pressable>
                   <PressableScale
-                    onPress={() => doToday(item)}
+                    onPress={() => pullToToday(item)}
                     className="bg-accent-soft rounded-full"
                     style={{ paddingHorizontal: 11, paddingVertical: 6 }}
                     hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
@@ -332,7 +333,7 @@ export default function DebriefScreen() {
                       <Text className="font-hk700 text-muted text-[12.5px]">Let it go</Text>
                     </PressableScale>
                     <PressableScale
-                      onPress={() => doToday(item)}
+                      onPress={() => pullToToday(item)}
                       className="flex-1 items-center bg-accent-soft"
                       style={{ borderRadius: 11, paddingVertical: 9 }}
                     >

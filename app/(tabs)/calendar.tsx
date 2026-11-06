@@ -11,7 +11,7 @@ import PressableScale from '@/components/ui/PressableScale'
 import { ChevronRight, PlusIcon, SyncIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { dayKey } from '@/lib/points'
-import { MAX_TITLE } from '@/lib/tasks'
+import { MAX_TITLE, noon } from '@/lib/tasks'
 import { CATS, palette } from '@/lib/theme'
 import { Task } from '@/lib/types'
 
@@ -50,7 +50,9 @@ export default function CalendarScreen() {
       if (t.bucket === 'inbox') continue
       const day = taskDay(t, todayISO)
       if (!day) continue
-      map.set(day, [...(map.get(day) ?? []), t])
+      const list = map.get(day)
+      if (list) list.push(t)
+      else map.set(day, [t])
     }
     return map
   }, [tasks, todayISO])
@@ -63,7 +65,7 @@ export default function CalendarScreen() {
   )
   const imported = tasks.filter((t) => t.source).length
   const importLabel = tasks.some((t) => t.source === 'canvas') ? 'Canvas' : 'Calendar'
-  const selectedDate = new Date(`${selected}T12:00:00`)
+  const selectedDate = noon(selected)
   const selectedName = selected === todayISO ? 'today' : format(selectedDate, 'EEEE')
   const canAdd = selected >= todayISO
 

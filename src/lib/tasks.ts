@@ -12,6 +12,11 @@ export interface Buckets {
   later: Task[]
 }
 
+/** Whether a sorted task belongs on the Today list. */
+export function isOnToday(t: Task, today: string): boolean {
+  return t.bucket === 'today' || (t.bucket === 'later' && t.due === today)
+}
+
 /**
  * Sort tasks into the three lists.
  *
@@ -24,7 +29,7 @@ export function splitBuckets(tasks: Task[], today: string): Buckets {
   const out: Buckets = { inbox: [], today: [], later: [] }
   for (const t of tasks) {
     if (t.bucket === 'inbox') out.inbox.push(t)
-    else if (t.bucket === 'today' || t.due === today) out.today.push(t)
+    else if (isOnToday(t, today)) out.today.push(t)
     else out.later.push(t)
   }
   return out
@@ -52,11 +57,13 @@ export function rankForStart(tasks: Task[], today: string): Task[] {
   )
 }
 
-function noon(key: string): Date {
+/** A day key as a Date at local noon, safely away from any clock change. */
+export function noon(key: string): Date {
   return new Date(`${key}T12:00:00`)
 }
 
-function daysBetween(from: string, to: string): number {
+/** Whole days from one day key to another, negative if `to` is earlier. */
+export function daysBetween(from: string, to: string): number {
   return Math.round((noon(to).getTime() - noon(from).getTime()) / 86400000)
 }
 

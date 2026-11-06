@@ -32,6 +32,7 @@ export default function WeekStrip({
   onSelect,
   onJump,
   dotsFor,
+  minDate,
 }: {
   days: WeekDay[]
   today: string
@@ -42,6 +43,8 @@ export default function WeekStrip({
   onJump: (offset: number) => void
   /** colours of the small markers under a day */
   dotsFor?: (key: string) => string[]
+  /** earlier days can be seen but not chosen */
+  minDate?: string
 }) {
   return (
     <View>
@@ -82,17 +85,19 @@ export default function WeekStrip({
         {days.map((cell) => {
           const isSelected = cell.key === selected
           const isToday = cell.key === today
-          const dots = (dotsFor?.(cell.key) ?? []).slice(0, 3)
-          const count = dotsFor?.(cell.key).length ?? 0
+          const dots = dotsFor?.(cell.key) ?? []
+          const count = dots.length
           const when = format(cell.date, 'EEEE, MMMM d')
+          const disabled = !!minDate && cell.key < minDate
           return (
             <Pressable
               key={cell.key}
               onPress={() => onSelect(cell.key)}
+              disabled={disabled}
               className="flex-1 items-center"
-              style={{ gap: 6 }}
+              style={{ gap: 6, opacity: disabled ? 0.35 : 1 }}
               accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
+              accessibilityState={{ selected: isSelected, disabled }}
               accessibilityLabel={`${isToday ? 'Today, ' : ''}${when}${count > 0 ? `, ${count} ${count === 1 ? 'task' : 'tasks'}` : ''}`}
             >
               <Text className="font-hk700 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
@@ -121,7 +126,7 @@ export default function WeekStrip({
                 </Text>
               </View>
               <View className="flex-row" style={{ gap: 3, height: 5 }}>
-                {dots.map((color, i) => (
+                {dots.slice(0, 3).map((color, i) => (
                   <View
                     key={i}
                     style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: color }}

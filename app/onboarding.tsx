@@ -16,9 +16,9 @@ import Sprite from '@/components/Sprite'
 import Toggle from '@/components/ui/Toggle'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
+import { FOCUS_OPTIONS } from '@/lib/session'
 import { palette } from '@/lib/theme'
 
-const FOCUS_OPTIONS = [15, 25, 45]
 const STEPS = 3
 
 function StepIcon({ kind }: { kind: 'dump' | 'start' | 'grow' }) {

@@ -28,7 +28,8 @@ import { SoundIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { CATS, palette } from '@/lib/theme'
 import { formatClock, scoreCompletion } from '@/lib/points'
-import { remainingSec } from '@/lib/session'
+import { canAdjust, focusedMinutes, remainingSec } from '@/lib/session'
+import { goBackOrHome } from '@/lib/nav'
 import { SOUNDS, SOUND_ORDER } from '@/lib/sound'
 import { GLIDE } from '@/lib/motion'
 
@@ -80,7 +81,7 @@ export default function FocusScreen() {
     hydrated,
     focus,
     focusTask,
-    lastRecap,
+    recapPending,
     settings,
     toggleFocusRun,
     adjustFocus,
@@ -96,15 +97,17 @@ export default function FocusScreen() {
   // tick. Ending the session is the store's job, so it happens wherever you are.
   // The tick is aimed at the next whole-second boundary rather than polling on a
   // fixed interval, so the digits change exactly when they should (a 500ms poll
-  // drifts and visibly skips a second) at half the renders.
-  const [now, setNow] = useState(() => Date.now())
+  // drifts and visibly skips a second) at half the renders. The tick only asks for
+  // a redraw. The time itself is read fresh below, because a stored "now" is out of
+  // date on the very render where Resume moves the end time.
+  const [, redraw] = useState(0)
   const endsAt = focus?.endsAt
   const running = focus?.running
   useEffect(() => {
     if (!running || endsAt == null) return
     let timer: ReturnType<typeof setTimeout>
     const tick = () => {
-      setNow(Date.now())
+      redraw((n) => n + 1)
       const untilBoundary = ((endsAt - Date.now()) % 1000 + 1000) % 1000
       timer = setTimeout(tick, untilBoundary || 1000)
     }
@@ -122,6 +125,7 @@ export default function FocusScreen() {
     }
   }, [running, endsAt])
 
+  const now = Date.now()
   const focusRemaining = focus ? remainingSec(focus, now) : 0
 
   const reduced = useReducedMotion()
@@ -169,22 +173,20 @@ export default function FocusScreen() {
   // as "no session" and evicts you before a restored one lands.
   useEffect(() => {
     if (!hydrated || focus) return
-    if (lastRecap) router.replace('/recap')
-    else if (router.canGoBack()) router.back()
-    else router.replace('/')
-  }, [hydrated, focus, lastRecap, router])
+    if (recapPending) router.replace('/recap')
+    else goBackOrHome(router)
+  }, [hydrated, focus, recapPending, router])
 
   if (!focus) return <View className="flex-1 bg-background" />
 
   const cat = focusTask?.cat ?? focus.cat ?? 'sprint'
   const meta = CATS[cat]
   const title = focusTask?.title ?? focus.title ?? 'One thing'
-  const elapsedMin = Math.round((focus.totalSec - focusRemaining) / 60)
-  const livePts = scoreCompletion(cat, elapsedMin)
+  // the same sum Done is about to bank, so the number doesn't change on the recap
+  const livePts = scoreCompletion(cat, focusedMinutes(focus, now))
   const ring = Math.min(RING_MAX, width - RING_CHROME)
   const ringScale = ring / RING_MAX
   const leftMin = Math.ceil(focusRemaining / 60)
-  const canCut = focusRemaining - STEP_MIN * 60 >= 60
 
   const sound = settings.sound
   const soundLabel = sound === 'off' ? 'Sound' : SOUNDS[sound].short
@@ -193,8 +195,6 @@ export default function FocusScreen() {
     const i = SOUND_ORDER.indexOf(sound)
     updateSettings({ sound: SOUND_ORDER[(i + 1) % SOUND_ORDER.length] })
   }
-
-  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'))
 
   const stop = () => {
     // nothing much to lose in the first minute, usually a mis-tap on the wrong task
@@ -228,7 +228,7 @@ export default function FocusScreen() {
           <ScreenHeader
             title="Focus"
             variant="back"
-            onBack={goBack}
+            onBack={() => goBackOrHome(router)}
             right={
               <Pressable
                 onPress={nextSound}
@@ -333,7 +333,7 @@ export default function FocusScreen() {
             <AdjustButton
               label={`−${STEP_MIN}`}
               a11y={`Take off ${STEP_MIN} minutes`}
-              disabled={!canCut}
+              disabled={!canAdjust(focus, -STEP_MIN, now)}
               onPress={() => adjustFocus(-STEP_MIN)}
             />
 
@@ -404,7 +404,7 @@ export default function FocusScreen() {
             <AdjustButton
               label={`+${STEP_MIN}`}
               a11y={`Add ${STEP_MIN} minutes`}
-              disabled={false}
+              disabled={!canAdjust(focus, STEP_MIN, now)}
               onPress={() => adjustFocus(STEP_MIN)}
             />
           </View>

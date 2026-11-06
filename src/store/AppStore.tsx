@@ -88,7 +88,14 @@ export interface FeedStatus {
   error: FeedError | 'invalid' | null
   /** how many new items the last sync brought in, null before the first */
   added: number | null
+  /** how many deadlines the last sync moved */
+  moved: number
 }
+
+const FEED_IDLE: FeedStatus = { syncing: false, error: null, added: null, moved: 0 }
+
+/** How long a way back is on offer. */
+const UNDO_MS = 5000
 
 interface NewTaskOptions {
   due?: string
@@ -142,7 +149,6 @@ interface Store {
   triageAssign: (id: string, bucket: 'today' | 'later' | 'drop') => void
   completeTask: (id: string) => void
   undo: () => void
-  dismissUndo: () => void
 
   startFocus: (taskId: string) => void
   /** bank what the running session earned, keep its task, start on another */
@@ -172,6 +178,18 @@ function persist(key: string, value: unknown) {
   AsyncStorage.setItem(key, JSON.stringify(value)).catch((err) =>
     console.warn(`persist error for "${key}":`, err)
   )
+}
+
+/** A stored object, or null if it's missing or unreadable. */
+function parseObject<T>(raw: string | null): T | null {
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null
+  } catch (err) {
+    console.warn('stored value unreadable:', err)
+    return null
+  }
 }
 
 /** A stored list, or null if it's missing or isn't one. */
@@ -253,10 +271,7 @@ function useTodayKey(): string {
     let timer: ReturnType<typeof setTimeout>
 
     const sync = () => {
-      setToday((prev) => {
-        const next = dayKey()
-        return next === prev ? prev : next
-      })
+      setToday(dayKey())
       schedule()
     }
 
@@ -291,7 +306,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [lastRecap, setLastRecap] = useState<Recap | null>(null)
   const [recapPending, setRecapPending] = useState(false)
   const [undoOffer, setUndoOffer] = useState<UndoOffer | null>(null)
-  const [feed, setFeed] = useState<FeedStatus>({ syncing: false, error: null, added: null })
+  const [feed, setFeed] = useState<FeedStatus>(FEED_IDLE)
   const todayKey = useTodayKey()
 
   // Actions need current state without taking it as a dependency — otherwise
@@ -307,23 +322,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const focusRef = useRef(focus)
   focusRef.current = focus
   const undoRef = useRef<(() => void) | null>(null)
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const feedSeenRef = useRef<string[]>([])
   const feedBusyRef = useRef(false)
+  const feedRunRef = useRef(0)
 
+  // The refs are updated here as well as on render, so an action that follows an
+  // edit in the same tap sees it. Saving a typed title and then starting a session
+  // would otherwise snapshot the old title.
   const patchTasks = useCallback((updater: (prev: Task[]) => Task[]) => {
-    setTasks((prev) => {
-      const next = updater(prev)
-      persist(KEYS.tasks, next)
-      return next
-    })
+    const next = updater(tasksRef.current)
+    if (next === tasksRef.current) return
+    tasksRef.current = next
+    setTasks(next)
+    persist(KEYS.tasks, next)
   }, [])
 
   const patchHistory = useCallback((updater: (prev: Completion[]) => Completion[]) => {
-    setHistory((prev) => {
-      const next = updater(prev)
-      persist(KEYS.history, next)
-      return next
-    })
+    const next = updater(historyRef.current)
+    if (next === historyRef.current) return
+    historyRef.current = next
+    setHistory(next)
+    persist(KEYS.history, next)
   }, [])
 
   const updateSettings = useCallback((patch: Partial<Settings>) => {
@@ -336,21 +356,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ---- undo ----
 
-  const offerUndo = useCallback((message: string, restore: () => void) => {
-    undoRef.current = restore
-    setUndoOffer({ id: Date.now(), message })
+  const clearUndo = useCallback(() => {
+    if (undoTimer.current) clearTimeout(undoTimer.current)
+    undoTimer.current = null
+    undoRef.current = null
+    setUndoOffer(null)
   }, [])
+
+  const offerUndo = useCallback(
+    (message: string, restore: () => void) => {
+      if (undoTimer.current) clearTimeout(undoTimer.current)
+      undoRef.current = restore
+      setUndoOffer({ id: Date.now(), message })
+      undoTimer.current = setTimeout(clearUndo, UNDO_MS)
+    },
+    [clearUndo]
+  )
 
   const undo = useCallback(() => {
-    undoRef.current?.()
-    undoRef.current = null
-    setUndoOffer(null)
-  }, [])
+    const restore = undoRef.current
+    clearUndo()
+    restore?.()
+  }, [clearUndo])
 
-  const dismissUndo = useCallback(() => {
-    undoRef.current = null
-    setUndoOffer(null)
-  }, [])
+  useEffect(
+    () => () => {
+      if (undoTimer.current) clearTimeout(undoTimer.current)
+    },
+    []
+  )
 
   /** Put a task back where it was, not just at the top of the pile. */
   const restoreTask = useCallback(
@@ -540,6 +574,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const switchFocus = useCallback(
     (taskId: string) => {
+      // the alert asking about this can outlive the task it's offering to switch
+      // to, and ending the running session for nothing would be the worse outcome
+      if (!tasksRef.current.some((t) => t.id === taskId)) return
       finishFocus('banked')
       startFocus(taskId)
     },
@@ -579,12 +616,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ---- calendar feed ----
 
   const runFeedSync = useCallback(
-    async (url: string): Promise<boolean> => {
-      if (feedBusyRef.current) return false
+    async (url: string, supersede = false): Promise<boolean> => {
+      if (feedBusyRef.current && !supersede) return false
+      const run = ++feedRunRef.current
       feedBusyRef.current = true
       setFeed((f) => ({ ...f, syncing: true, error: null }))
       try {
         const events = await fetchFeed(url)
+        // Disconnected or reset while this was in flight. What came back is no
+        // longer wanted, and saving it would restore a link the user just removed.
+        if (run !== feedRunRef.current) return false
         const result = mergeFeed({
           tasks: tasksRef.current,
           seen: feedSeenRef.current,
@@ -599,17 +640,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
           persist(KEYS.feedSeen, result.seen)
         }
         updateSettings({ feedUrl: url, feedSyncedAt: Date.now() })
-        setFeed({ syncing: false, error: null, added: result.added })
+        setFeed({ syncing: false, error: null, added: result.added, moved: result.updated })
         return true
       } catch (err) {
-        setFeed((f) => ({ ...f, syncing: false, error: err as FeedError }))
+        if (run === feedRunRef.current) {
+          setFeed((f) => ({ ...f, syncing: false, error: err as FeedError }))
+        }
         return false
       } finally {
-        feedBusyRef.current = false
+        if (run === feedRunRef.current) feedBusyRef.current = false
       }
     },
     [patchTasks, updateSettings]
   )
+
+  const cancelFeedSync = useCallback(() => {
+    feedRunRef.current += 1
+    feedBusyRef.current = false
+  }, [])
 
   const connectFeed = useCallback(
     async (raw: string) => {
@@ -618,7 +666,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setFeed((f) => ({ ...f, error: 'invalid' }))
         return false
       }
-      return runFeedSync(url)
+      // takes over from any background refresh, which would otherwise make this
+      // tap do nothing and say nothing
+      return runFeedSync(url, true)
     },
     [runFeedSync]
   )
@@ -629,9 +679,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [runFeedSync])
 
   const disconnectFeed = useCallback(() => {
+    cancelFeedSync()
     updateSettings({ feedUrl: null, feedSyncedAt: null })
-    setFeed({ syncing: false, error: null, added: null })
-  }, [updateSettings])
+    setFeed(FEED_IDLE)
+  }, [cancelFeedSync, updateSettings])
 
   // ---- data ----
 
@@ -653,6 +704,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     AsyncStorage.multiRemove([...Object.values(KEYS), ...Object.values(V1)]).catch(() => {})
     clearAllNotifications()
     silenceFocusSound()
+    cancelFeedSync()
+    clearUndo()
+    tasksRef.current = []
+    historyRef.current = []
     setTasks([])
     setHistory([])
     setSettings(DEFAULT_SETTINGS)
@@ -660,11 +715,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFocus(null)
     setLastRecap(null)
     setRecapPending(false)
-    undoRef.current = null
-    setUndoOffer(null)
     feedSeenRef.current = []
-    setFeed({ syncing: false, error: null, added: null })
-  }, [])
+    setFeed(FEED_IDLE)
+  }, [cancelFeedSync, clearUndo])
 
   // ---- hydrate ----
 
@@ -682,33 +735,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
           AsyncStorage.getItem(V1.sessions),
         ])
         if (cancelled) return
-        if (s) setSettings(loadSettings(JSON.parse(s)))
+
+        // Each value is read on its own. One unreadable value must only cost that
+        // value: an abort here would leave the lists empty in memory, and the next
+        // task added would save that emptiness over everything still on disk.
+        const storedSettings = parseObject<Partial<Settings> & Record<string, unknown>>(s)
+        if (storedSettings) {
+          setSettings(loadSettings(storedSettings))
+        } else if (s) {
+          // they've clearly been here before, so don't greet them with the welcome
+          setSettings({ ...DEFAULT_SETTINGS, onboarded: true })
+        }
+
         const storedTasks = parseList<Task>(t)
         const storedHistory = parseList<Completion>(h)
-        if (storedTasks || storedHistory) {
-          if (storedTasks) setTasks(storedTasks)
-          if (storedHistory) setHistory(storedHistory)
-        } else if (v1t || v1s) {
+        if (storedTasks) {
+          tasksRef.current = storedTasks
+          setTasks(storedTasks)
+        }
+        if (storedHistory) {
+          historyRef.current = storedHistory
+          setHistory(storedHistory)
+        }
+        // Migrating goes by whether the v2 keys exist, not whether they could be
+        // read. Unreadable v2 data must not be replaced with years-old v1 data.
+        if (t == null && h == null && (v1t || v1s)) {
           const migrated = migrateV1(v1t, v1s)
-          setTasks(migrated.tasks)
-          setHistory(migrated.history)
-          persist(KEYS.tasks, migrated.tasks)
-          persist(KEYS.history, migrated.history)
+          patchTasks(() => migrated.tasks)
+          patchHistory(() => migrated.history)
         }
         feedSeenRef.current = parseList<string>(seen) ?? []
+
         // A focus session survives a cold start: endsAt is absolute epoch ms, so
         // a running timer resumes at the right place instead of vanishing. One
         // that ran out long ago still earned its minutes, but they're banked
         // quietly rather than opening the app on a recap for something forgotten.
-        if (f) {
-          const saved = JSON.parse(f) as FocusSession
-          if (isStaleExpired(saved, Date.now())) {
-            focusRef.current = saved
-            finishFocus('banked')
-          } else {
-            focusRef.current = saved
-            setFocus(saved)
-          }
+        const saved = parseObject<FocusSession>(f)
+        if (saved?.taskId && typeof saved.endsAt === 'number') {
+          focusRef.current = saved
+          if (isStaleExpired(saved, Date.now())) finishFocus('banked')
+          else setFocus(saved)
         }
       } catch (err) {
         console.warn('hydrate error:', err)
@@ -719,7 +785,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-    // runs once; finishFocus is stable
+    // runs once; these callbacks are stable
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -785,11 +851,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [history, todayKey])
 
   // Rebuilt when the hour changes, when a new day starts, and when today gets its
-  // first completion (which is what cancels today's nudge).
+  // first completion (which is what cancels today's nudge). Also on every return to
+  // the app: that's what rolls the week forward, and it picks up notifications being
+  // turned on in Settings, which nothing else would notice.
   const activeToday = derived.todayTotals.completed > 0
   useEffect(() => {
     if (!hydrated) return
     syncReminders(settings.reminderHour, activeToday)
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s !== 'active') return
+      syncReminders(settings.reminderHour, activeToday)
+      syncSessionAlert(focusRef.current)
+    })
+    return () => sub.remove()
   }, [hydrated, settings.reminderHour, activeToday, todayKey])
 
   const feedUrl = settings.feedUrl
@@ -839,7 +913,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       triageAssign,
       completeTask,
       undo,
-      dismissUndo,
       startFocus,
       switchFocus,
       toggleFocusRun,
@@ -879,7 +952,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       triageAssign,
       completeTask,
       undo,
-      dismissUndo,
       startFocus,
       switchFocus,
       toggleFocusRun,

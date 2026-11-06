@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useApp } from '@/store/AppStore'
@@ -14,6 +14,11 @@ export function useStartFocus() {
   const { focus, focusTask, startFocus, switchFocus } = useApp()
   const router = useRouter()
 
+  // The alert can sit open while the session ends underneath it, so its buttons
+  // check again when tapped. By then the recap is showing and they've nothing to do.
+  const running = useRef(focus)
+  running.current = focus
+
   return useCallback(
     (taskId: string) => {
       if (!focus) {
@@ -27,10 +32,17 @@ export function useStartFocus() {
       }
       const current = focusTask?.title ?? focus.title ?? 'your current task'
       Alert.alert('Already focusing', `You have a session going on "${current}".`, [
-        { text: 'Back to it', style: 'cancel', onPress: () => router.push('/focus') },
+        {
+          text: 'Back to it',
+          style: 'cancel',
+          onPress: () => {
+            if (running.current) router.push('/focus')
+          },
+        },
         {
           text: 'Switch',
           onPress: () => {
+            if (!running.current) return
             switchFocus(taskId)
             router.push('/focus')
           },

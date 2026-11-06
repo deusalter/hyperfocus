@@ -20,6 +20,7 @@ import { ArrowLeft, ArrowRight } from '@/components/ui/Icon'
 import Sprite from '@/components/Sprite'
 import UndoToast from '@/components/UndoToast'
 import { useApp } from '@/store/AppStore'
+import { goBackOrHome } from '@/lib/nav'
 import { TODAY_CAP } from '@/lib/points'
 import { palette } from '@/lib/theme'
 
@@ -277,7 +278,7 @@ export default function TriageScreen() {
             </Text>
             <PressableScale
               haptic
-              onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+              onPress={() => goBackOrHome(router)}
               className="bg-accent mt-3.5"
               style={{ borderRadius: 14, paddingVertical: 13, paddingHorizontal: 26 }}
             >

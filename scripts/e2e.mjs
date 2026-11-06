@@ -175,6 +175,7 @@ await scenario('back leaves the session running, and Home can find it', seed(), 
   await page.getByLabel('Back', { exact: true }).click()
   await see(page, 'Session in progress')
   assert(await stored(page, 'hf2-focus'), 'session was destroyed by going back')
+  await gone(page, 'Start one thing', 1000)
   await page.getByText('Session in progress').click()
   await see(page, 'FOCUSING ON')
 })
@@ -390,6 +391,57 @@ await scenario('the calendar reaches other weeks and comes back', seed(), async 
   await see(page, 'This week')
   await page.getByLabel('Previous week').click()
   await gone(page, 'Add something', 2000) // the past takes no new tasks
+})
+
+await scenario('a title typed right before Mark done is the one that gets logged', seed(), async (page) => {
+  await open(page, '/task/t3')
+  await page.getByLabel('Task title').fill('Clear the whole desk')
+  await tap(page, 'Mark done')
+  await see(page, 'Done. +18 pts')
+  const logged = (await stored(page, 'hf2-history'))[0]
+  assert(logged.title === 'Clear the whole desk', `logged "${logged.title}"`)
+})
+
+await scenario('a session started from the editor uses the title just typed', seed(), async (page) => {
+  await open(page, '/task/t3')
+  await page.getByLabel('Task title').fill('Clear the whole desk')
+  await tap(page, 'Start focusing')
+  await see(page, 'FOCUSING ON')
+  assert((await stored(page, 'hf2-focus')).title === 'Clear the whole desk', 'session has the old title')
+})
+
+await scenario('pulling an undated task to Today does not give it a deadline', seed({
+  tasks: [{ id: 'x', title: 'Someday thing', cat: 'sprint', bucket: 'later', createdAt: new Date().toISOString() }],
+}), async (page) => {
+  await open(page, '/debrief')
+  await see(page, 'SOMEDAY')
+  await page.getByLabel('Move Someday thing to Today').click()
+  await page.waitForTimeout(150)
+  const t = (await stored(page, 'hf2-tasks')).find((x) => x.id === 'x')
+  assert(t.bucket === 'today', 'not moved to Today')
+  assert(!t.due, 'stamped a date that makes it overdue tomorrow')
+})
+
+await scenario('the date picker will not set a day in the past', seed(), async (page) => {
+  await open(page, '/task/t3')
+  await tap(page, 'Pick a date')
+  await page.getByLabel('Previous week').click()
+  await page.waitForTimeout(150)
+  const lastWeek = dayKey(daysFromNow(-7))
+  const label = await page.evaluate(() => [...document.querySelectorAll('[role="button"][aria-disabled="true"]')].length)
+  assert(label >= 7, `expected the whole past week disabled, found ${label}`)
+  assert((await stored(page, 'hf2-tasks')).find((x) => x.id === 't3').due !== lastWeek, 'past date set')
+})
+
+await scenario('a corrupt settings value keeps the tasks and skips the welcome', {
+  'hf2-tasks': [{ id: 'a', title: 'Still here', cat: 'sprint', bucket: 'today', createdAt: new Date().toISOString() }],
+  'hf2-history': [],
+}, async (page) => {
+  await page.addInitScript(() => localStorage.setItem('hf2-settings', '{"name":"Sa'))
+  await page.goto(BASE + '/', { waitUntil: 'load' })
+  await page.waitForTimeout(900)
+  await see(page, 'Still here')
+  await gone(page, 'Race your past self', 1000)
 })
 
 // ---- start one thing ----

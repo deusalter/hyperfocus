@@ -53,7 +53,11 @@ function ensureAudioMode() {
     playsInSilentMode: true,
     shouldPlayInBackground: true,
     interruptionMode: 'mixWithOthers',
-  }).catch((err) => console.warn('audio mode failed:', err))
+  }).catch((err) => {
+    // try again next time rather than playing with the wrong session all day
+    audioModeSet = false
+    console.warn('audio mode failed:', err)
+  })
 }
 
 function ramp(to: number, ms: number, then?: () => void) {

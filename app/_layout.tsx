@@ -22,6 +22,8 @@ import { palette } from '@/lib/theme'
 
 SplashScreen.preventAutoHideAsync().catch(() => {})
 
+const SPLASH_WATCHDOG_MS = 4000
+
 /** Friendly crash screen — shown by expo-router if anything below throws. */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   // a crash before the first paint would otherwise sit behind the splash forever
@@ -148,6 +150,13 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontError) console.warn('font load failed, falling back to system:', fontError)
   }, [fontError])
+
+  // The splash normally lifts once saved data is in. If something ever hangs before
+  // that, a slow first paint beats a logo that never goes away.
+  useEffect(() => {
+    const watchdog = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), SPLASH_WATCHDOG_MS)
+    return () => clearTimeout(watchdog)
+  }, [])
 
   if (!ready) return null
 

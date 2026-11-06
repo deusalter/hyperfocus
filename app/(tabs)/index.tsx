@@ -257,7 +257,7 @@ export default function HomeScreen() {
                 It&apos;s been {away} days. Nothing piled up and nothing was lost. The race
                 starts from wherever you are.
               </Text>
-              {next && (
+              {next && !focus && (
                 <PressableScale
                   haptic
                   onPress={() => start(next.id)}
@@ -329,8 +329,9 @@ export default function HomeScreen() {
           )}
         </Animated.View>
 
-        {/* Start one thing */}
-        {next && (
+        {/* Start one thing. Not while a session is running: the banner up top already
+            says what you're doing, and offering another start contradicts it. */}
+        {next && !focus && (
           <Animated.View entering={FadeInUp.delay(155).duration(260)}>
             <PressableScale
               haptic

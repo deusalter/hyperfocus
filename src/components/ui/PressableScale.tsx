@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import {
   GestureResponderEvent,
+  Platform,
   Pressable,
   PressableProps,
   StyleProp,
@@ -72,7 +73,18 @@ export default function PressableScale({
       accessibilityLabel={accessibilityLabel ?? undefined}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ ...accessibilityState, disabled: !!disabled }}
-      onAccessibilityTap={disabled ? undefined : () => fire({} as GestureResponderEvent)}
+      // VoiceOver activates through onAccessibilityTap. TalkBack has no such thing
+      // and needs the view to declare an activate action instead.
+      {...(Platform.OS === 'android'
+        ? {
+            accessibilityActions: [{ name: 'activate' }],
+            onAccessibilityAction: () => {
+              if (!disabled) fire({} as GestureResponderEvent)
+            },
+          }
+        : {
+            onAccessibilityTap: disabled ? undefined : () => fire({} as GestureResponderEvent),
+          })}
     >
       {children}
       <Pressable

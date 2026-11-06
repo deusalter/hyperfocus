@@ -1,6 +1,7 @@
-import { ReactNode, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import {
   Alert,
+  AppState,
   Linking,
   Pressable,
   ScrollView,
@@ -22,13 +23,12 @@ import { ChevronRight, SyncIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { isCanvasUrl } from '@/lib/feed'
 import { PRIVACY_URL, SUPPORT_URL } from '@/lib/links'
-import { requestNotifications } from '@/lib/notifications'
+import { notificationsAllowed, requestNotifications } from '@/lib/notifications'
 import { REMINDER_HOURS } from '@/lib/reminders'
+import { FOCUS_OPTIONS } from '@/lib/session'
 import { SOUNDS, SOUND_ORDER, previewSound } from '@/lib/sound'
 import { palette } from '@/lib/theme'
 import { SoundKind } from '@/lib/types'
-
-const FOCUS_OPTIONS = [15, 25, 45]
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -229,9 +229,12 @@ function FeedCard() {
             </Text>
           </View>
         </View>
-        {feed.added != null && feed.added > 0 && !feed.syncing && (
-          <Text className="font-hk600 text-accent text-[12.5px] mt-2.5">
-            Brought in {feed.added} new. They&apos;re waiting in Later.
+        {!feed.syncing && (feed.added ?? 0) + feed.moved > 0 && (
+          <Text className="font-hk600 text-accent text-[12.5px] mt-2.5" style={{ lineHeight: 17 }}>
+            {(feed.added ?? 0) > 0 ? `Brought in ${feed.added} new. They're waiting in Later. ` : ''}
+            {feed.moved > 0
+              ? `${feed.moved} ${feed.moved === 1 ? 'deadline' : 'deadlines'} moved on the calendar, so the ${feed.moved === 1 ? 'date was' : 'dates were'} updated.`
+              : ''}
           </Text>
         )}
         {feed.error && !feed.syncing && (
@@ -350,6 +353,22 @@ export default function YouScreen() {
   const version = Constants.expoConfig?.version ?? ''
   const reminderOn = settings.reminderHour != null
   const sound = settings.sound
+
+  // The toggle says on, but notifications can be off in Settings. Better to say so
+  // than leave someone waiting for a nudge that can't arrive.
+  const [notificationsOff, setNotificationsOff] = useState(false)
+  useEffect(() => {
+    if (!reminderOn) {
+      setNotificationsOff(false)
+      return
+    }
+    const check = () => notificationsAllowed().then((ok) => setNotificationsOff(!ok))
+    check()
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') check()
+    })
+    return () => sub.remove()
+  }, [reminderOn])
 
   const saveName = () => {
     updateSettings({ name: nameDraft.trim() })
@@ -526,6 +545,19 @@ export default function YouScreen() {
                   onChange={(hour) => updateSettings({ reminderHour: hour })}
                   options={REMINDER_HOURS.map((h) => ({ value: h.hour, label: h.label }))}
                 />
+                {notificationsOff && (
+                  <Pressable
+                    onPress={() => Linking.openSettings()}
+                    hitSlop={8}
+                    className="mt-2.5"
+                    accessibilityRole="button"
+                  >
+                    <Text className="font-hk600 text-[12.5px]" style={{ color: palette.dangerText, lineHeight: 17 }}>
+                      Notifications are off for Hyperfocus, so these can&apos;t reach you. Tap to open
+                      Settings.
+                    </Text>
+                  </Pressable>
+                )}
               </Animated.View>
             )}
           </Card>
