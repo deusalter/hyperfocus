@@ -137,6 +137,29 @@ await scenario('capture, then sort with undo', seed({ tasks: [] }), async (page)
   assert(by['Buy stamps'] === 'today', 'undo did not restore Buy stamps')
 })
 
+await scenario('the last sort can be taken back, including the final card', seed({
+  tasks: [
+    { id: 'a', title: 'First card', bucket: 'inbox', createdAt: new Date().toISOString() },
+    { id: 'b', title: 'Second card', bucket: 'inbox', createdAt: new Date().toISOString() },
+  ],
+}), async (page) => {
+  await open(page, '/triage')
+  await see(page, 'First card')
+  await gone(page, 'Undo last', 500)
+  await tap(page, 'Later')
+  await see(page, 'Second card')
+  await tap(page, 'Undo last')
+  await see(page, 'First card')
+  assert((await stored(page, 'hf2-tasks')).find((t) => t.id === 'a').bucket === 'inbox', 'not back in the inbox')
+  await tap(page, 'Today')
+  await see(page, 'Second card')
+  await tap(page, 'Today')
+  await see(page, 'All sorted')
+  await tap(page, 'Undo last')
+  await see(page, 'Second card')
+  await gone(page, 'All sorted', 1000)
+})
+
 await scenario('the soft cap warns but never blocks', seed({
   tasks: [
     ...['a', 'b', 'c', 'd', 'e'].map((id) => ({ id, title: `Task ${id}`, cat: 'sprint', bucket: 'today', createdAt: new Date().toISOString() })),
@@ -598,6 +621,30 @@ await scenario('an unknown route goes home', seed(), async (page) => {
   await see(page, 'Start one thing')
 }, { allowErrors: true })
 
+await scenario('Later shows the nearest deadline first', seed({
+  tasks: [
+    { id: 'u', title: 'No date at all', cat: 'sprint', bucket: 'later', createdAt: new Date().toISOString() },
+    { id: 'f', title: 'Far away', cat: 'sprint', bucket: 'later', due: dayKey(daysFromNow(20)), createdAt: new Date().toISOString() },
+    { id: 'n', title: 'Coming soon', cat: 'sprint', bucket: 'later', due: dayKey(daysFromNow(2)), createdAt: new Date().toISOString() },
+  ],
+}), async (page) => {
+  await open(page)
+  await page.getByLabel(/^Later, /).click()
+  await see(page, 'Coming soon')
+  const y = async (t) => (await page.getByText(t).first().boundingBox()).y
+  assert((await y('Coming soon')) < (await y('Far away')), 'nearest deadline is not first')
+  assert((await y('Far away')) < (await y('No date at all')), 'undated should come last')
+})
+
+await scenario('the session banner gives a clock time for how long is left', seed({
+  focus: runningSession('t1', 'Draft intro for history essay', 'grind', { leftMs: 17 * 60 * 1000 }),
+}), async (page) => {
+  await open(page)
+  await see(page, 'until ')
+  const text = await page.getByText(/Session in progress/).first().textContent()
+  assert(/until \d{1,2}:\d{2} [AP]M/.test(text), `banner said: ${text}`)
+})
+
 // ---- layout at every size that ships ----
 
 await scenario('nothing overflows on the smallest phones', seed(), async (page) => {
@@ -619,6 +666,45 @@ await scenario('nothing overflows on the smallest phones', seed(), async (page) 
       assert(over.length === 0, `${w}x${h} ${path}: ${over.join('; ')}`)
     }
   }
+})
+
+await scenario('screens that do not scroll still fit on the smallest phones', seed({
+  focus: runningSession('t1', 'Draft intro for history essay', 'grind', { leftMs: 1500 }),
+}), async (page) => {
+  const clipped = () =>
+    page.evaluate(() => {
+      const vh = document.documentElement.clientHeight
+      const out = []
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+      let n
+      while ((n = walker.nextNode())) {
+        const text = n.textContent.trim()
+        if (!text) continue
+        const r = n.parentElement.getBoundingClientRect()
+        if (r.width && r.height && r.bottom > vh + 1 && getComputedStyle(n.parentElement).visibility !== 'hidden') {
+          out.push(`"${text.slice(0, 24)}" ends at ${Math.round(r.bottom)} of ${vh}`)
+        }
+      }
+      return out.slice(0, 3)
+    })
+  await page.setViewportSize({ width: 320, height: 568 })
+  await open(page, '/focus')
+  // the seeded clock runs out here, which leaves the recap asking its question
+  await see(page, 'Did you finish it?', 8000)
+  await page.waitForTimeout(500)
+  let over = await clipped()
+  assert(over.length === 0, `recap at 320x568: ${over.join('; ')}`)
+  await tap(page, 'Not yet')
+  await see(page, 'Start one thing')
+  await page.getByText('Start one thing').first().click()
+  await see(page, 'FOCUSING ON')
+  await page.waitForTimeout(300)
+  over = await clipped()
+  assert(over.length === 0, `focus at 320x568: ${over.join('; ')}`)
+  await open(page, '/triage')
+  await page.waitForTimeout(300)
+  over = await clipped()
+  assert(over.length === 0, `triage at 320x568: ${over.join('; ')}`)
 })
 
 await browser.close()

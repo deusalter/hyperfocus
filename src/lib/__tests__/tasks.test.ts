@@ -38,7 +38,28 @@ describe('splitBuckets', () => {
       TODAY
     )
     expect(today).toEqual([])
-    expect(later.map((t) => t.id)).toEqual(['soon', 'past'])
+    expect(later.map((t) => t.id)).toEqual(['past', 'soon'])
+  })
+
+  it('orders Later by date, so the nearest deadline among many imports is on top', () => {
+    const { later } = splitBuckets(
+      [
+        task({ id: 'undated-a', bucket: 'later' }),
+        task({ id: 'far', bucket: 'later', due: '2026-11-30' }),
+        task({ id: 'undated-b', bucket: 'later' }),
+        task({ id: 'near', bucket: 'later', due: '2026-11-09' }),
+      ],
+      TODAY
+    )
+    expect(later.map((t) => t.id)).toEqual(['near', 'far', 'undated-a', 'undated-b'])
+  })
+
+  it('leaves Today in the order things were added, so rows do not jump around', () => {
+    const { today } = splitBuckets(
+      [task({ id: 'b', due: '2026-11-20' }), task({ id: 'a', due: '2026-11-06' }), task({ id: 'c' })],
+      TODAY
+    )
+    expect(today.map((t) => t.id)).toEqual(['b', 'a', 'c'])
   })
 })
 

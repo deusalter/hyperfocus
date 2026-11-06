@@ -1,6 +1,19 @@
-import { REMINDER_DAYS, planReminders } from '../reminders'
+import { REMINDER_DAYS, REMINDER_HOURS, planReminders } from '../reminders'
 
 const at = (iso: string) => new Date(iso)
+
+describe('REMINDER_HOURS', () => {
+  it('says the actual time, because "morning" means nothing to a time-blind brain', () => {
+    for (const { label } of REMINDER_HOURS) expect(label).toMatch(/^\d{1,2} [AP]M$/)
+  })
+
+  it('labels each hour truthfully', () => {
+    for (const { hour, label } of REMINDER_HOURS) {
+      const h12 = hour % 12 === 0 ? 12 : hour % 12
+      expect(label).toBe(`${h12} ${hour < 12 ? 'AM' : 'PM'}`)
+    }
+  })
+})
 
 describe('planReminders', () => {
   it('schedules one nudge a day at the chosen hour', () => {

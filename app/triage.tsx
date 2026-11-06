@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react'
-import { View, Text } from 'react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { View, Text, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
@@ -34,7 +34,7 @@ function thresholdBuzz() {
 }
 
 export default function TriageScreen() {
-  const { inbox, today, triageAssign, level } = useApp()
+  const { inbox, today, triageAssign, updateTask, level } = useApp()
   const router = useRouter()
   const current = inbox[0]
   const next = inbox[1]
@@ -43,19 +43,30 @@ export default function TriageScreen() {
   const dx = useSharedValue(0)
   const crossed = useSharedValue(0)
 
+  // A swipe is quick and easy to get wrong, so the last one can be taken back.
+  // Inline rather than a toast: sorting a long list would otherwise flash one at
+  // you on every card. Letting go keeps its toast, since that one removes something.
+  const [lastSorted, setLastSorted] = useState<{ id: string; title: string } | null>(null)
+  const undoLast = () => {
+    if (lastSorted) updateTask(lastSorted.id, { bucket: 'inbox' })
+    setLastSorted(null)
+  }
+
   // Reset the card position *before* handing the decision to React. Doing it
   // after let the incoming card paint for a frame at the old offset — a
   // visible jump as the next task appeared already flung off-screen.
   const decide = useCallback(
-    (id: string, bucket: 'today' | 'later') => {
+    (id: string, title: string, bucket: 'today' | 'later') => {
       dx.value = 0
       crossed.value = 0
       triageAssign(id, bucket)
+      setLastSorted({ id, title })
     },
     [dx, crossed, triageAssign]
   )
 
   const currentId = current?.id
+  const currentTitle = current?.title ?? ''
   // rebuilt only when the card changes — a fresh Gesture object every render
   // makes GestureDetector re-register its handlers on each keystroke
   const pan = useMemo(
@@ -75,18 +86,18 @@ export default function TriageScreen() {
           if (!currentId) return
           if (dx.value > COMMIT_DX || e.velocityX > COMMIT_VELOCITY) {
             dx.value = withTiming(FLY_OUT, { duration: 160 }, () => {
-              runOnJS(decide)(currentId, 'today')
+              runOnJS(decide)(currentId, currentTitle, 'today')
             })
           } else if (dx.value < -COMMIT_DX || e.velocityX < -COMMIT_VELOCITY) {
             dx.value = withTiming(-FLY_OUT, { duration: 160 }, () => {
-              runOnJS(decide)(currentId, 'later')
+              runOnJS(decide)(currentId, currentTitle, 'later')
             })
           } else {
             // settle back without wobble
             dx.value = withSpring(0, { damping: 28, stiffness: 260 })
           }
         }),
-    [dx, crossed, currentId, decide]
+    [dx, crossed, currentId, currentTitle, decide]
   )
 
   // the card behind rises into place as the front card leaves
@@ -231,7 +242,7 @@ export default function TriageScreen() {
             <View className="flex-row" style={{ gap: 9 }}>
               <PressableScale
                 haptic
-                onPress={() => decide(current.id, 'later')}
+                onPress={() => decide(current.id, current.title, 'later')}
                 className="flex-1 items-center bg-surface border border-soft"
                 style={{ borderRadius: 14, paddingVertical: 14 }}
               >
@@ -239,7 +250,10 @@ export default function TriageScreen() {
               </PressableScale>
               <PressableScale
                 haptic
-                onPress={() => triageAssign(current.id, 'drop')}
+                onPress={() => {
+                  setLastSorted(null)
+                  triageAssign(current.id, 'drop')
+                }}
                 className="items-center"
                 style={{
                   borderRadius: 14,
@@ -254,12 +268,27 @@ export default function TriageScreen() {
               </PressableScale>
               <PressableScale
                 haptic
-                onPress={() => decide(current.id, 'today')}
+                onPress={() => decide(current.id, current.title, 'today')}
                 className="flex-1 items-center bg-accent"
                 style={{ borderRadius: 14, paddingVertical: 14 }}
               >
                 <Text className="font-hk700 text-white text-[13.5px]">Today</Text>
               </PressableScale>
+            </View>
+            <View style={{ minHeight: 20 }}>
+              {lastSorted && (
+                <Pressable
+                  onPress={undoLast}
+                  hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+                  className="self-center"
+                  accessibilityRole="button"
+                  accessibilityLabel={`Undo sorting ${lastSorted.title}`}
+                >
+                  <Text className="font-hk600 text-muted text-[13px]" numberOfLines={1}>
+                    Undo last
+                  </Text>
+                </Pressable>
+              )}
             </View>
           </View>
         ) : (
@@ -284,6 +313,17 @@ export default function TriageScreen() {
             >
               <Text className="font-hk700 text-white text-[14px]">Go to Today</Text>
             </PressableScale>
+            {lastSorted && (
+              <Pressable
+                onPress={undoLast}
+                hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+                className="mt-4"
+                accessibilityRole="button"
+                accessibilityLabel={`Undo sorting ${lastSorted.title}`}
+              >
+                <Text className="font-hk600 text-muted text-[13px]">Undo last</Text>
+              </Pressable>
+            )}
           </Animated.View>
         )}
       </View>

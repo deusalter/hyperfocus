@@ -194,7 +194,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/focus')}
               className="bg-accent-soft flex-row items-center mt-3.5"
               style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, gap: 11 }}
-              accessibilityLabel={`${focus.running ? 'Session in progress' : 'Session paused'} on ${focusTask?.title ?? focus.title ?? 'one thing'}. Resume.`}
+              accessibilityLabel={`${focus.running ? `Session in progress until ${format(focus.endsAt, 'h:mm a')}` : 'Session paused'} on ${focusTask?.title ?? focus.title ?? 'one thing'}. Resume.`}
             >
               <View
                 className="bg-accent items-center justify-center"
@@ -203,8 +203,12 @@ export default function HomeScreen() {
                 {focus.running ? <PlayIcon size={12} /> : <PauseIcon size={12} />}
               </View>
               <View className="flex-1" style={{ minWidth: 0 }}>
-                <Text className="font-hk800 text-ink text-[13.5px]">
-                  {focus.running ? 'Session in progress' : 'Session paused'}
+                {/* A clock time rather than a countdown: it answers "how long have I
+                    got" without re-rendering the whole screen every second. */}
+                <Text className="font-hk800 text-ink text-[13.5px]" numberOfLines={1}>
+                  {focus.running
+                    ? `Session in progress · until ${format(focus.endsAt, 'h:mm a')}`
+                    : 'Session paused'}
                 </Text>
                 <Text className="font-hk400 text-muted text-[12px] mt-0.5" numberOfLines={1}>
                   {focusTask?.title ?? focus.title ?? 'One thing'}

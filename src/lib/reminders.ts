@@ -11,10 +11,12 @@
 
 export const REMINDER_DAYS = 7
 
+/** Stated as times. "Morning" leaves you guessing when to expect it. */
 export const REMINDER_HOURS = [
-  { hour: 9, label: 'Morning' },
-  { hour: 13, label: 'Midday' },
-  { hour: 18, label: 'Evening' },
+  { hour: 9, label: '9 AM' },
+  { hour: 13, label: '1 PM' },
+  { hour: 18, label: '6 PM' },
+  { hour: 20, label: '8 PM' },
 ] as const
 
 const MESSAGES: { title: string; body: string }[] = [

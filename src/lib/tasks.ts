@@ -32,6 +32,10 @@ export function splitBuckets(tasks: Task[], today: string): Buckets {
     else if (isOnToday(t, today)) out.today.push(t)
     else out.later.push(t)
   }
+  // Later can hold a whole semester of imports, so the nearest deadline goes on top.
+  // Today stays in the order things were added: rows that jump around when you edit
+  // a date cost the spatial memory people rely on to find things.
+  out.later.sort((a, b) => (a.due ?? '9999').localeCompare(b.due ?? '9999'))
   return out
 }
 
