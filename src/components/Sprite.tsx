@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { View, ViewStyle } from 'react-native'
+import { useEffect, useState } from 'react'
+import { Platform, View, ViewStyle } from 'react-native'
 import Animated, {
   cancelAnimation,
   Easing,
@@ -39,6 +39,13 @@ const BODY_W = 74
 const BODY_H = 98
 
 const ease = Easing.inOut(Easing.ease)
+
+/**
+ * A cheer or a wave is something it says, not a state it's in, so it finishes and
+ * holds the pose. Left looping they ran for as long as the screen stayed open,
+ * which breaks "nothing loops" and sits over the 5s limit in WCAG 2.2.2.
+ */
+const GESTURE_MS = 4000
 
 /** ping-pong a shared value between two angles forever */
 function swing(v: SharedValue<number>, from: number, to: number, duration: number) {
@@ -192,7 +199,16 @@ export default function Sprite({
 }: SpriteProps) {
   const reducedMotion = useReducedMotion()
   const effectivePose: SpritePose = ghost ? 'idle' : pose
-  const animate = !ghost && !reducedMotion && !calm
+
+  const [spent, setSpent] = useState(false)
+  useEffect(() => {
+    setSpent(false)
+    if (effectivePose !== 'cheer' && effectivePose !== 'wave') return
+    const timer = setTimeout(() => setSpent(true), GESTURE_MS)
+    return () => clearTimeout(timer)
+  }, [effectivePose])
+
+  const animate = !ghost && !reducedMotion && !calm && !spent
 
   const bob = useSharedValue(0) // translateY of the whole body
   const breathe = useSharedValue(1) // scale of the whole body
@@ -206,8 +222,9 @@ export default function Sprite({
   useEffect(() => {
     const all = [bob, breathe, legF, legB, armF, armB, band, band2]
     all.forEach(cancelAnimation)
-    breathe.value = 1
-    bob.value = 0
+    // eased rather than snapped, so a gesture finishing doesn't visibly jump
+    settle(breathe, 1)
+    settle(bob, 0)
 
     if (effectivePose === 'run') {
       settle(band2, 16)
@@ -229,8 +246,11 @@ export default function Sprite({
     } else if (effectivePose === 'cheer') {
       settle(legF, -13)
       settle(legB, 13)
-      settle(armF, 150)
-      settle(armB, -150)
+      // A positive angle swings a limb up and to the left, so the right-hand arm
+      // reaches outward at a negative one. Crossed the other way they pass behind
+      // the head, which is drawn after them, and the arms disappear.
+      settle(armF, -150)
+      settle(armB, 150)
       settle(band, 16)
       settle(band2, 16)
       if (animate) swing(bob, 0, -7, 600)
@@ -241,10 +261,10 @@ export default function Sprite({
       settle(band, 16)
       settle(band2, 16)
       if (animate) {
-        swing(armF, 150, 124, 1100)
+        swing(armF, -150, -124, 1100)
         swing(breathe, 1, 1.04, 3000)
       } else {
-        settle(armF, 137)
+        settle(armF, -137)
       }
     } else {
       // idle — also the ghost's resting pose
@@ -253,12 +273,9 @@ export default function Sprite({
       settle(armB, 11)
       settle(band, 16)
       settle(band2, 16)
-      if (animate) {
-        swing(armF, -10, -15, 3200)
-        swing(breathe, 1, 1.04, 3000)
-      } else {
-        settle(armF, -11)
-      }
+      settle(armF, -11)
+      // the one thing allowed to idle: see the doctrine in lib/motion.ts
+      if (animate) swing(breathe, 1, 1.04, 3000)
     }
     return () => all.forEach(cancelAnimation)
   }, [effectivePose, animate, bob, breathe, legF, legB, armF, armB, band, band2])
@@ -273,7 +290,12 @@ export default function Sprite({
   const openMouth = effectivePose === 'cheer'
 
   return (
-    <View style={{ width: W * scale, height: H * scale }}>
+    <View
+      style={{ width: W * scale, height: H * scale }}
+      // a character, not content: everything it conveys is said in words nearby
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       <View
         style={{
           position: 'absolute',
@@ -298,10 +320,16 @@ export default function Sprite({
             height: BODY_H,
             // feet stay planted while the body grows with level
             transform: [{ translateY: ((1 - bodyScale) * BODY_H) / 2 }, { scale: bodyScale }],
-            shadowColor: ghost ? 'transparent' : palette.accent,
-            shadowOpacity: ghost ? 0 : 0.55,
-            shadowRadius: glow,
-            shadowOffset: { width: 0, height: 4 },
+            // iOS casts this from the shape of what's drawn, which is the glow.
+            // Web would cast it from the bounding box, a visible rectangle.
+            ...(Platform.OS === 'ios' && !ghost
+              ? {
+                  shadowColor: palette.accent,
+                  shadowOpacity: 0.55,
+                  shadowRadius: glow,
+                  shadowOffset: { width: 0, height: 4 },
+                }
+              : null),
           }}
         >
           <Animated.View style={[{ position: 'absolute', width: BODY_W, height: BODY_H }, bodyMotion]}>

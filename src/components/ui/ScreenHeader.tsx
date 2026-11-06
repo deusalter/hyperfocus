@@ -1,18 +1,25 @@
 import { View, Text, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { ReactNode } from 'react'
+import { ChevronLeft, CloseIcon } from '@/components/ui/Icon'
 
-/** Modal-flow header: back chevron + title + optional right slot + subtitle. */
+/**
+ * Flow header: back or close control + title + optional right slot + subtitle.
+ * Sheets get a close mark and pushed screens a chevron, which is how iOS tells
+ * you which way you'll travel when you tap it.
+ */
 export default function ScreenHeader({
   title,
   subtitle,
   right,
   onBack,
+  variant = 'close',
 }: {
   title: string
   subtitle?: string
   right?: ReactNode
   onBack?: () => void
+  variant?: 'back' | 'close'
 }) {
   const router = useRouter()
   return (
@@ -20,23 +27,26 @@ export default function ScreenHeader({
       <View className="flex-row items-center" style={{ gap: 10 }}>
         <Pressable
           onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))}
-          // the chevron glyph is only ~16pt wide — wider horizontal slop
-          // carries the tap target to 44pt without moving the title
-          hitSlop={{ top: 10, bottom: 10, left: 16, right: 16 }}
+          // the glyph is ~24pt, so slop carries the target to 44pt without
+          // moving the title
+          hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={variant === 'close' ? 'Close' : 'Back'}
+          style={{ marginLeft: -3 }}
         >
-          <Text className="text-muted" style={{ fontSize: 26, lineHeight: 28, marginTop: -2 }}>
-            ‹
-          </Text>
+          {variant === 'close' ? <CloseIcon size={24} /> : <ChevronLeft size={24} />}
         </Pressable>
-        <Text className="font-hk800 text-ink text-[22px]" style={{ letterSpacing: -0.4 }}>
+        <Text
+          className="font-hk800 text-ink text-[22px]"
+          style={{ letterSpacing: -0.4 }}
+          accessibilityRole="header"
+        >
           {title}
         </Text>
         {right && <View className="ml-auto">{right}</View>}
       </View>
       {subtitle && (
-        <Text className="font-hk400 text-muted text-[12.5px] mt-1" style={{ lineHeight: 18 }}>
+        <Text className="font-hk400 text-muted text-[13px] mt-1.5" style={{ lineHeight: 18 }}>
           {subtitle}
         </Text>
       )}

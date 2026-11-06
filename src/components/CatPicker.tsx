@@ -4,6 +4,7 @@ import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
 import * as Haptics from 'expo-haptics'
 import { Cat, CAT_ORDER, CATS, hexA } from '@/lib/theme'
 import { CatIcon } from '@/components/CatTag'
+import { ChevronDown } from '@/components/ui/Icon'
 
 const COLLAPSE_AFTER_MS = 260
 
@@ -114,7 +115,7 @@ export default function CatPicker({
         </Text>
         {/* a caret carries "this opens" without a sentence repeated on every
             row — instructional text that never goes away is just clutter */}
-        <Text style={{ color: meta.textColor, fontSize: 9, opacity: 0.7, marginLeft: -1 }}>▾</Text>
+        <ChevronDown size={10} color={meta.textColor} strokeWidth={3} />
       </Animated.View>
     </Pressable>
   )

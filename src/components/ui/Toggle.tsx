@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import Animated, {
+  interpolate,
   interpolateColor,
   useAnimatedStyle,
   useSharedValue,
@@ -8,25 +9,26 @@ import Animated, {
 import { palette } from '@/lib/theme'
 import { SNAP } from '@/lib/motion'
 
-/** The design's 46×27 pill toggle with a springy knob. Wrap in a Pressable row. */
+/**
+ * The 46×27 pill switch. Purely visual: wrap it in a Pressable row, and put the
+ * switch role and state there so the row's whole label reads as one control.
+ */
 export default function Toggle({ on }: { on: boolean }) {
   const t = useSharedValue(on ? 1 : 0)
   useEffect(() => {
-    t.value = withTiming(on ? 1 : 0, { duration: 180 })
+    t.value = withTiming(on ? 1 : 0, SNAP)
   }, [on, t])
 
   const track = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(t.value, [0, 1], [palette.soft, palette.accent]),
   }))
   const knob = useAnimatedStyle(() => ({
-    transform: [{ translateX: withTiming(on ? 19 : 0, SNAP) }],
+    transform: [{ translateX: interpolate(t.value, [0, 1], [0, 19]) }],
   }))
 
   return (
     <Animated.View
       style={[{ width: 46, height: 27, borderRadius: 14, justifyContent: 'center' }, track]}
-      accessibilityRole="switch"
-      accessibilityState={{ checked: on }}
     >
       <Animated.View
         style={[

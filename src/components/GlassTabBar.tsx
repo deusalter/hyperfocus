@@ -94,7 +94,9 @@ function BarContent({
         accessibilityLabel={LABELS[routeName]}
       >
         <TabGlyph name={routeName} color={color} />
-        <Text className="font-hk700 text-[9.5px]" style={{ color }}>
+        {/* the bar is a fixed height, so this caps rather than wraps; the tabs
+            still read to a screen reader through their labels */}
+        <Text className="font-hk700 text-[10px]" style={{ color }} maxFontSizeMultiplier={1.15}>
           {LABELS[routeName]}
         </Text>
       </Pressable>

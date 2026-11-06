@@ -10,7 +10,8 @@ import { Easing } from 'react-native-reanimated'
  *    user on every cycle. Ambient motion parallel to content that runs past
  *    5s is also a WCAG 2.2.2 Level A failure. Celebration is a burst that
  *    ends; only the sprite's slow breathe is allowed to idle, and only
- *    because it *is* the character rather than chrome around it.
+ *    because it *is* the character rather than chrome around it. A cheer or
+ *    wave finishes and holds its pose (see GESTURE_MS in Sprite).
  * 2. **Overshoot is an attention budget.** Visible bounce draws the eye to
  *    the motion itself, so it's spent only on earned moments (a level-up),
  *    never on routine reflow where it reads as toy-like.

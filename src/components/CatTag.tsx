@@ -28,6 +28,8 @@ export default function CatTag({
   return (
     <View
       className="flex-row items-center rounded-[9px]"
+      accessible
+      accessibilityLabel={meta.label}
       style={{
         backgroundColor: hexA(meta.color, 0.13),
         paddingHorizontal: showLabel ? 9 : 7,
