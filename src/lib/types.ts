@@ -2,6 +2,8 @@ import { Cat } from './theme'
 
 export type Bucket = 'inbox' | 'today' | 'later'
 
+export type SoundKind = 'off' | 'brown' | 'pink' | 'waves'
+
 export interface Task {
   id: string
   title: string
@@ -15,6 +17,8 @@ export interface Task {
   /** external sync source, e.g. 'canvas' */
   source?: string
   course?: string
+  /** the feed's own id, so a re-sync updates this task instead of duplicating it */
+  externalId?: string
   createdAt: string
 }
 
