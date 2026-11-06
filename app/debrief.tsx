@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
-import { View, Text, ScrollView } from 'react-native'
+import { View, Text, ScrollView, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated'
+import { useRouter } from 'expo-router'
 import { format } from 'date-fns'
 import CatTag from '@/components/CatTag'
+import UndoToast from '@/components/UndoToast'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
@@ -15,7 +17,11 @@ function SectionHeading({ color, label, count }: { color: string; label: string;
   return (
     <View className="flex-row items-center" style={{ gap: 7, marginTop: 20, marginBottom: 10, marginHorizontal: 2 }}>
       <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
-      <Text className="font-hk800 text-ink text-[12px]" style={{ letterSpacing: 0.3 }}>
+      <Text
+        className="font-hk800 text-ink text-[12px]"
+        style={{ letterSpacing: 0.3 }}
+        accessibilityRole="header"
+      >
         {label}
       </Text>
       {count != null && <Text className="font-hk600 text-muted text-[12px]">{count}</Text>}
@@ -29,14 +35,27 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
       className="flex-1 bg-background"
       style={{ borderRadius: 13, paddingHorizontal: 11, paddingVertical: 9 }}
     >
-      <Text className="font-hk600 text-muted text-[10px]" style={{ letterSpacing: 0.3 }}>
+      <Text
+        className="font-hk600 text-muted text-[11px]"
+        style={{ letterSpacing: 0.3 }}
+        numberOfLines={1}
+        maxFontSizeMultiplier={1.2}
+      >
         {label}
       </Text>
       <View className="flex-row items-baseline" style={{ gap: 2 }}>
-        <Text className="font-mono text-ink text-[19px]" style={{ letterSpacing: -0.4 }}>
+        <Text
+          className="font-mono text-ink text-[19px]"
+          style={{ letterSpacing: -0.4 }}
+          maxFontSizeMultiplier={1.3}
+        >
           {value}
         </Text>
-        {sub && <Text className="font-hk400 text-muted text-[10px]">{sub}</Text>}
+        {sub && (
+          <Text className="font-hk400 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
+            {sub}
+          </Text>
+        )}
       </View>
     </View>
   )
@@ -50,7 +69,9 @@ function dueLabel(due: string, todayISO: string): string {
 }
 
 export default function DebriefScreen() {
-  const { tasks, week, showedUp, todayKey: todayISO, promoteToToday, setDue, removeTask } = useApp()
+  const { tasks, week, showedUp, todayKey: todayISO, updateTask, letGo, settings } = useApp()
+  const router = useRouter()
+  const openTask = (id: string) => router.push({ pathname: '/task/[id]', params: { id } })
 
   const { overdue, todayItems, upcoming, fresh, stale } = useMemo(() => {
     const active = tasks.filter((t) => t.bucket !== 'inbox')
@@ -72,10 +93,7 @@ export default function DebriefScreen() {
     }
   }, [tasks, todayISO])
 
-  const doToday = (task: Task) => {
-    promoteToToday(task.id)
-    setDue(task.id, todayISO)
-  }
+  const doToday = (task: Task) => updateTask(task.id, { bucket: 'today', due: todayISO })
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
@@ -110,12 +128,12 @@ export default function DebriefScreen() {
           <View className="flex-row mt-3.5" style={{ gap: 10 }}>
             <Stat label="POINTS" value={`${week.points}`} />
             <Stat label="FOCUSED" value={`${Math.round(week.minutes / 6) / 10}h`} />
-            <Stat label="SHOWED UP" value={`${showedUp}`} sub="/28d" />
+            {!settings.gentle && <Stat label="SHOWED UP" value={`${showedUp}`} sub="/28d" />}
           </View>
           {week.bestLabel && (
             <Text className="font-hk400 text-muted text-[12px] mt-3" style={{ lineHeight: 17 }}>
-              {week.bestLabel} was your strongest at {week.bestPoints} pts. That&apos;s the
-              week closed — what&apos;s below is just the next set of choices.
+              {week.bestLabel} was your strongest at {week.bestPoints} pts. What&apos;s below is
+              just the next set of choices.
             </Text>
           )}
         </Animated.View>
@@ -141,8 +159,8 @@ export default function DebriefScreen() {
                       <Text className="font-hk600 text-ink text-[14px]" style={{ lineHeight: 18 }}>
                         {item.title}
                       </Text>
-                      <View className="flex-row items-center mt-1" style={{ gap: 8 }}>
-                        <Text className="font-hk700 text-[11.5px]" style={{ color: palette.dangerText }}>
+                      <View className="flex-row flex-wrap items-center mt-1" style={{ gap: 8 }}>
+                        <Text className="font-hk700 text-[12px]" style={{ color: palette.dangerText }}>
                           {dueLabel(item.due!, todayISO)}
                         </Text>
                         {item.course && (
@@ -161,15 +179,16 @@ export default function DebriefScreen() {
                       <Text className="font-hk700 text-white text-[13px]">Do today</Text>
                     </PressableScale>
                     <PressableScale
-                      onPress={() => removeTask(item.id)}
+                      onPress={() => letGo(item.id)}
                       className="items-center"
+                      accessibilityLabel={`Let go of ${item.title}`}
                       style={{
                         borderRadius: 11,
                         paddingVertical: 10,
                         paddingHorizontal: 16,
                         borderWidth: 1,
                         borderStyle: 'dashed',
-                        borderColor: palette.soft,
+                        borderColor: palette.muted,
                       }}
                     >
                       <Text className="font-hk600 text-muted text-[13px]">Let go</Text>
@@ -186,14 +205,17 @@ export default function DebriefScreen() {
             <SectionHeading color={palette.accent} label="TODAY" />
             <View style={{ gap: 8 }}>
               {todayItems.map((item) => (
-                <View
+                <Pressable
                   key={item.id}
+                  onPress={() => openTask(item.id)}
                   className="bg-surface border border-soft flex-row items-center"
                   style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12, gap: 11 }}
+                  accessibilityRole="button"
+                  accessibilityHint="Opens the task to edit it"
                 >
                   <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
                   <Text className="flex-1 font-hk500 text-ink text-[14px]">{item.title}</Text>
-                </View>
+                </Pressable>
               ))}
             </View>
           </>
@@ -204,10 +226,13 @@ export default function DebriefScreen() {
             <SectionHeading color={palette.muted} label="COMING UP" />
             <View style={{ gap: 8 }}>
               {upcoming.map((item) => (
-                <View
+                <Pressable
                   key={item.id}
+                  onPress={() => openTask(item.id)}
                   className="bg-surface border border-soft flex-row items-center"
                   style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12, gap: 11 }}
+                  accessibilityRole="button"
+                  accessibilityHint="Opens the task to edit it"
                 >
                   <Text
                     className="font-hk800 text-muted text-center text-[11px]"
@@ -224,7 +249,7 @@ export default function DebriefScreen() {
                       <Text className="font-hk400 text-muted text-[11px] mt-0.5">{item.course}</Text>
                     )}
                   </View>
-                </View>
+                </Pressable>
               ))}
             </View>
           </>
@@ -240,13 +265,22 @@ export default function DebriefScreen() {
                   className="bg-surface border border-soft flex-row items-center"
                   style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 11, gap: 11 }}
                 >
-                  <Text className="flex-1 font-hk500 text-ink text-[14px]">{item.title}</Text>
+                  <Pressable
+                    onPress={() => openTask(item.id)}
+                    className="flex-1"
+                    accessibilityRole="button"
+                    accessibilityHint="Opens the task to edit it"
+                  >
+                    <Text className="font-hk500 text-ink text-[14px]">{item.title}</Text>
+                  </Pressable>
                   <PressableScale
                     onPress={() => doToday(item)}
                     className="bg-accent-soft rounded-full"
-                    style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+                    style={{ paddingHorizontal: 11, paddingVertical: 6 }}
+                    hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
+                    accessibilityLabel={`Move ${item.title} to Today`}
                   >
-                    <Text className="font-hk700 text-accent text-[11px]">+ Today</Text>
+                    <Text className="font-hk700 text-accent text-[12px]">+ Today</Text>
                   </PressableScale>
                 </View>
               ))}
@@ -261,8 +295,8 @@ export default function DebriefScreen() {
               className="font-hk400 text-muted text-[12.5px]"
               style={{ marginHorizontal: 2, marginTop: -4, marginBottom: 10, lineHeight: 18 }}
             >
-              These have been sitting {STALE_DAYS}+ days. Letting one go is a decision, not
-              a failure — the list is meant to get shorter.
+              These have been sitting {STALE_DAYS}+ days. Letting one go is a decision, and the
+              list is meant to get shorter.
             </Text>
             <View style={{ gap: 8 }}>
               {stale.map((item) => (
@@ -272,7 +306,7 @@ export default function DebriefScreen() {
                   exiting={FadeOut.duration(140)}
                   layout={LinearTransition.duration(180)}
                   className="bg-surface border border-soft"
-                  style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12, opacity: 0.75 }}
+                  style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12 }}
                 >
                   <View className="flex-row items-baseline" style={{ gap: 8 }}>
                     <Text className="flex-1 font-hk500 text-ink text-[14px]" style={{ lineHeight: 18 }}>
@@ -284,14 +318,15 @@ export default function DebriefScreen() {
                   </View>
                   <View className="flex-row mt-2.5" style={{ gap: 8 }}>
                     <PressableScale
-                      onPress={() => removeTask(item.id)}
+                      onPress={() => letGo(item.id)}
                       className="flex-1 items-center"
+                      accessibilityLabel={`Let go of ${item.title}`}
                       style={{
                         borderRadius: 11,
                         paddingVertical: 9,
                         borderWidth: 1,
                         borderStyle: 'dashed',
-                        borderColor: palette.soft,
+                        borderColor: palette.muted,
                       }}
                     >
                       <Text className="font-hk700 text-muted text-[12.5px]">Let it go</Text>
@@ -311,12 +346,13 @@ export default function DebriefScreen() {
         )}
 
         <Text
-          className="font-hk400 text-muted text-center text-[12.5px]"
+          className="font-hk400 text-muted text-center text-[13px]"
           style={{ marginTop: 24, lineHeight: 19 }}
         >
-          That&apos;s the week closed. You don&apos;t have to do it all — just the next thing.
+          That&apos;s the week closed. You only have to do the next thing.
         </Text>
       </ScrollView>
+      <UndoToast />
     </SafeAreaView>
   )
 }

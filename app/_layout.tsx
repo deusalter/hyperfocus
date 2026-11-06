@@ -26,6 +26,11 @@ SplashScreen.preventAutoHideAsync().catch(() => {})
 
 /** Friendly crash screen — shown by expo-router if anything below throws. */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  // a crash before the first paint would otherwise sit behind the splash forever
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {})
+  }, [])
+
   return (
     <View
       style={{
@@ -36,32 +41,32 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
         padding: 32,
       }}
     >
-      <Text style={{ fontSize: 40 }}>🫧</Text>
       <Text
         style={{
           color: palette.ink,
           fontSize: 20,
           fontWeight: '800',
-          marginTop: 12,
           textAlign: 'center',
         }}
+        accessibilityRole="header"
       >
         Something hiccuped
       </Text>
       <Text
         style={{
           color: palette.muted,
-          fontSize: 13,
+          fontSize: 14,
           marginTop: 8,
           textAlign: 'center',
-          lineHeight: 19,
+          lineHeight: 20,
         }}
       >
-        Your tasks and points are safe on this device.{'\n'}
-        {error.message}
+        Your tasks and points are safe on this phone.
+        {__DEV__ ? `\n\n${error.message}` : ''}
       </Text>
       <Pressable
         onPress={retry}
+        accessibilityRole="button"
         style={{
           marginTop: 20,
           backgroundColor: palette.accent,
@@ -70,24 +75,42 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
           paddingHorizontal: 28,
         }}
       >
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Try again</Text>
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Try again</Text>
       </Pressable>
     </View>
   )
 }
 
-function OnboardingGate() {
-  const { hydrated, settings } = useApp()
+/** Decides what's on screen before the first real paint, and when to reveal it. */
+function AppGate() {
+  const { hydrated, settings, recapPending } = useApp()
   const segments = useSegments()
   const router = useRouter()
+  const top = segments[0]
 
   useEffect(() => {
     if (!hydrated) return
-    const onOnboarding = segments[0] === 'onboarding'
-    if (!settings.onboarded && !onOnboarding) {
-      router.replace('/onboarding')
-    }
-  }, [hydrated, settings.onboarded, segments, router])
+    if (!settings.onboarded && top !== 'onboarding') router.replace('/onboarding')
+  }, [hydrated, settings.onboarded, top, router])
+
+  // The splash holds until saved data is in, so launch goes straight from the
+  // mark to the right screen with its real numbers. One frame later than the
+  // redirect above, so a first run never glimpses Home on the way to onboarding.
+  useEffect(() => {
+    if (!hydrated) return
+    const frame = requestAnimationFrame(() => {
+      SplashScreen.hideAsync().catch(() => {})
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [hydrated])
+
+  // A session that ended somewhere other than the focus screen still gets its
+  // recap, but only from the tabs. Landing it on top of a half-finished brain dump
+  // would interrupt the one thing this app promises not to, so it waits until
+  // that sheet closes.
+  useEffect(() => {
+    if (recapPending && top === '(tabs)') router.push('/recap')
+  }, [recapPending, top, router])
 
   // cover the UI until storage has hydrated — prevents a one-frame flash of
   // the home screen before a first-run redirect to onboarding
@@ -125,10 +148,6 @@ export default function RootLayout() {
   const ready = fontsLoaded || !!fontError
 
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync().catch(() => {})
-  }, [ready])
-
-  useEffect(() => {
     if (fontError) console.warn('font load failed, falling back to system:', fontError)
   }, [fontError])
 
@@ -150,11 +169,13 @@ export default function RootLayout() {
             <Stack.Screen name="dump" options={{ presentation: 'modal' }} />
             <Stack.Screen name="triage" options={{ presentation: 'modal' }} />
             <Stack.Screen name="debrief" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="task/[id]" options={{ presentation: 'modal' }} />
             <Stack.Screen name="focus" options={{ gestureEnabled: false, animation: 'fade' }} />
             <Stack.Screen name="recap" options={{ gestureEnabled: false, animation: 'fade' }} />
+            <Stack.Screen name="+not-found" options={{ animation: 'none' }} />
           </Stack>
           {/* after the Stack so the hydration cover paints on top */}
-          <OnboardingGate />
+          <AppGate />
         </AppProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

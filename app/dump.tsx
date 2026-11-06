@@ -3,10 +3,11 @@ import { View, Text, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Pla
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
-import Svg, { Path } from 'react-native-svg'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
+import { ArrowRight, CloseIcon, PlusIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
+import { MAX_TITLE } from '@/lib/tasks'
 import { palette } from '@/lib/theme'
 
 export default function DumpScreen() {
@@ -32,7 +33,7 @@ export default function DumpScreen() {
         <View className="flex-1" style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 }}>
           <ScreenHeader
             title="Brain dump"
-            subtitle="Empty your head. Don't organize — type, hit return, repeat. You'll sort it after."
+            subtitle="Empty your head. No organizing yet: type, hit return, repeat. You'll sort it after."
           />
 
           <View
@@ -44,11 +45,13 @@ export default function DumpScreen() {
               value={draft}
               onChangeText={setDraft}
               onSubmitEditing={submit}
-              blurOnSubmit={false}
+              submitBehavior="submit"
               autoFocus
+              maxLength={MAX_TITLE}
               placeholder="What's on your mind?"
               placeholderTextColor={palette.muted}
-              returnKeyType="done"
+              returnKeyType="next"
+              accessibilityLabel="What's on your mind?"
               className="flex-1 font-hk400 text-ink text-[15px]"
               style={{ paddingVertical: 10, paddingHorizontal: 4 }}
             />
@@ -59,9 +62,7 @@ export default function DumpScreen() {
               style={{ width: 38, height: 38, borderRadius: 12 }}
               accessibilityLabel="Add"
             >
-              <Svg width={16} height={16} viewBox="0 0 24 24">
-                <Path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" />
-              </Svg>
+              <PlusIcon />
             </PressableScale>
           </View>
 
@@ -87,8 +88,13 @@ export default function DumpScreen() {
                 <Text className="flex-1 font-hk500 text-ink text-[14px]" style={{ lineHeight: 18 }}>
                   {item.title}
                 </Text>
-                <Pressable onPress={() => removeTask(item.id)} hitSlop={12} accessibilityLabel="Remove">
-                  <Text className="text-muted" style={{ fontSize: 19, lineHeight: 20 }}>×</Text>
+                <Pressable
+                  onPress={() => removeTask(item.id)}
+                  hitSlop={14}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${item.title}`}
+                >
+                  <CloseIcon size={16} />
                 </Pressable>
               </Animated.View>
             ))}
@@ -105,12 +111,13 @@ export default function DumpScreen() {
             <PressableScale
               haptic
               onPress={() => router.replace('/triage')}
-              className="bg-accent items-center mt-3"
-              style={{ borderRadius: 16, paddingVertical: 15 }}
+              className="bg-accent flex-row items-center justify-center mt-3"
+              style={{ borderRadius: 16, paddingVertical: 15, gap: 7 }}
             >
               <Text className="font-hk700 text-white text-[15px]">
-                Sort these {inbox.length} →
+                Sort {inbox.length === 1 ? 'this' : `these ${inbox.length}`}
               </Text>
+              <ArrowRight size={15} />
             </PressableScale>
           )}
         </View>

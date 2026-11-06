@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react'
-import { AppState, View, Text, TextInput, Pressable } from 'react-native'
+import {
+  Alert,
+  AppState,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  useWindowDimensions,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useKeepAwake } from 'expo-keep-awake'
 import Svg, { Circle } from 'react-native-svg'
@@ -13,37 +21,82 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
+import * as Haptics from 'expo-haptics'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
+import { SoundIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { CATS, palette } from '@/lib/theme'
 import { formatClock, scoreCompletion } from '@/lib/points'
+import { remainingSec } from '@/lib/session'
+import { SOUNDS, SOUND_ORDER } from '@/lib/sound'
+import { GLIDE } from '@/lib/motion'
 
 const R = 94
 const CIRCUMFERENCE = 2 * Math.PI * R
+const RING_MAX = 212
+const STEP_MIN = 5
+/** room for a side button and its gap on each side of the ring, plus screen padding */
+const RING_CHROME = 144
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
+
+function AdjustButton({
+  label,
+  a11y,
+  disabled,
+  onPress,
+}: {
+  label: string
+  a11y: string
+  disabled: boolean
+  onPress: () => void
+}) {
+  return (
+    <Pressable
+      onPress={() => {
+        Haptics.selectionAsync().catch(() => {})
+        onPress()
+      }}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      accessibilityState={{ disabled }}
+      className="bg-surface border border-soft items-center justify-center"
+      style={{ width: 44, height: 44, borderRadius: 22, opacity: disabled ? 0.4 : 1 }}
+    >
+      <Text className="font-hk700 text-ink text-[13px]" maxFontSizeMultiplier={1.2}>
+        {label}
+      </Text>
+    </Pressable>
+  )
+}
 
 export default function FocusScreen() {
   useKeepAwake() // a focus session shouldn't die to auto-lock
   const router = useRouter()
+  const { width } = useWindowDimensions()
   const {
     hydrated,
     focus,
     focusTask,
     lastRecap,
+    settings,
     toggleFocusRun,
+    adjustFocus,
     finishFocus,
     abandonFocus,
-    setFirstStep,
+    updateTask,
+    updateSettings,
   } = useApp()
   const [stepDraft, setStepDraft] = useState('')
   const [showStepInput, setShowStepInput] = useState(false)
 
-  // This screen owns the clock — the rest of the app never re-renders per tick.
-  // The tick is aimed at the next whole-second boundary rather than polling on
-  // a fixed interval, so the digits change exactly when they should (a 500ms
-  // poll drifts and visibly skips a second) at half the renders.
+  // This screen owns the display clock — the rest of the app never re-renders per
+  // tick. Ending the session is the store's job, so it happens wherever you are.
+  // The tick is aimed at the next whole-second boundary rather than polling on a
+  // fixed interval, so the digits change exactly when they should (a 500ms poll
+  // drifts and visibly skips a second) at half the renders.
   const [now, setNow] = useState(() => Date.now())
   const endsAt = focus?.endsAt
   const running = focus?.running
@@ -69,16 +122,7 @@ export default function FocusScreen() {
     }
   }, [running, endsAt])
 
-  const focusRemaining = !focus
-    ? 0
-    : focus.running
-      ? Math.max(0, Math.round((focus.endsAt - now) / 1000))
-      : focus.pausedRemaining
-
-  // wall clock hit zero → complete the session
-  useEffect(() => {
-    if (focus?.running && focusRemaining === 0) finishFocus()
-  }, [focus?.running, focusRemaining, finishFocus])
+  const focusRemaining = focus ? remainingSec(focus, now) : 0
 
   const reduced = useReducedMotion()
   const progress = useSharedValue(0)
@@ -112,149 +156,258 @@ export default function FocusScreen() {
     strokeDashoffset: CIRCUMFERENCE * (1 - progress.value),
   }))
 
-  // ring breathes down when paused
-  const ringDim = useAnimatedStyle(() => ({
-    opacity: withTiming(focus?.running ? 1 : 0.45, { duration: 300 }),
-  }))
+  // the ring dims when paused, so the state reads from across a desk
+  const dim = useSharedValue(1)
+  useEffect(() => {
+    dim.value = withTiming(running === false ? 0.45 : 1, GLIDE)
+  }, [running, dim])
+  const ringDim = useAnimatedStyle(() => ({ opacity: dim.value }))
 
-  // Session ended (timer hit zero or finished elsewhere) → recap.
-  // Gated on `hydrated`: storage loads async, so an un-gated check treats the
-  // startup window as "no session" and evicts you before a restored one lands.
+  // Session ended (clock ran out or finished elsewhere) → recap. No recap means it
+  // was stopped, so just go back to wherever this was opened from. Gated on
+  // `hydrated`: storage loads async, so an un-gated check treats the startup window
+  // as "no session" and evicts you before a restored one lands.
   useEffect(() => {
     if (!hydrated || focus) return
-    router.replace(lastRecap ? '/recap' : '/')
+    if (lastRecap) router.replace('/recap')
+    else if (router.canGoBack()) router.back()
+    else router.replace('/')
   }, [hydrated, focus, lastRecap, router])
 
   if (!focus) return <View className="flex-1 bg-background" />
 
-  const cat = focusTask?.cat ?? 'sprint'
+  const cat = focusTask?.cat ?? focus.cat ?? 'sprint'
   const meta = CATS[cat]
+  const title = focusTask?.title ?? focus.title ?? 'One thing'
   const elapsedMin = Math.round((focus.totalSec - focusRemaining) / 60)
   const livePts = scoreCompletion(cat, elapsedMin)
+  const ring = Math.min(RING_MAX, width - RING_CHROME)
+  const ringScale = ring / RING_MAX
+  const leftMin = Math.ceil(focusRemaining / 60)
+  const canCut = focusRemaining - STEP_MIN * 60 >= 60
+
+  const sound = settings.sound
+  const soundLabel = sound === 'off' ? 'Sound' : SOUNDS[sound].short
+  const nextSound = () => {
+    Haptics.selectionAsync().catch(() => {})
+    const i = SOUND_ORDER.indexOf(sound)
+    updateSettings({ sound: SOUND_ORDER[(i + 1) % SOUND_ORDER.length] })
+  }
+
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'))
+
+  const stop = () => {
+    // nothing much to lose in the first minute, usually a mis-tap on the wrong task
+    if (focus.totalSec - focusRemaining < 60) {
+      abandonFocus()
+      return
+    }
+    Alert.alert(
+      'Stop this session?',
+      "These minutes won't count. The task stays on your list.",
+      [
+        { text: 'Keep going', style: 'cancel' },
+        { text: 'Stop', style: 'destructive', onPress: abandonFocus },
+      ]
+    )
+  }
+
+  const saveStep = () => {
+    if (focusTask && stepDraft.trim()) {
+      updateTask(focusTask.id, { firstStep: stepDraft.trim() })
+    }
+    setShowStepInput(false)
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
       <View className="flex-1 items-center" style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 }}>
         <View className="self-stretch">
-          <ScreenHeader title="Focus" onBack={abandonFocus} />
+          {/* Back keeps the session going. It always has somewhere to be seen,
+              the banner on Home, and walking away shouldn't be a way to lose it. */}
+          <ScreenHeader
+            title="Focus"
+            variant="back"
+            onBack={goBack}
+            right={
+              <Pressable
+                onPress={nextSound}
+                hitSlop={8}
+                className="flex-row items-center bg-surface border border-soft rounded-full"
+                style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7 }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  sound === 'off'
+                    ? 'Focus sound off. Double tap to turn on.'
+                    : `Focus sound ${SOUNDS[sound].label}. Double tap to change.`
+                }
+              >
+                <SoundIcon
+                  size={15}
+                  off={sound === 'off'}
+                  color={sound === 'off' ? palette.muted : palette.accent}
+                />
+                <Text
+                  className="font-hk700 text-[12px]"
+                  style={{ color: sound === 'off' ? palette.muted : palette.accent }}
+                  maxFontSizeMultiplier={1.3}
+                >
+                  {soundLabel}
+                </Text>
+              </Pressable>
+            }
+          />
         </View>
 
         {/* the session block owns the space between header and controls, so
             the ring sits optically centred instead of stranded up top */}
         <View className="flex-1 items-center justify-center self-stretch">
-        <Text className="font-hk600 text-muted text-[11px]" style={{ letterSpacing: 0.4 }}>
-          FOCUSING ON
-        </Text>
-        <Text
-          className="font-hk700 text-ink text-center text-[17px] mt-1"
-          style={{ lineHeight: 22, paddingHorizontal: 10 }}
-        >
-          {focusTask?.title ?? 'One thing'}
-        </Text>
-
-        {focusTask?.firstStep ? (
-          <View
-            className="bg-accent-soft rounded-full mt-2"
-            style={{ paddingHorizontal: 13, paddingVertical: 7, maxWidth: 260 }}
+          <Text className="font-hk600 text-muted text-[11px]" style={{ letterSpacing: 0.4 }}>
+            FOCUSING ON
+          </Text>
+          <Text
+            className="font-hk700 text-ink text-center text-[17px] mt-1"
+            style={{ lineHeight: 22, paddingHorizontal: 10 }}
+            numberOfLines={3}
           >
-            <Text className="font-hk600 text-accent text-center text-[12.5px]" style={{ lineHeight: 17 }}>
-              Start by: {focusTask.firstStep}
-            </Text>
-          </View>
-        ) : showStepInput ? (
-          <View className="mt-2" style={{ width: '100%', maxWidth: 300 }}>
-            {/* An if-then plan, not a note. Naming the concrete physical
-                action is what closes the gap between intending and starting —
-                the activation cost is in specifying the move, not in wanting
-                the goal. */}
-            <Text className="font-hk700 text-muted text-center text-[11px]" style={{ letterSpacing: 0.3 }}>
-              WHEN I START, I WILL…
-            </Text>
-            <View className="flex-row mt-1.5" style={{ gap: 7 }}>
-              <TextInput
-                value={stepDraft}
-                onChangeText={setStepDraft}
-                onSubmitEditing={() => {
-                  if (focusTask && stepDraft.trim()) setFirstStep(focusTask.id, stepDraft)
-                  setShowStepInput(false)
-                }}
-                autoFocus
-                placeholder="open the doc and type one line"
-                placeholderTextColor={palette.muted}
-                returnKeyType="done"
-                className="flex-1 bg-surface border border-soft font-hk400 text-ink text-[13px]"
-                style={{ borderRadius: 11, paddingHorizontal: 12, paddingVertical: 9 }}
-              />
-              <PressableScale
-                onPress={() => {
-                  if (focusTask && stepDraft.trim()) setFirstStep(focusTask.id, stepDraft)
-                  setShowStepInput(false)
-                }}
-                className="bg-accent items-center justify-center"
-                style={{ borderRadius: 11, paddingHorizontal: 14 }}
-              >
-                <Text className="font-hk700 text-white text-[13px]">Set</Text>
-              </PressableScale>
-            </View>
-          </View>
-        ) : (
-          focusTask && (
-            <Pressable
-              onPress={() => setShowStepInput(true)}
-              hitSlop={14}
-              className="mt-2"
-              accessibilityRole="button"
+            {title}
+          </Text>
+
+          {focusTask?.firstStep ? (
+            <View
+              className="bg-accent-soft rounded-[16px] mt-2"
+              style={{ paddingHorizontal: 13, paddingVertical: 7, maxWidth: 280 }}
             >
-              <Text className="font-hk700 text-accent text-[12.5px]">
-                Can&apos;t start? Name the very first move
+              <Text className="font-hk600 text-accent text-center text-[12.5px]" style={{ lineHeight: 17 }}>
+                Start by: {focusTask.firstStep}
               </Text>
-            </Pressable>
-          )
-        )}
+            </View>
+          ) : showStepInput ? (
+            <View className="mt-2" style={{ width: '100%', maxWidth: 300 }}>
+              {/* An if-then plan, not a note. Naming the concrete physical
+                  action is what closes the gap between intending and starting —
+                  the activation cost is in specifying the move, not in wanting
+                  the goal. */}
+              <Text className="font-hk700 text-muted text-center text-[11px]" style={{ letterSpacing: 0.3 }}>
+                WHEN I START, I WILL…
+              </Text>
+              <View className="flex-row mt-1.5" style={{ gap: 7 }}>
+                <TextInput
+                  value={stepDraft}
+                  onChangeText={setStepDraft}
+                  onSubmitEditing={saveStep}
+                  autoFocus
+                  maxLength={120}
+                  placeholder="open the doc and type one line"
+                  placeholderTextColor={palette.muted}
+                  returnKeyType="done"
+                  accessibilityLabel="The very first move"
+                  className="flex-1 bg-surface border border-soft font-hk400 text-ink text-[13px]"
+                  style={{ borderRadius: 11, paddingHorizontal: 12, paddingVertical: 9 }}
+                />
+                <PressableScale
+                  onPress={saveStep}
+                  className="bg-accent items-center justify-center"
+                  style={{ borderRadius: 11, paddingHorizontal: 14 }}
+                >
+                  <Text className="font-hk700 text-white text-[13px]">Set</Text>
+                </PressableScale>
+              </View>
+            </View>
+          ) : (
+            focusTask && (
+              <Pressable
+                onPress={() => setShowStepInput(true)}
+                hitSlop={14}
+                className="mt-2"
+                accessibilityRole="button"
+              >
+                <Text className="font-hk700 text-accent text-[12.5px]">
+                  Can&apos;t start? Name the very first move
+                </Text>
+              </Pressable>
+            )
+          )}
 
-        {/* progress ring */}
-        <Animated.View style={[{ width: 212, height: 212, marginTop: 18 }, ringDim]}>
-          <Svg width={212} height={212} viewBox="0 0 212 212">
-            <Circle cx={106} cy={106} r={R} fill="none" stroke={palette.soft} strokeWidth={13} />
-            <AnimatedCircle
-              cx={106}
-              cy={106}
-              r={R}
-              fill="none"
-              stroke={palette.accent}
-              strokeWidth={13}
-              strokeLinecap="round"
-              strokeDasharray={`${CIRCUMFERENCE}`}
-              animatedProps={ringProps}
-              transform="rotate(-90 106 106)"
+          <View className="flex-row items-center" style={{ gap: 8, marginTop: 18 }}>
+            <AdjustButton
+              label={`−${STEP_MIN}`}
+              a11y={`Take off ${STEP_MIN} minutes`}
+              disabled={!canCut}
+              onPress={() => adjustFocus(-STEP_MIN)}
             />
-          </Svg>
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text className="font-mono text-ink" style={{ fontSize: 46, letterSpacing: -1.5 }}>
-              {formatClock(focusRemaining)}
-            </Text>
-            {/* Both directions on purpose: duration-estimation errors run high
-                and low, so remaining alone can't correct a mis-read either way. */}
-            <Text className="font-hk600 text-muted text-[11px]" style={{ letterSpacing: 0.5 }}>
-              {focus.running
-                ? `left · ${formatClock(focus.totalSec - focusRemaining)} focused`
-                : 'PAUSED'}
-            </Text>
-            <Text className="font-hk700 text-accent text-[12px] mt-1.5">
-              {meta.label} · +{livePts} pts
-            </Text>
+
+            {/* progress ring */}
+            <Animated.View
+              style={[{ width: ring, height: ring }, ringDim]}
+              accessible
+              accessibilityRole="timer"
+              accessibilityLabel={
+                focus.running
+                  ? `${leftMin} ${leftMin === 1 ? 'minute' : 'minutes'} left. ${meta.label}, plus ${livePts} points.`
+                  : `Paused with ${leftMin} ${leftMin === 1 ? 'minute' : 'minutes'} left.`
+              }
+            >
+              <Svg width={ring} height={ring} viewBox="0 0 212 212">
+                <Circle cx={106} cy={106} r={R} fill="none" stroke={palette.soft} strokeWidth={13} />
+                <AnimatedCircle
+                  cx={106}
+                  cy={106}
+                  r={R}
+                  fill="none"
+                  stroke={palette.accent}
+                  strokeWidth={13}
+                  strokeLinecap="round"
+                  strokeDasharray={`${CIRCUMFERENCE}`}
+                  animatedProps={ringProps}
+                  transform="rotate(-90 106 106)"
+                />
+              </Svg>
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text
+                  className="font-mono text-ink"
+                  style={{ fontSize: Math.round(46 * ringScale), letterSpacing: -1.5 }}
+                  maxFontSizeMultiplier={1.15}
+                >
+                  {formatClock(focusRemaining)}
+                </Text>
+                {/* Both directions on purpose: duration-estimation errors run high
+                    and low, so remaining alone can't correct a mis-read either way. */}
+                <Text
+                  className="font-hk600 text-muted text-[11px]"
+                  style={{ letterSpacing: 0.5 }}
+                  maxFontSizeMultiplier={1.15}
+                >
+                  {focus.running
+                    ? `left · ${formatClock(focus.totalSec - focusRemaining)} focused`
+                    : 'PAUSED'}
+                </Text>
+                <Text
+                  className="font-hk700 text-accent text-[12px] mt-1.5"
+                  maxFontSizeMultiplier={1.15}
+                >
+                  {meta.label} · +{livePts} pts
+                </Text>
+              </View>
+            </Animated.View>
+
+            <AdjustButton
+              label={`+${STEP_MIN}`}
+              a11y={`Add ${STEP_MIN} minutes`}
+              disabled={false}
+              onPress={() => adjustFocus(STEP_MIN)}
+            />
           </View>
-        </Animated.View>
         </View>
 
         <View className="flex-row w-full" style={{ gap: 10 }}>
@@ -270,15 +423,21 @@ export default function FocusScreen() {
           </PressableScale>
           <PressableScale
             haptic
-            onPress={() => finishFocus()}
+            onPress={() => finishFocus('done')}
             className="flex-1 items-center bg-accent"
             style={{ borderRadius: 15, paddingVertical: 15 }}
+            accessibilityLabel={`Done with ${title}`}
           >
             <Text className="font-hk700 text-white text-[15px]">Done</Text>
           </PressableScale>
         </View>
-        <Pressable onPress={abandonFocus} hitSlop={14} className="mt-3">
-          <Text className="font-hk400 text-muted text-[12.5px]">Stop without saving</Text>
+        <Pressable
+          onPress={stop}
+          hitSlop={{ top: 12, bottom: 12, left: 20, right: 20 }}
+          className="mt-3"
+          accessibilityRole="button"
+        >
+          <Text className="font-hk400 text-muted text-[13px]">Stop without saving</Text>
         </Pressable>
       </View>
     </SafeAreaView>

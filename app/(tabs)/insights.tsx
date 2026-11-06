@@ -4,16 +4,42 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeInUp } from 'react-native-reanimated'
 import Svg, { Circle, Path } from 'react-native-svg'
 import Sprite from '@/components/Sprite'
+import { TriangleUp } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { addDays } from '@/lib/points'
 import { palette, hexA } from '@/lib/theme'
 
 const CHART_H = 132
 
-export default function InsightsScreen() {
-  const { bars, race, byDay, showedUp, companionLevel, todayKey } = useApp()
+function Tile({ label, value, unit, a11y }: { label: string; value: string; unit: string; a11y: string }) {
+  return (
+    <View
+      className="flex-1 bg-surface border border-soft"
+      style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 13 }}
+      accessible
+      accessibilityLabel={a11y}
+    >
+      <Text className="font-hk600 text-muted text-[11px]" numberOfLines={1} maxFontSizeMultiplier={1.2}>
+        {label}
+      </Text>
+      <View className="flex-row items-baseline flex-wrap mt-0.5" style={{ gap: 4 }}>
+        <Text className="font-mono text-ink text-[24px]" maxFontSizeMultiplier={1.3}>
+          {value}
+        </Text>
+        <Text className="font-hk400 text-muted text-[12px]" maxFontSizeMultiplier={1.2}>
+          {unit}
+        </Text>
+      </View>
+    </View>
+  )
+}
 
-  const pacer = race.pacer
+export default function InsightsScreen() {
+  const { bars, race, byDay, showedUp, companionLevel, todayKey, settings } = useApp()
+  const gentle = settings.gentle
+
+  // gentle mode shows the week's shape with no line to measure it against
+  const pacer = gentle ? 0 : race.pacer
   // a little headroom so the tallest bar never quite touches the ceiling
   const maxPts = Math.max(...bars.map((b) => b.points), pacer, 1) * 1.08
   const pacerPct = pacer > 0 ? Math.round((pacer / maxPts) * 100) : 0
@@ -35,11 +61,12 @@ export default function InsightsScreen() {
   const trendPct =
     lastWeekTotal > 0 ? Math.round(((weekTotal - lastWeekTotal) / lastWeekTotal) * 100) : null
   const trendUp = trendPct != null && trendPct >= 0
+  // A down week is described, not scored: no red, no falling arrow, no percentage.
   const trendLabel =
-    trendPct == null ? 'First week' : `${trendUp ? '▲' : '▼'} ${Math.abs(trendPct)}% vs last week`
+    trendPct == null ? 'First week' : trendUp ? `${trendPct}% vs last week` : 'Quieter than last week'
 
   const growthMsg =
-    showedUp > 1
+    showedUp > 1 && !gentle
       ? `Grown to level ${companionLevel} across ${showedUp} days of showing up this month. Small sessions, real growth.`
       : companionLevel > 0
         ? `Level ${companionLevel} and warming up. Every finished thing feeds it.`
@@ -47,10 +74,12 @@ export default function InsightsScreen() {
 
   const insightMsg =
     weekTotal === 0
-      ? 'No data yet this week — your first focus session starts the picture.'
-      : bestDay.points > 0
-        ? `${bestDay.isToday ? 'Today' : bestDay.label} carried the week with ${bestDay.points} pts. Consistency beats intensity — keep the small days coming.`
-        : 'Showing up at all is the hard part. The chart follows.'
+      ? 'Nothing logged this week yet. Your first finished thing starts the picture.'
+      : bestDay.points > 0 && !gentle
+        ? `${bestDay.isToday ? 'Today' : bestDay.label} carried the week with ${bestDay.points} pts. Consistency beats intensity, so keep the small days coming.`
+        : 'Every bar here is something you did. The chart only ever counts up.'
+
+  const chartSummary = bars.map((b) => `${b.label} ${b.points}`).join(', ')
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -59,10 +88,16 @@ export default function InsightsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={FadeInUp.duration(260)}>
-          <Text className="font-hk800 text-ink text-[24px]" style={{ letterSpacing: -0.5 }}>
+          <Text
+            className="font-hk800 text-ink text-[24px]"
+            style={{ letterSpacing: -0.5 }}
+            accessibilityRole="header"
+          >
             Insights
           </Text>
-          <Text className="font-hk400 text-muted text-[13px] mt-0.5">You vs your past self</Text>
+          <Text className="font-hk400 text-muted text-[13px] mt-0.5">
+            {gentle ? 'What your week contained' : 'You vs your past self'}
+          </Text>
         </Animated.View>
 
         {/* companion card */}
@@ -72,7 +107,7 @@ export default function InsightsScreen() {
           style={{ borderRadius: 20, padding: 16, gap: 8 }}
         >
           <Sprite pose="idle" level={companionLevel} scale={0.8} />
-          <View className="flex-1">
+          <View className="flex-1" accessible>
             <Text className="font-hk700 text-muted text-[11px]" style={{ letterSpacing: 0.4 }}>
               YOUR COMPANION
             </Text>
@@ -90,24 +125,35 @@ export default function InsightsScreen() {
           entering={FadeInUp.delay(80).duration(260)}
           className="bg-surface border border-soft mt-3"
           style={{ borderRadius: 20, padding: 16 }}
+          accessible
+          accessibilityRole="image"
+          accessibilityLabel={`This week's momentum in points. ${chartSummary}.${pacer > 0 ? ` A typical day is ${pacer}.` : ''}`}
         >
-          <View className="flex-row justify-between items-center">
-            <Text className="font-hk800 text-ink text-[14px]">This week&apos;s momentum</Text>
-            <View
-              className="rounded-full"
-              style={{
-                paddingHorizontal: 9,
-                paddingVertical: 4,
-                backgroundColor: trendPct == null || trendUp ? palette.accentSoft : palette.soft,
-              }}
-            >
-              <Text
-                className="font-hk700 text-[11px]"
-                style={{ color: trendPct == null || trendUp ? palette.accent : palette.muted }}
+          <View className="flex-row justify-between items-center" style={{ gap: 8 }}>
+            <Text className="font-hk800 text-ink text-[14px]" style={{ flexShrink: 1 }}>
+              This week&apos;s momentum
+            </Text>
+            {!gentle && (
+              <View
+                className="flex-row items-center rounded-full"
+                style={{
+                  gap: 5,
+                  paddingHorizontal: 9,
+                  paddingVertical: 4,
+                  backgroundColor: trendPct == null || trendUp ? palette.accentSoft : palette.soft,
+                }}
               >
-                {trendLabel}
-              </Text>
-            </View>
+                {trendUp && <TriangleUp />}
+                <Text
+                  className="font-hk700 text-[11px]"
+                  maxFontSizeMultiplier={1.2}
+                  // ink on a down week: muted on this grey is 4.41:1, just under AA
+                  style={{ color: trendPct == null || trendUp ? palette.accent : palette.ink }}
+                >
+                  {trendLabel}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={{ height: CHART_H, marginTop: 18 }}>
@@ -121,13 +167,17 @@ export default function InsightsScreen() {
                   ? palette.accent
                   : pacer > 0 && bar.points >= pacer
                     ? hexA(palette.accent, 0.55)
-                    : palette.soft
+                    : bar.points > 0
+                      ? hexA(palette.accent, 0.28)
+                      : palette.soft
                 const lblColor = bar.isToday ? palette.accent : palette.muted
                 return (
                   <View key={bar.key} className="flex-1 items-center h-full">
                     <Text
                       className="font-hk700"
-                      style={{ fontSize: 9, lineHeight: 12, color: lblColor }}
+                      maxFontSizeMultiplier={1}
+                      numberOfLines={1}
+                      style={{ fontSize: 10, lineHeight: 12, color: lblColor }}
                     >
                       {bar.points}
                     </Text>
@@ -151,7 +201,9 @@ export default function InsightsScreen() {
                     </View>
                     <Text
                       className="font-hk600"
-                      style={{ fontSize: 9.5, lineHeight: 13, color: lblColor }}
+                      maxFontSizeMultiplier={1}
+                      numberOfLines={1}
+                      style={{ fontSize: 10, lineHeight: 13, color: lblColor }}
                     >
                       {bar.label}
                     </Text>
@@ -192,7 +244,11 @@ export default function InsightsScreen() {
                   }}
                 >
                   {/* a typical day — not an average of everything */}
-                  <Text className="font-hk700 text-muted" style={{ fontSize: 9 }}>
+                  <Text
+                    className="font-hk700 text-muted"
+                    maxFontSizeMultiplier={1}
+                    style={{ fontSize: 10 }}
+                  >
                     typical {pacer}
                   </Text>
                 </View>
@@ -203,27 +259,35 @@ export default function InsightsScreen() {
 
         {/* stat tiles */}
         <Animated.View entering={FadeInUp.delay(120).duration(260)} className="flex-row mt-3" style={{ gap: 10 }}>
-          <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 13 }}>
-            <Text className="font-hk600 text-muted text-[11px]">SHOWED UP</Text>
-            <View className="flex-row items-baseline mt-0.5" style={{ gap: 4 }}>
-              <Text className="font-mono text-ink text-[24px]">{showedUp}</Text>
-              <Text className="font-hk400 text-muted text-[12px]">/28d</Text>
-            </View>
-          </View>
-          <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 13 }}>
-            <Text className="font-hk600 text-muted text-[11px]">BEST DAY</Text>
-            <View className="flex-row items-baseline mt-0.5" style={{ gap: 4 }}>
-              <Text className="font-mono text-ink text-[24px]">{bestDay?.points ?? 0}</Text>
-              <Text className="font-hk400 text-muted text-[12px]">pts</Text>
-            </View>
-          </View>
-          <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 13 }}>
-            <Text className="font-hk600 text-muted text-[11px]">FOCUS</Text>
-            <View className="flex-row items-baseline mt-0.5" style={{ gap: 4 }}>
-              <Text className="font-mono text-ink text-[24px]">{(weekMinutes / 60).toFixed(1)}</Text>
-              <Text className="font-hk400 text-muted text-[12px]">h wk</Text>
-            </View>
-          </View>
+          {gentle ? (
+            <Tile
+              label="THIS WEEK"
+              value={`${weekTotal}`}
+              unit="pts"
+              a11y={`${weekTotal} points this week`}
+            />
+          ) : (
+            <>
+              <Tile
+                label="SHOWED UP"
+                value={`${showedUp}`}
+                unit="/28d"
+                a11y={`Showed up ${showedUp} of the last 28 days`}
+              />
+              <Tile
+                label="BEST DAY"
+                value={`${bestDay?.points ?? 0}`}
+                unit="pts"
+                a11y={`Best day this week, ${bestDay?.points ?? 0} points`}
+              />
+            </>
+          )}
+          <Tile
+            label="FOCUS"
+            value={(weekMinutes / 60).toFixed(1)}
+            unit="h wk"
+            a11y={`${(weekMinutes / 60).toFixed(1)} hours focused this week`}
+          />
         </Animated.View>
 
         {/* insight note */}

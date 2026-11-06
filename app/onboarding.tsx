@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeInUp } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
@@ -11,6 +19,7 @@ import { useApp } from '@/store/AppStore'
 import { palette } from '@/lib/theme'
 
 const FOCUS_OPTIONS = [15, 25, 45]
+const STEPS = 3
 
 function StepIcon({ kind }: { kind: 'dump' | 'start' | 'grow' }) {
   const stroke = { stroke: palette.accent, strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' }
@@ -38,6 +47,20 @@ function StepIcon({ kind }: { kind: 'dump' | 'start' | 'grow' }) {
   )
 }
 
+function HowItem({ kind, title, body }: { kind: 'dump' | 'start' | 'grow'; title: string; body: string }) {
+  return (
+    <View className="flex-row items-start" style={{ gap: 14 }} accessible>
+      <StepIcon kind={kind} />
+      <View className="flex-1">
+        <Text className="font-hk700 text-ink text-[15.5px]">{title}</Text>
+        <Text className="font-hk400 text-muted text-[13px] mt-0.5" style={{ lineHeight: 19 }}>
+          {body}
+        </Text>
+      </View>
+    </View>
+  )
+}
+
 export default function OnboardingScreen() {
   const router = useRouter()
   const { settings, updateSettings } = useApp()
@@ -48,10 +71,10 @@ export default function OnboardingScreen() {
 
   const finish = () => {
     updateSettings({ name: name.trim(), focusLen, gentle, onboarded: true })
-    router.replace('/')
+    router.dismissTo('/')
   }
 
-  const next = () => (step >= 2 ? finish() : setStep(step + 1))
+  const next = () => (step >= STEPS - 1 ? finish() : setStep(step + 1))
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
@@ -59,86 +82,87 @@ export default function OnboardingScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
-        <View className="flex-1" style={{ paddingHorizontal: 26, paddingTop: 8, paddingBottom: 30 }}>
+        <View className="flex-1" style={{ paddingHorizontal: 26, paddingTop: 8, paddingBottom: 24 }}>
           <View className="flex-row justify-end" style={{ height: 24 }}>
-            <Pressable onPress={finish} hitSlop={14}>
-              <Text className="font-hk600 text-muted text-[13px]">Skip</Text>
+            <Pressable onPress={finish} hitSlop={14} accessibilityRole="button" accessibilityLabel="Skip the introduction">
+              <Text className="font-hk600 text-muted text-[13.5px]">Skip</Text>
             </Pressable>
           </View>
 
-          <View className="flex-1 items-center justify-center">
+          {/* scrolls rather than clips: step three plus a keyboard is taller than
+              an iPhone SE has room for */}
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 12 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             {step === 0 && (
               <Animated.View entering={FadeInUp.duration(400)} className="items-center">
                 <Sprite pose="wave" level={4} scale={1.1} />
-                <Text className="font-hk800 text-ink text-[30px] mt-2.5" style={{ letterSpacing: -1 }}>
+                <Text
+                  className="font-hk800 text-ink text-[30px] mt-2.5"
+                  style={{ letterSpacing: -1 }}
+                  accessibilityRole="header"
+                >
                   Hyperfocus
                 </Text>
                 <Text
                   className="font-hk500 text-ink text-center text-[16px] mt-2.5"
-                  style={{ lineHeight: 24, maxWidth: 280 }}
+                  style={{ lineHeight: 24, maxWidth: 290 }}
                 >
-                  Grow past yesterday — gently.
+                  Race your past self, gently.
                 </Text>
                 <Text
-                  className="font-hk400 text-muted text-center text-[13.5px] mt-2"
-                  style={{ lineHeight: 21, maxWidth: 280 }}
+                  className="font-hk400 text-muted text-center text-[14px] mt-2"
+                  style={{ lineHeight: 21, maxWidth: 290 }}
                 >
-                  A focus companion built for ADHD brains. No streaks to break, no shame — just you,
-                  a little further along than yesterday.
+                  Built for ADHD brains. Miss a day and nothing breaks. You just pick up from
+                  wherever you are.
                 </Text>
               </Animated.View>
             )}
 
             {step === 1 && (
-              <Animated.View entering={FadeInUp.duration(400)} style={{ width: '100%', maxWidth: 300 }}>
+              <Animated.View entering={FadeInUp.duration(400)} style={{ width: '100%', maxWidth: 310 }}>
                 <Text
                   className="font-hk800 text-ink text-center text-[24px] mb-6"
                   style={{ letterSpacing: -0.5 }}
+                  accessibilityRole="header"
                 >
                   How it works
                 </Text>
                 <View style={{ gap: 18 }}>
-                  <View className="flex-row items-start" style={{ gap: 14 }}>
-                    <StepIcon kind="dump" />
-                    <View className="flex-1">
-                      <Text className="font-hk700 text-ink text-[15.5px]">Dump it</Text>
-                      <Text className="font-hk400 text-muted text-[13px] mt-0.5" style={{ lineHeight: 19 }}>
-                        Empty your head in seconds. Sort it later.
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="flex-row items-start" style={{ gap: 14 }}>
-                    <StepIcon kind="start" />
-                    <View className="flex-1">
-                      <Text className="font-hk700 text-ink text-[15.5px]">Start one thing</Text>
-                      <Text className="font-hk400 text-muted text-[13px] mt-0.5" style={{ lineHeight: 19 }}>
-                        We pick the task so you don&apos;t have to. One tap to begin.
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="flex-row items-start" style={{ gap: 14 }}>
-                    <StepIcon kind="grow" />
-                    <View className="flex-1">
-                      <Text className="font-hk700 text-ink text-[15.5px]">Watch yourself grow</Text>
-                      <Text className="font-hk400 text-muted text-[13px] mt-0.5" style={{ lineHeight: 19 }}>
-                        Every minute moves your companion past who you were yesterday.
-                      </Text>
-                    </View>
-                  </View>
+                  <HowItem
+                    kind="dump"
+                    title="Dump it"
+                    body="Empty your head in seconds. Sort it later."
+                  />
+                  <HowItem
+                    kind="start"
+                    title="Start one thing"
+                    body="We pick the task so you don't have to. One tap to begin."
+                  />
+                  <HowItem
+                    kind="grow"
+                    title="Pass your recent days"
+                    body="Everything you finish moves your runner past more of them. Starting counts as much as the minutes."
+                  />
                 </View>
               </Animated.View>
             )}
 
             {step === 2 && (
-              <Animated.View entering={FadeInUp.duration(400)} style={{ width: '100%', maxWidth: 300 }}>
+              <Animated.View entering={FadeInUp.duration(400)} style={{ width: '100%', maxWidth: 310 }}>
                 <Text
                   className="font-hk800 text-ink text-center text-[24px]"
                   style={{ letterSpacing: -0.5 }}
+                  accessibilityRole="header"
                 >
                   Set your pace
                 </Text>
                 <Text className="font-hk400 text-muted text-center text-[13px] mt-1.5" style={{ lineHeight: 19 }}>
-                  All optional. Change anything later.
+                  All optional. You can change anything later.
                 </Text>
 
                 <View style={{ marginTop: 22 }}>
@@ -148,8 +172,11 @@ export default function OnboardingScreen() {
                   <TextInput
                     value={name}
                     onChangeText={setName}
+                    maxLength={40}
                     placeholder="Your name"
                     placeholderTextColor={palette.muted}
+                    returnKeyType="done"
+                    accessibilityLabel="Your name"
                     className="bg-surface border border-soft font-hk400 text-ink text-[15px]"
                     style={{ marginTop: 7, borderRadius: 13, paddingHorizontal: 14, paddingVertical: 13 }}
                   />
@@ -157,9 +184,9 @@ export default function OnboardingScreen() {
 
                 <View style={{ marginTop: 18 }}>
                   <Text className="font-hk700 text-muted text-[12px]" style={{ letterSpacing: 0.3 }}>
-                    DEFAULT FOCUS LENGTH
+                    FOCUS SESSION LENGTH
                   </Text>
-                  <View className="flex-row" style={{ gap: 8, marginTop: 7 }}>
+                  <View className="flex-row" style={{ gap: 8, marginTop: 7 }} accessibilityRole="radiogroup">
                     {FOCUS_OPTIONS.map((n) => {
                       const active = focusLen === n
                       return (
@@ -174,6 +201,9 @@ export default function OnboardingScreen() {
                             borderColor: active ? palette.accent : palette.soft,
                             backgroundColor: active ? palette.accent : palette.surface,
                           }}
+                          accessibilityRole="radio"
+                          accessibilityState={{ selected: active, checked: active }}
+                          accessibilityLabel={`${n} minutes`}
                         >
                           <Text
                             className="font-hk700 text-[14px]"
@@ -191,22 +221,30 @@ export default function OnboardingScreen() {
                   onPress={() => setGentle((v) => !v)}
                   className="bg-surface border border-soft flex-row items-center"
                   style={{ gap: 12, marginTop: 18, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13 }}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: gentle }}
                 >
                   <View className="flex-1">
                     <Text className="font-hk700 text-ink text-[14.5px]">Gentle mode</Text>
-                    <Text className="font-hk400 text-muted text-[12px] mt-0.5" style={{ lineHeight: 17 }}>
-                      Hide streak pressure. Kinder nudges only.
+                    <Text className="font-hk400 text-muted text-[12.5px] mt-0.5" style={{ lineHeight: 17 }}>
+                      No comparisons. Hides the race field and day counts.
                     </Text>
                   </View>
                   <Toggle on={gentle} />
                 </Pressable>
               </Animated.View>
             )}
-          </View>
+          </ScrollView>
 
           <View>
-            <View className="flex-row justify-center" style={{ gap: 7, marginBottom: 18 }}>
-              {[0, 1, 2].map((i) => (
+            <View
+              className="flex-row justify-center"
+              style={{ gap: 7, marginBottom: 18 }}
+              accessible
+              accessibilityRole="progressbar"
+              accessibilityLabel={`Step ${step + 1} of ${STEPS}`}
+            >
+              {Array.from({ length: STEPS }, (_, i) => (
                 <View
                   key={i}
                   style={{
@@ -233,7 +271,7 @@ export default function OnboardingScreen() {
               }}
             >
               <Text className="font-hk700 text-white text-[15.5px]">
-                {step >= 2 ? "Let's go" : 'Next'}
+                {step >= STEPS - 1 ? "Let's go" : 'Next'}
               </Text>
             </PressableScale>
           </View>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeInUp } from 'react-native-reanimated'
@@ -8,8 +8,11 @@ import Svg, { Path } from 'react-native-svg'
 import RaceCard from '@/components/home/RaceCard'
 import TaskRow from '@/components/home/TaskRow'
 import Sprite from '@/components/Sprite'
+import DueTag from '@/components/DueTag'
 import PressableScale from '@/components/ui/PressableScale'
+import { ArrowRight, ChevronDown, ChevronRight, PauseIcon, PlayIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
+import { useStartFocus } from '@/lib/useStartFocus'
 import { AWAY_DAYS, greeting } from '@/lib/points'
 import { palette, hexA } from '@/lib/theme'
 
@@ -44,6 +47,52 @@ function WarnIcon() {
   )
 }
 
+function StatTile({
+  label,
+  value,
+  unit,
+  note,
+  noteColor = palette.muted,
+}: {
+  label: string
+  value: number
+  unit: string
+  note: string
+  noteColor?: string
+}) {
+  return (
+    <View
+      className="flex-1 bg-surface border border-soft"
+      style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12 }}
+      accessible
+      accessibilityLabel={`${label.toLowerCase()}: ${value} ${unit}. ${note}.`}
+    >
+      <Text className="font-hk600 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
+        {label}
+      </Text>
+      <View className="flex-row items-baseline mt-0.5" style={{ gap: 5 }}>
+        <Text
+          className="font-mono text-ink text-[26px]"
+          style={{ letterSpacing: -0.5 }}
+          maxFontSizeMultiplier={1.3}
+        >
+          {value}
+        </Text>
+        <Text className="font-hk400 text-muted text-[12px]" maxFontSizeMultiplier={1.2}>
+          {unit}
+        </Text>
+      </View>
+      <Text
+        className="font-hk700 text-[12px] mt-0.5"
+        style={{ color: noteColor }}
+        maxFontSizeMultiplier={1.2}
+      >
+        {note}
+      </Text>
+    </View>
+  )
+}
+
 export default function HomeScreen() {
   const router = useRouter()
   const {
@@ -57,23 +106,31 @@ export default function HomeScreen() {
     inbox,
     today,
     later,
-    tasks,
+    upNext,
+    overdue,
     focus,
     focusTask,
-    promoteToToday,
-    startFocus,
+    updateTask,
   } = useApp()
+  const start = useStartFocus()
   const [laterOpen, setLaterOpen] = useState(false)
 
-  const overdueCount = tasks.filter(
-    (t) => t.bucket !== 'inbox' && t.due && t.due < todayISO
-  ).length
+  // "Not this one" walks down the ranked list. Rejecting a suggestion is much
+  // cheaper than choosing from a list, so it stays one tap and needs no reason.
+  const [skip, setSkip] = useState(0)
+  useEffect(() => {
+    if (skip >= upNext.length) setSkip(0)
+  }, [skip, upNext.length])
+  const next = upNext[skip] ?? upNext[0]
 
-  const ptsDeltaLabel = !race.hasField
-    ? 'First day — set the pace'
-    : ahead
-      ? `+${todayTotals.points - race.pacer} past typical`
-      : `Typical day · ${race.pacer}`
+  const gentle = settings.gentle
+  const ptsDeltaLabel = gentle
+    ? 'Everything counts'
+    : !race.hasField
+      ? 'First day sets the pace'
+      : ahead
+        ? `+${todayTotals.points - race.pacer} past typical`
+        : `Typical day · ${race.pacer}`
   // concrete and non-comparative — the points tile already carries the race
   const doneDeltaLabel =
     todayTotals.minutes > 0
@@ -83,6 +140,7 @@ export default function HomeScreen() {
         : 'Everything counts'
 
   const hello = `${greeting()}${settings.name.trim() ? `, ${settings.name.trim()}` : ''}`
+  const nothingAtAll = today.length === 0 && inbox.length === 0 && later.length === 0
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -92,33 +150,43 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* header */}
-        <Animated.View entering={FadeInUp.duration(260)} className="flex-row justify-between items-start">
-          <View>
+        <Animated.View entering={FadeInUp.duration(260)} className="flex-row justify-between items-start" style={{ gap: 10 }}>
+          <View style={{ flexShrink: 1 }}>
             <Text className="font-hk500 text-muted text-[12px]">
               {format(new Date(), 'EEEE · MMMM d')}
             </Text>
-            <Text className="font-hk800 text-ink text-[24px] mt-0.5" style={{ letterSpacing: -0.5 }}>
+            <Text
+              className="font-hk800 text-ink text-[24px] mt-0.5"
+              style={{ letterSpacing: -0.5 }}
+              accessibilityRole="header"
+              numberOfLines={2}
+            >
               {hello}
             </Text>
           </View>
           {/* Days active in the last month — not consecutive. A counter that
               zeroes on one miss punishes exactly the day you most need to
               come back, so this one only ever goes up within its window. */}
-          {!settings.gentle && showedUp > 0 && (
+          {!gentle && showedUp > 0 && (
             <View
               className="flex-row items-center bg-surface border border-soft rounded-full"
               style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 7, marginTop: 4 }}
-              accessibilityLabel={`${showedUp} days showed up in the last month`}
+              accessible
+              accessibilityLabel={`Showed up ${showedUp} ${showedUp === 1 ? 'day' : 'days'} in the last 4 weeks`}
             >
               <SproutIcon />
-              <Text className="font-hk800 text-ink text-[13px]">{showedUp}</Text>
-              <Text className="font-hk500 text-muted text-[11px]">days</Text>
+              <Text className="font-hk800 text-ink text-[13px]" maxFontSizeMultiplier={1.2}>
+                {showedUp}
+              </Text>
+              <Text className="font-hk500 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
+                {showedUp === 1 ? 'day' : 'days'}
+              </Text>
             </View>
           )}
         </Animated.View>
 
-        {/* A session survives being force-quit, so it needs somewhere to be
-            seen — otherwise the clock runs where nobody can find it. */}
+        {/* A session keeps running when you leave the screen, so it needs somewhere
+            to be seen — otherwise the clock runs where nobody can find it. */}
         {focus && (
           <Animated.View entering={FadeInUp.duration(220)}>
             <PressableScale
@@ -126,28 +194,24 @@ export default function HomeScreen() {
               onPress={() => router.push('/focus')}
               className="bg-accent-soft flex-row items-center mt-3.5"
               style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, gap: 11 }}
+              accessibilityLabel={`${focus.running ? 'Session in progress' : 'Session paused'} on ${focusTask?.title ?? focus.title ?? 'one thing'}. Resume.`}
             >
               <View
                 className="bg-accent items-center justify-center"
                 style={{ width: 30, height: 30, borderRadius: 15 }}
               >
-                <Svg width={12} height={12} viewBox="0 0 24 24">
-                  {focus.running ? (
-                    <Path d="M8 5v14l11-7z" fill="#fff" />
-                  ) : (
-                    <Path d="M8 5h3v14H8zM13 5h3v14h-3z" fill="#fff" />
-                  )}
-                </Svg>
+                {focus.running ? <PlayIcon size={12} /> : <PauseIcon size={12} />}
               </View>
               <View className="flex-1" style={{ minWidth: 0 }}>
                 <Text className="font-hk800 text-ink text-[13.5px]">
                   {focus.running ? 'Session in progress' : 'Session paused'}
                 </Text>
-                <Text className="font-hk400 text-muted text-[11.5px] mt-0.5" numberOfLines={1}>
-                  {focusTask?.title ?? 'One thing'}
+                <Text className="font-hk400 text-muted text-[12px] mt-0.5" numberOfLines={1}>
+                  {focusTask?.title ?? focus.title ?? 'One thing'}
                 </Text>
               </View>
-              <Text className="font-hk700 text-accent text-[12.5px]">Resume ›</Text>
+              <Text className="font-hk700 text-accent text-[13px]">Resume</Text>
+              <ChevronRight size={14} color={palette.accent} strokeWidth={2.8} />
             </PressableScale>
           </Animated.View>
         )}
@@ -159,31 +223,19 @@ export default function HomeScreen() {
 
         {/* stat tiles */}
         <Animated.View entering={FadeInUp.delay(80).duration(260)} className="flex-row mt-3" style={{ gap: 10 }}>
-          <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12 }}>
-            <Text className="font-hk600 text-muted text-[11px]">MOMENTUM</Text>
-            <View className="flex-row items-baseline mt-0.5" style={{ gap: 5 }}>
-              <Text className="font-mono text-ink text-[26px]" style={{ letterSpacing: -0.5 }}>
-                {todayTotals.points}
-              </Text>
-              <Text className="font-hk400 text-muted text-[12px]">pts</Text>
-            </View>
-            <Text
-              className="font-hk700 text-[11.5px] mt-0.5"
-              style={{ color: ahead ? palette.accent : palette.muted }}
-            >
-              {ptsDeltaLabel}
-            </Text>
-          </View>
-          <View className="flex-1 bg-surface border border-soft" style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12 }}>
-            <Text className="font-hk600 text-muted text-[11px]">DONE</Text>
-            <View className="flex-row items-baseline mt-0.5" style={{ gap: 5 }}>
-              <Text className="font-mono text-ink text-[26px]" style={{ letterSpacing: -0.5 }}>
-                {todayTotals.completed}
-              </Text>
-              <Text className="font-hk400 text-muted text-[12px]">tasks</Text>
-            </View>
-            <Text className="font-hk700 text-muted text-[11.5px] mt-0.5">{doneDeltaLabel}</Text>
-          </View>
+          <StatTile
+            label="MOMENTUM"
+            value={todayTotals.points}
+            unit="pts"
+            note={ptsDeltaLabel}
+            noteColor={ahead && !gentle ? palette.accent : palette.muted}
+          />
+          <StatTile
+            label="DONE"
+            value={todayTotals.completed}
+            unit={todayTotals.completed === 1 ? 'task' : 'tasks'}
+            note={doneDeltaLabel}
+          />
         </Animated.View>
 
         {/* Coming back after a gap. This is the highest-stakes screen in the
@@ -199,19 +251,16 @@ export default function HomeScreen() {
             >
               <Text className="font-hk800 text-ink text-[14.5px]">Good to see you.</Text>
               <Text
-                className="font-hk400 text-muted text-[12.5px] mt-1"
+                className="font-hk400 text-muted text-[13px] mt-1"
                 style={{ lineHeight: 18 }}
               >
-                It&apos;s been {away} days. Nothing piled up and nothing was lost — the
-                race starts from wherever you are.
+                It&apos;s been {away} days. Nothing piled up and nothing was lost. The race
+                starts from wherever you are.
               </Text>
-              {today.length > 0 && (
+              {next && (
                 <PressableScale
                   haptic
-                  onPress={() => {
-                    startFocus(today[0].id)
-                    router.push('/focus')
-                  }}
+                  onPress={() => start(next.id)}
                   className="bg-accent-soft items-center mt-3"
                   style={{ borderRadius: 12, paddingVertical: 11 }}
                 >
@@ -222,7 +271,7 @@ export default function HomeScreen() {
               )}
             </View>
           </Animated.View>
-        ) : overdueCount > 0 && (
+        ) : overdue.length > 0 && (
           <Animated.View entering={FadeInUp.delay(105).duration(260)}>
             <PressableScale
               onPress={() => router.push('/debrief')}
@@ -243,13 +292,13 @@ export default function HomeScreen() {
               </View>
               <View className="flex-1">
                 <Text className="font-hk800 text-ink text-[13.5px]">
-                  {overdueCount} slipped past — that&apos;s okay
+                  {overdue.length} slipped past. That&apos;s okay.
                 </Text>
-                <Text className="font-hk400 text-muted text-[11.5px] mt-0.5">
+                <Text className="font-hk400 text-muted text-[12px] mt-0.5">
                   Take a calm look in your weekly debrief
                 </Text>
               </View>
-              <Text className="text-muted text-[18px]">›</Text>
+              <ChevronRight />
             </PressableScale>
           </Animated.View>
         )}
@@ -259,29 +308,33 @@ export default function HomeScreen() {
           entering={FadeInUp.delay(130).duration(260)}
           className="mt-5 flex-row justify-between items-center"
         >
-          <Text className="font-hk800 text-ink text-[16px]" style={{ letterSpacing: -0.3 }}>
+          <Text
+            className="font-hk800 text-ink text-[16px]"
+            style={{ letterSpacing: -0.3 }}
+            accessibilityRole="header"
+          >
             Today
           </Text>
           {inbox.length > 0 && (
             <Pressable
               onPress={() => router.push('/triage')}
               className="bg-accent-soft rounded-full"
-              style={{ paddingHorizontal: 11, paddingVertical: 5 }}
+              style={{ paddingHorizontal: 12, paddingVertical: 6 }}
+              hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
+              accessibilityRole="button"
+              accessibilityLabel={`Sort ${inbox.length} captured ${inbox.length === 1 ? 'thing' : 'things'}`}
             >
-              <Text className="font-hk700 text-accent text-[11.5px]">Triage {inbox.length}</Text>
+              <Text className="font-hk700 text-accent text-[12px]">Sort {inbox.length}</Text>
             </Pressable>
           )}
         </Animated.View>
 
         {/* Start one thing */}
-        {today.length > 0 && (
+        {next && (
           <Animated.View entering={FadeInUp.delay(155).duration(260)}>
             <PressableScale
               haptic
-              onPress={() => {
-                startFocus(today[0].id)
-                router.push('/focus')
-              }}
+              onPress={() => start(next.id)}
               className="bg-accent flex-row items-center mt-2.5"
               style={{
                 borderRadius: 16,
@@ -294,6 +347,7 @@ export default function HomeScreen() {
                 shadowOffset: { width: 0, height: 6 },
                 elevation: 8,
               }}
+              accessibilityLabel={`Start one thing: ${next.title}, ${settings.focusLen} minutes.${next.firstStep ? ` First move: ${next.firstStep}.` : ''}`}
             >
               <View
                 style={{
@@ -305,36 +359,52 @@ export default function HomeScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Svg width={14} height={14} viewBox="0 0 24 24">
-                  <Path d="M8 5v14l11-7z" fill="#fff" />
-                </Svg>
+                <PlayIcon />
               </View>
               <View className="flex-1" style={{ minWidth: 0 }}>
                 <Text className="font-hk800 text-white text-[14.5px]">Start one thing</Text>
-                <Text className="font-hk400 text-white text-[11.5px] mt-0.5" style={{ opacity: 0.85 }} numberOfLines={1}>
-                  {today[0].title}
+                <Text
+                  className="font-hk400 text-white text-[12px] mt-0.5"
+                  style={{ opacity: 0.85 }}
+                  numberOfLines={1}
+                >
+                  {next.title}
                 </Text>
                 {/* The plan belongs at the point of performance. Knowing the
                     first physical move before you commit is what lowers the
                     activation cost — seeing it only after starting is too late
                     to help with the part that's actually hard. */}
-                {today[0].firstStep && (
-                  <Text
-                    className="font-hk600 text-white text-[11px] mt-1"
-                    style={{ opacity: 0.95 }}
-                    numberOfLines={1}
-                  >
-                    → {today[0].firstStep}
-                  </Text>
+                {next.firstStep && (
+                  <View className="flex-row items-center mt-1" style={{ gap: 5 }}>
+                    <ArrowRight size={11} />
+                    <Text
+                      className="font-hk600 text-white text-[12px]"
+                      style={{ opacity: 0.95, flexShrink: 1 }}
+                      numberOfLines={1}
+                    >
+                      {next.firstStep}
+                    </Text>
+                  </View>
                 )}
               </View>
               <Text
-                className="font-hk700 text-white text-[10px]"
-                style={{ opacity: 0.85, letterSpacing: 0.3 }}
+                className="font-hk700 text-white text-[11px]"
+                style={{ opacity: 0.9, letterSpacing: 0.3 }}
               >
                 {settings.focusLen}m
               </Text>
             </PressableScale>
+            {upNext.length > 1 && (
+              <Pressable
+                onPress={() => setSkip((s) => (s + 1) % upNext.length)}
+                hitSlop={{ top: 12, bottom: 8, left: 16, right: 8 }}
+                className="self-end mt-2"
+                accessibilityRole="button"
+                accessibilityLabel="Not this one. Suggest another task."
+              >
+                <Text className="font-hk600 text-muted text-[12.5px]">Not this one</Text>
+              </Pressable>
+            )}
           </Animated.View>
         )}
 
@@ -344,13 +414,41 @@ export default function HomeScreen() {
             <TaskRow key={task.id} task={task} />
           ))}
           {today.length === 0 && (
-            <View className="items-center" style={{ paddingVertical: 16, paddingHorizontal: 10 }}>
-              {inbox.length === 0 && later.length === 0 && (
-                <Sprite pose="wave" level={2} scale={0.75} />
-              )}
-              <Text className="font-hk400 text-muted text-[13px] text-center" style={{ lineHeight: 20 }}>
-                Nothing here yet.{'\n'}Tap + to brain-dump, then sort.
+            <View className="items-center" style={{ paddingVertical: 12, paddingHorizontal: 10 }}>
+              {nothingAtAll && <Sprite pose="wave" level={2} scale={0.75} />}
+              <Text
+                className="font-hk400 text-muted text-[13.5px] text-center"
+                style={{ lineHeight: 20, marginTop: nothingAtAll ? 4 : 0 }}
+              >
+                {nothingAtAll
+                  ? "What's taking up space in your head?\nGet it out here, then sort it after."
+                  : inbox.length > 0
+                    ? 'Nothing on Today yet. Sort what you captured and pick a few.'
+                    : 'Nothing on Today. Pull something up from Later when you feel like it.'}
               </Text>
+              {/* a real button rather than instructions pointing at one */}
+              {nothingAtAll && (
+                <PressableScale
+                  haptic
+                  onPress={() => router.push('/dump')}
+                  className="bg-accent mt-3.5"
+                  style={{ borderRadius: 14, paddingVertical: 13, paddingHorizontal: 26 }}
+                >
+                  <Text className="font-hk700 text-white text-[14.5px]">Start a brain dump</Text>
+                </PressableScale>
+              )}
+              {!nothingAtAll && inbox.length > 0 && (
+                <PressableScale
+                  haptic
+                  onPress={() => router.push('/triage')}
+                  className="bg-accent-soft mt-3"
+                  style={{ borderRadius: 12, paddingVertical: 11, paddingHorizontal: 20 }}
+                >
+                  <Text className="font-hk700 text-accent text-[13px]">
+                    Sort {inbox.length} {inbox.length === 1 ? 'thing' : 'things'}
+                  </Text>
+                </PressableScale>
+              )}
             </View>
           )}
         </View>
@@ -361,16 +459,18 @@ export default function HomeScreen() {
             <Pressable
               onPress={() => setLaterOpen((v) => !v)}
               className="mt-4 flex-row justify-between items-center"
+              style={{ paddingVertical: 4 }}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: laterOpen }}
+              accessibilityLabel={`Later, ${later.length} ${later.length === 1 ? 'task' : 'tasks'}`}
             >
               <Text className="font-hk800 text-ink text-[16px]" style={{ letterSpacing: -0.3 }}>
                 Later <Text className="font-hk600 text-muted">{later.length}</Text>
               </Text>
-              <Text
-                className="text-muted text-[18px]"
-                style={{ transform: [{ rotate: laterOpen ? '180deg' : '0deg' }] }}
-              >
-                ⌄
-              </Text>
+              <View style={{ transform: [{ rotate: laterOpen ? '180deg' : '0deg' }] }}>
+                <ChevronDown />
+              </View>
             </Pressable>
             {laterOpen && (
               <View className="mt-2.5" style={{ gap: 8 }}>
@@ -381,15 +481,36 @@ export default function HomeScreen() {
                     className="bg-surface border border-soft flex-row items-center"
                     style={{ borderRadius: 13, paddingHorizontal: 13, paddingVertical: 11, gap: 11 }}
                   >
-                    <Text className="flex-1 font-hk500 text-ink text-[14px]" style={{ lineHeight: 18 }}>
-                      {item.title}
-                    </Text>
                     <Pressable
-                      onPress={() => promoteToToday(item.id)}
-                      className="bg-accent-soft rounded-full"
-                      style={{ paddingHorizontal: 10, paddingVertical: 5 }}
+                      onPress={() => router.push({ pathname: '/task/[id]', params: { id: item.id } })}
+                      className="flex-1"
+                      style={{ minWidth: 0 }}
+                      accessibilityRole="button"
+                      accessibilityHint="Opens the task to edit it"
                     >
-                      <Text className="font-hk700 text-accent text-[11px]">+ Today</Text>
+                      <Text className="font-hk500 text-ink text-[14px]" style={{ lineHeight: 18 }}>
+                        {item.title}
+                      </Text>
+                      {(item.due || item.course) && (
+                        <View className="flex-row flex-wrap items-center mt-1.5" style={{ gap: 6 }}>
+                          {item.due && <DueTag due={item.due} today={todayISO} />}
+                          {item.course && (
+                            <Text className="font-hk600 text-muted text-[11px]" numberOfLines={1}>
+                              {item.course}
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    </Pressable>
+                    <Pressable
+                      onPress={() => updateTask(item.id, { bucket: 'today' })}
+                      className="bg-accent-soft rounded-full"
+                      style={{ paddingHorizontal: 11, paddingVertical: 6 }}
+                      hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Move ${item.title} to Today`}
+                    >
+                      <Text className="font-hk700 text-accent text-[12px]">+ Today</Text>
                     </Pressable>
                   </Animated.View>
                 ))}

@@ -10,17 +10,22 @@ import Animated, {
   withSpring,
   withTiming,
   interpolate,
+  interpolateColor,
 } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
+import { ArrowLeft, ArrowRight } from '@/components/ui/Icon'
 import Sprite from '@/components/Sprite'
+import UndoToast from '@/components/UndoToast'
 import { useApp } from '@/store/AppStore'
 import { TODAY_CAP } from '@/lib/points'
-import { palette, hexA } from '@/lib/theme'
+import { palette } from '@/lib/theme'
 
 const COMMIT_DX = 80
+/** a flick this fast counts even if it hasn't travelled the distance */
+const COMMIT_VELOCITY = 700
 const FLY_OUT = 420
 
 function thresholdBuzz() {
@@ -55,6 +60,9 @@ export default function TriageScreen() {
   const pan = useMemo(
     () =>
       Gesture.Pan()
+        // horizontal only, so swiping the sheet down to close still works
+        .activeOffsetX([-12, 12])
+        .failOffsetY([-14, 14])
         .onChange((e) => {
           dx.value += e.changeX
           // haptic tick the instant the swipe becomes a commitment
@@ -62,13 +70,13 @@ export default function TriageScreen() {
           if (zone !== 0 && zone !== crossed.value) runOnJS(thresholdBuzz)()
           crossed.value = zone
         })
-        .onEnd(() => {
+        .onEnd((e) => {
           if (!currentId) return
-          if (dx.value > COMMIT_DX) {
+          if (dx.value > COMMIT_DX || e.velocityX > COMMIT_VELOCITY) {
             dx.value = withTiming(FLY_OUT, { duration: 160 }, () => {
               runOnJS(decide)(currentId, 'today')
             })
-          } else if (dx.value < -COMMIT_DX) {
+          } else if (dx.value < -COMMIT_DX || e.velocityX < -COMMIT_VELOCITY) {
             dx.value = withTiming(-FLY_OUT, { duration: 160 }, () => {
               runOnJS(decide)(currentId, 'later')
             })
@@ -91,10 +99,13 @@ export default function TriageScreen() {
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: dx.value }, { rotate: `${dx.value * 0.03}deg` }],
-    backgroundColor:
-      dx.value > 30
-        ? hexA(palette.accent, Math.min(0.12, (dx.value - 30) / 400))
-        : palette.surface,
+    // opaque tints: this card sits on top of the next one, which would show
+    // through anything translucent
+    backgroundColor: interpolateColor(
+      dx.value,
+      [-COMMIT_DX, 0, COMMIT_DX],
+      [palette.soft, palette.surface, palette.accentSoft]
+    ),
   }))
   const todayHint = useAnimatedStyle(() => ({
     opacity: interpolate(dx.value, [20, COMMIT_DX], [0.4, 1], 'clamp'),
@@ -136,23 +147,32 @@ export default function TriageScreen() {
                 className="font-hk600 text-muted text-center text-[12px]"
                 style={{ lineHeight: 17, paddingHorizontal: 12 }}
               >
-                Today already holds {today.length}. Most days fit about {TODAY_CAP} —
-                Later is not a downgrade.
+                Today already holds {today.length}. Most days fit about {TODAY_CAP}, and Later
+                is not a downgrade.
               </Animated.Text>
             )}
-            <View className="flex-row justify-between" style={{ paddingHorizontal: 4 }}>
-              <Animated.Text className="font-hk700 text-muted text-[11px]" style={laterHint}>
-                ← LATER
-              </Animated.Text>
-              <Animated.Text className="font-hk700 text-accent text-[11px]" style={todayHint}>
-                TODAY →
-              </Animated.Text>
+            <View
+              className="flex-row justify-between"
+              style={{ paddingHorizontal: 4 }}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            >
+              <Animated.View className="flex-row items-center" style={[{ gap: 5 }, laterHint]}>
+                <ArrowLeft size={12} color={palette.muted} />
+                <Text className="font-hk700 text-muted text-[11px]">LATER</Text>
+              </Animated.View>
+              <Animated.View className="flex-row items-center" style={[{ gap: 5 }, todayHint]}>
+                <Text className="font-hk700 text-accent text-[11px]">TODAY</Text>
+                <ArrowRight size={12} color={palette.accent} />
+              </Animated.View>
             </View>
 
             <View>
               {next && (
                 <Animated.View
                   pointerEvents="none"
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
                   className="bg-surface border border-soft items-center justify-center"
                   style={[
                     {
@@ -226,7 +246,7 @@ export default function TriageScreen() {
                   paddingHorizontal: 16,
                   borderWidth: 1,
                   borderStyle: 'dashed',
-                  borderColor: palette.soft,
+                  borderColor: palette.muted,
                 }}
               >
                 <Text className="font-hk600 text-muted text-[13.5px]">Let go</Text>
@@ -251,9 +271,9 @@ export default function TriageScreen() {
             <Text className="font-hk800 text-ink text-[19px] mt-1">All sorted.</Text>
             <Text
               className="font-hk400 text-muted text-[13px] text-center"
-              style={{ maxWidth: 220, lineHeight: 20 }}
+              style={{ maxWidth: 240, lineHeight: 20 }}
             >
-              Nothing left in your head. Pick something from Today and focus.
+              Nothing left to sort. Pick something from Today when you&apos;re ready.
             </Text>
             <PressableScale
               haptic
@@ -266,6 +286,7 @@ export default function TriageScreen() {
           </Animated.View>
         )}
       </View>
+      <UndoToast />
     </SafeAreaView>
   )
 }
