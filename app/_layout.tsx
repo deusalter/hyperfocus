@@ -7,18 +7,16 @@ import { StatusBar } from 'expo-status-bar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import * as SplashScreen from 'expo-splash-screen'
-import {
-  useFonts,
-  HankenGrotesk_400Regular,
-  HankenGrotesk_500Medium,
-  HankenGrotesk_600SemiBold,
-  HankenGrotesk_700Bold,
-  HankenGrotesk_800ExtraBold,
-} from '@expo-google-fonts/hanken-grotesk'
-import {
-  SplineSansMono_500Medium,
-  SplineSansMono_600SemiBold,
-} from '@expo-google-fonts/spline-sans-mono'
+import { useFonts } from 'expo-font'
+// One import per weight. The package index requires every weight and italic it
+// ships, which put 36 font files in the app to use seven.
+import { HankenGrotesk_400Regular } from '@expo-google-fonts/hanken-grotesk/400Regular'
+import { HankenGrotesk_500Medium } from '@expo-google-fonts/hanken-grotesk/500Medium'
+import { HankenGrotesk_600SemiBold } from '@expo-google-fonts/hanken-grotesk/600SemiBold'
+import { HankenGrotesk_700Bold } from '@expo-google-fonts/hanken-grotesk/700Bold'
+import { HankenGrotesk_800ExtraBold } from '@expo-google-fonts/hanken-grotesk/800ExtraBold'
+import { SplineSansMono_500Medium } from '@expo-google-fonts/spline-sans-mono/500Medium'
+import { SplineSansMono_600SemiBold } from '@expo-google-fonts/spline-sans-mono/600SemiBold'
 import { AppProvider, useApp } from '@/store/AppStore'
 import { palette } from '@/lib/theme'
 
