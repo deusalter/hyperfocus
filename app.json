@@ -16,7 +16,8 @@
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
           "audio"
-        ]
+        ],
+        "RCTAsyncStorageExcludeFromBackup": false
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
