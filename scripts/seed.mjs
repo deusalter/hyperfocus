@@ -4,8 +4,15 @@
 const pad = (n) => `${n}`.padStart(2, '0')
 export const dayKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
+// Screenshots freeze the clock so the greeting and dates stay the same every run.
+let frozen = null
+export const freezeTime = (date) => {
+  frozen = date
+}
+const now = () => (frozen ? new Date(frozen) : new Date())
+
 export function daysFromNow(n, hour = 15) {
-  const d = new Date()
+  const d = now()
   d.setDate(d.getDate() + n)
   d.setHours(hour, 0, 0, 0)
   return d
@@ -25,7 +32,7 @@ export const SETTINGS = {
   reviewAsked: false,
 }
 
-export const TASKS = [
+export const TASKS = () => [
   {
     id: 't1',
     title: 'Draft intro for history essay',
@@ -54,7 +61,7 @@ export const TASKS = [
 ]
 
 // A believable few weeks: uneven, with gaps, and nothing heroic.
-export const HISTORY = [
+export const HISTORY = () => [
   [0, 'Morning review', 'sprint', 15],
   [1, 'Read chapter 4', 'grind', 25],
   [1, 'Laundry', 'sprint', 0],
@@ -85,16 +92,16 @@ export function runningSession(taskId, title, cat, { totalMin = 25, leftMs = 17 
     cat,
     totalSec: totalMin * 60,
     running: true,
-    endsAt: Date.now() + leftMs,
+    endsAt: now().getTime() + leftMs,
     pausedRemaining: totalMin * 60,
   }
 }
 
-export function seed({ settings = {}, tasks = TASKS, history = HISTORY, focus = null } = {}) {
+export function seed({ settings = {}, tasks, history, focus = null } = {}) {
   const out = {
     'hf2-settings': { ...SETTINGS, ...settings },
-    'hf2-tasks': tasks,
-    'hf2-history': history,
+    'hf2-tasks': tasks ?? TASKS(),
+    'hf2-history': history ?? HISTORY(),
   }
   if (focus) out['hf2-focus'] = focus
   return out
