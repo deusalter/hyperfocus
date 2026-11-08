@@ -18,3 +18,30 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test -- --ci
+
+  e2e:
+    # every user flow, driven headlessly against the web build, including the
+    # contrast audit of every screen in both themes
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: Start the web build
+        run: |
+          npx expo start --web --port 8099 > expo.log 2>&1 &
+          for i in $(seq 1 90); do curl -sf -o /dev/null http://localhost:8099 && exit 0; sleep 2; done
+          cat expo.log; exit 1
+      - name: Warm the bundle
+        run: curl -sf -o /dev/null --max-time 300 http://localhost:8099/
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-failures
+          path: /tmp/hf-e2e-fail-*.png
+          retention-days: 7
