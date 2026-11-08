@@ -46,7 +46,7 @@ The Expo Go in the App Store only runs the newest Expo SDK, and this project sta
 
 ## 5. Test what a computer can't
 
-Everything in the app has been checked by automated tests against the web build, but these need a real phone.
+Most of the app is already checked automatically: unit and store tests, every flow against the web build, and the real Release build driven on iOS 26 simulators by `gh workflow run ios-simulator.yml` (largest text size, iPhone SE, a phone set to dark, Reduce Motion). Run that workflow again after native changes. What's left needs hands and ears on a real phone.
 
 **Timer alerts**
 - [ ] Start a session, lock the phone, wait it out: "Time's up" arrives with sound

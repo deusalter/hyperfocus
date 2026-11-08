@@ -29,7 +29,7 @@ npx expo start --web --port 8099   # then, in another terminal:
 npm run e2e           # every user flow, driven headlessly against the real store
 ```
 
-Web can't cover notifications, audio, haptics, system alerts or VoiceOver. `store/RELEASE.md` lists what to check on a device.
+The real Release app runs on iOS simulators through `gh workflow run ios-simulator.yml`, on GitHub's macOS runners: every flow, the largest text size, an iPhone SE, a phone set to dark, and App Store screenshots captured from the app itself. No Xcode or Apple account needed. What still needs a real phone (notification delivery, sound, haptics, listening with VoiceOver) is in `store/RELEASE.md`.
 
 ## Project shape
 

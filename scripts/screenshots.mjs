@@ -1,17 +1,19 @@
-// App Store screenshots: the app's real UI, rendered headlessly from the web build,
-// then composed with a caption and a phone frame.
+// App Store screenshots, composed with a caption and a phone frame.
 //
+// From real iOS captures (preferred). Download what the simulator workflow took:
+//   gh run download <run id> -p 'sim-store-*' -D /tmp/store-raw
+//   npm run screenshots -- --raw /tmp/store-raw
+// That reads sim-store-6.9/store-6.9/<id>.png and the 6.3 equivalent.
+//
+// Or from the web build, when no simulator run is handy:
 //   npx expo start --web --port 8099   (in another terminal)
 //   npm run screenshots
 //
 // Writes to store/screenshots/<size>/. JPEG because App Store Connect rejects any
 // PNG with an alpha channel, and this is much smaller at no visible cost.
-//
-// These come from the web build, which matches the phone closely but isn't the
-// phone. Retake any that look off from a real TestFlight build.
 
 import { chromium } from 'playwright-core'
-import { mkdirSync, readFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { HISTORY, TASKS, daysFromNow, dayKey, freezeTime, runningSession, seed } from './seed.mjs'
@@ -25,9 +27,19 @@ freezeTime(NOW)
 
 /** Required sizes: Apple scales these down for smaller phones. */
 const SIZES = [
-  { name: '6.9-inch', width: 1320, height: 2868 },
-  { name: '6.3-inch', width: 1206, height: 2622 },
+  { name: '6.9-inch', width: 1320, height: 2868, group: 'store-6.9' },
+  { name: '6.3-inch', width: 1206, height: 2622, group: 'store-6.3' },
 ]
+
+const rawIndex = process.argv.indexOf('--raw')
+const RAW = rawIndex > 0 ? process.argv[rawIndex + 1] : null
+
+/** A real capture for this shot and size, or null. */
+function rawCapture(shot, size) {
+  if (!RAW) return null
+  const file = join(RAW, `sim-${size.group}`, size.group, `${shot.id}.png`)
+  return existsSync(file) ? readFileSync(file).toString('base64') : null
+}
 
 // iPhone 16 Pro in points. The app renders between the status bar and home indicator.
 const SCREEN = { width: 402, height: 874, top: 59, bottom: 34 }
@@ -175,11 +187,12 @@ function statusBar() {
     </div>`
 }
 
-function compose(shot, image, size) {
+function compose(shot, image, size, real = false) {
   const k = size.width / 1320
   const phoneW = 1060
   const scale = phoneW / SCREEN.width
-  const phoneH = SCREEN.height * scale
+  // a real capture already has the status bar and home indicator, at its own aspect
+  const phoneH = real ? phoneW * (size.height / size.width) : SCREEN.height * scale
   return `<!doctype html><html><head><style>
     @font-face { font-family: Hanken; font-weight: 800; src: url(data:font/ttf;base64,${FONT_800}); }
     @font-face { font-family: Hanken; font-weight: 600; src: url(data:font/ttf;base64,${FONT_600}); }
@@ -204,11 +217,15 @@ function compose(shot, image, size) {
   </style></head><body><div class="canvas">
     <h1>${shot.title}</h1>
     <p>${shot.sub}</p>
-    <div class="phone"><div class="screen">
-      ${statusBar()}
-      <img class="app" src="data:image/png;base64,${image}">
-      <div class="home"></div>
-    </div></div>
+    <div class="phone">${
+      real
+        ? `<img src="data:image/png;base64,${image}" style="width:100%;height:100%;display:block">`
+        : `<div class="screen">
+            ${statusBar()}
+            <img class="app" src="data:image/png;base64,${image}">
+            <div class="home"></div>
+          </div>`
+    }</div>
   </div></body></html>`
 }
 
@@ -235,19 +252,22 @@ async function capture(shot) {
 }
 
 for (const shot of SHOTS) {
-  const image = await capture(shot)
+  // the web render is only needed if some size has no real capture
+  const web = SIZES.every((size) => rawCapture(shot, size)) ? null : await capture(shot)
   for (const size of SIZES) {
+    const real = rawCapture(shot, size)
+    const image = real ?? web
     const dir = join(ROOT, 'store/screenshots', size.name)
     mkdirSync(dir, { recursive: true })
     const ctx = await browser.newContext({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: 1 })
     const page = await ctx.newPage()
-    await page.setContent(compose(shot, image, size), { waitUntil: 'load' })
+    await page.setContent(compose(shot, image, size, !!real), { waitUntil: 'load' })
     await page.evaluate(() => document.fonts.ready)
     await page.waitForTimeout(150)
     await page.screenshot({ path: join(dir, `${shot.id}.jpg`), type: 'jpeg', quality: 92 })
     await ctx.close()
   }
-  console.log('wrote', shot.id)
+  console.log('wrote', shot.id, RAW ? '(real captures where available)' : '(web build)')
 }
 
 await browser.close()
