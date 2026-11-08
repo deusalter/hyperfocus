@@ -1,0 +1,9 @@
+appId: com.deusalter.hyperfocus
+name: Store shot, race
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 60000
+- waitForAnimationToEnd
+- takeScreenshot: 01-race

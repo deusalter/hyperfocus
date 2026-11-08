@@ -1,0 +1,13 @@
+appId: com.deusalter.hyperfocus
+name: Store shot, focus
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Session in progress.*"
+    timeout: 60000
+- tapOn: "Session in progress.*"
+- extendedWaitUntil:
+    visible: "FOCUSING ON"
+    timeout: 8000
+- waitForAnimationToEnd
+- takeScreenshot: 02-focus

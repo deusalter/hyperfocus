@@ -1,0 +1,10 @@
+appId: com.deusalter.hyperfocus
+name: Store shot, calendar
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 60000
+- tapOn: "Calendar"
+- waitForAnimationToEnd
+- takeScreenshot: 06-calendar

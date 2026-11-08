@@ -1,0 +1,17 @@
+appId: com.deusalter.hyperfocus
+name: Store shot, triage
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Sort 2 captured things"
+    timeout: 60000
+- tapOn: "Sort 2 captured things"
+- extendedWaitUntil:
+    visible: "Text Maya back"
+    timeout: 8000
+- waitForAnimationToEnd
+- takeScreenshot: 04-triage
+- swipe:
+    start: 50%, 46%
+    end: 90%, 46%
+    duration: 6000

@@ -73,7 +73,12 @@ jobs:
     needs: build
     if: ${{ !cancelled() && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     runs-on: macos-15
-    timeout-minutes: 60
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [flows, large-text, small, dark-phone, store-6.9, store-6.3]
+    name: drive (${{ matrix.group }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -94,11 +99,13 @@ jobs:
         run: |
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+      - name: Simulators available
+        run: xcrun simctl list runtimes | grep -i ios; xcrun simctl list devicetypes | grep -E "iPhone (17|SE)"
       - name: Drive the app
-        run: bash scripts/ios-sim.sh
+        run: bash scripts/ios-sim.sh ${{ matrix.group }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: simulator-output
+          name: sim-${{ matrix.group }}
           path: sim-output
           retention-days: 14

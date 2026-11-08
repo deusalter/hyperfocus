@@ -4,12 +4,60 @@
 //
 //   node scripts/sim-seed.mjs [full|gentle|away] > manifest.json
 
-import { daysFromNow, seed } from './seed.mjs'
+import { HISTORY, TASKS, dayKey, daysFromNow, runningSession, seed } from './seed.mjs'
 
 const kind = process.argv[2] ?? 'full'
 
+const earlierToday = (...items) =>
+  items.map(([title, cat, minutes], i) => ({
+    id: `today${i}`,
+    title,
+    cat,
+    points: 0,
+    minutes,
+    completedAt: daysFromNow(0, 8).toISOString(),
+  }))
+
 const states = {
   full: () => seed(),
+  // ---- the states the store screenshots show ----
+  'store-home': () =>
+    seed({ history: [...earlierToday(['Laundry', 'sprint', 0], ['Reply to coach', 'sprint', 0]), ...HISTORY()] }),
+  'store-focus': () =>
+    seed({
+      focus: runningSession('t1', 'Draft intro for history essay', 'grind', { leftMs: 17 * 60 * 1000 }),
+      settings: { sound: 'brown' },
+    }),
+  'store-dump': () =>
+    seed({
+      tasks: ['Text Maya back', 'Look up dentist hours', 'Return the library books', 'Figure out summer job thing', 'Buy shampoo'].map(
+        (title, i) => ({ id: `i${i}`, title, bucket: 'inbox', createdAt: daysFromNow(0, 7).toISOString() })
+      ),
+    }),
+  // a full session with moments to spare, on a day that passes typical
+  'store-recap': () =>
+    seed({
+      focus: runningSession('t3', 'Clear the desk', 'sprint', { leftMs: 90 * 1000 }),
+      history: [...earlierToday(['Reply to coach', 'fire', 15]), ...HISTORY()],
+    }),
+  'store-calendar': () =>
+    seed({
+      tasks: [
+        ...TASKS(),
+        {
+          id: 'c1',
+          title: 'Reading response 4',
+          cat: 'grind',
+          bucket: 'later',
+          due: dayKey(daysFromNow(0)),
+          feedDue: dayKey(daysFromNow(0)),
+          course: 'ENGL 1A',
+          source: 'canvas',
+          externalId: 'event-assignment-2',
+          createdAt: daysFromNow(-4).toISOString(),
+        },
+      ],
+    }),
   gentle: () => seed({ settings: { gentle: true } }),
   // back after nine days, with something overdue that should stay out of the way
   away: () =>

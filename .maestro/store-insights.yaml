@@ -1,0 +1,10 @@
+appId: com.deusalter.hyperfocus
+name: Store shot, insights
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 60000
+- tapOn: "Insights"
+- waitForAnimationToEnd
+- takeScreenshot: 07-insights

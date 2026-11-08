@@ -1,0 +1,13 @@
+appId: com.deusalter.hyperfocus
+name: Store shot, brain dump
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Brain dump"
+    timeout: 60000
+- tapOn: "Brain dump"
+- extendedWaitUntil:
+    visible: "5 CAPTURED"
+    timeout: 8000
+- waitForAnimationToEnd
+- takeScreenshot: 03-dump

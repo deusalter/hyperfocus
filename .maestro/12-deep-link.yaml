@@ -1,0 +1,18 @@
+appId: com.deusalter.hyperfocus
+name: Capture from a Shortcut
+---
+# the link the support page tells people to put in a Shortcut, cold-starting the app
+- stopApp
+- openLink: "hyperfocus://dump"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible: "Brain dump"
+    timeout: 45000
+- takeScreenshot: 01-dump-from-link
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 8000
+- takeScreenshot: 02-home-after-closing
