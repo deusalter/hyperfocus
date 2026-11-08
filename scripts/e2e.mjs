@@ -30,7 +30,9 @@ async function scenario(name, state, run, { allowErrors = false, colorScheme = '
   const errors = []
   page.on('pageerror', (e) => errors.push(e.message))
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text().slice(0, 240))
+    // Chrome refusing a haptic buzz before the page has been tapped is the browser
+    // protecting itself, not the app failing. iOS haptics never go through it.
+    if (m.type() === 'error' && !/navigator\.vibrate/.test(m.text())) errors.push(m.text().slice(0, 240))
   })
   await page.addInitScript((data) => {
     // only on the first load, so a reload sees what the app itself persisted
