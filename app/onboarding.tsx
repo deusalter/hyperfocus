@@ -62,6 +62,91 @@ function HowItem({ kind, title, body }: { kind: 'dump' | 'start' | 'grow'; title
   )
 }
 
+const SCENE_W = 300
+const SCENE_H = 124
+const LANE_TOP = 94
+const LANE_H = 10
+/** a sprite's feet sit this far down its box, so it can stand on the lane */
+const FEET = 0.85
+const RUNNER_AT = 0.6
+const GHOSTS = [0.16, 0.38, 0.84]
+
+/**
+ * The idea in one picture, before any words: you on a lane, ahead of some of
+ * your past days and behind one. It's the same lane Home shows, so the first
+ * screen after this already looks familiar.
+ */
+function RaceScene() {
+  const palette = useColors()
+  const ghostScale = 0.58
+  const runnerScale = 0.82
+  return (
+    <View
+      style={{ width: SCENE_W, height: SCENE_H }}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      <View
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: LANE_TOP,
+          height: LANE_H,
+          borderRadius: LANE_H / 2,
+          backgroundColor: palette.soft,
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          left: 0,
+          width: SCENE_W * RUNNER_AT,
+          top: LANE_TOP,
+          height: LANE_H,
+          borderRadius: LANE_H / 2,
+          backgroundColor: palette.accent,
+        }}
+      />
+      {GHOSTS.map((at) => (
+        <View key={at}>
+          <View
+            style={{
+              position: 'absolute',
+              left: SCENE_W * at - 3,
+              top: LANE_TOP + (LANE_H - 6) / 2,
+              width: 6,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: at < RUNNER_AT ? palette.onAccent : palette.muted,
+              opacity: at < RUNNER_AT ? 1 : 0.55,
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: SCENE_W * at - (130 * ghostScale) / 2,
+              top: LANE_TOP + 2 - 140 * ghostScale * FEET,
+            }}
+          >
+            <Sprite ghost level={3} scale={ghostScale} />
+          </View>
+        </View>
+      ))}
+      <View
+        style={{
+          position: 'absolute',
+          left: SCENE_W * RUNNER_AT - (130 * runnerScale) / 2,
+          top: LANE_TOP + 3 - 140 * runnerScale * FEET,
+        }}
+      >
+        {/* mid-stride and still: a picture, not a loop */}
+        <Sprite pose="run" calm level={4} scale={runnerScale} />
+      </View>
+    </View>
+  )
+}
+
 export default function OnboardingScreen() {
   const palette = useColors()
   const router = useRouter()
@@ -105,24 +190,24 @@ export default function OnboardingScreen() {
           >
             {step === 0 && (
               <Animated.View entering={FadeInUp.duration(400)} className="items-center">
-                <Sprite pose="wave" level={4} scale={1.1} />
+                <RaceScene />
                 <Text
-                  className="font-hk800 text-ink text-[34px] mt-2.5"
+                  className="font-hk800 text-ink text-[34px]"
                   maxFontSizeMultiplier={TITLE_SCALE}
-                  style={{ letterSpacing: -1 }}
+                  style={{ letterSpacing: -1, marginTop: 22 }}
                   accessibilityRole="header"
                 >
                   Hyperfocus
                 </Text>
                 <Text
-                  className="font-hk500 text-ink text-center text-headline mt-2.5"
-                  style={{ lineHeight: 24, maxWidth: 290 }}
+                  className="font-hk600 text-ink text-center text-title3 mt-2"
+                  style={{ maxWidth: 300 }}
                 >
                   Race your past self, gently.
                 </Text>
                 <Text
-                  className="font-hk400 text-muted text-center text-subhead mt-2"
-                  style={{ lineHeight: 21, maxWidth: 290 }}
+                  className="font-hk400 text-muted text-center text-subhead mt-3"
+                  style={{ lineHeight: 22, maxWidth: 300 }}
                 >
                   Built for ADHD brains. Miss a day and nothing breaks. You just pick up from
                   wherever you are.
