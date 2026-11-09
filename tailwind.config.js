@@ -36,6 +36,19 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
+      // One type scale in iOS's own steps, so the app reads like the phone around
+      // it. Earlier screens used twenty near-identical sizes between 10 and 30.
+      fontSize: {
+        micro: ['11px', { lineHeight: '14px' }],
+        caption: ['12px', { lineHeight: '16px' }],
+        footnote: ['13px', { lineHeight: '18px' }],
+        subhead: ['15px', { lineHeight: '20px' }],
+        body: ['16px', { lineHeight: '21px' }],
+        headline: ['17px', { lineHeight: '22px' }],
+        title3: ['20px', { lineHeight: '25px' }],
+        title2: ['22px', { lineHeight: '28px' }],
+        title1: ['28px', { lineHeight: '34px' }],
+      },
       fontFamily: {
         // each RN weight is its own family — utilities per weight
         hk400: ['HankenGrotesk_400Regular'],
