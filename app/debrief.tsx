@@ -178,7 +178,7 @@ export default function DebriefScreen() {
                       className="flex-1 items-center bg-accent"
                       style={{ borderRadius: 11, paddingVertical: 10 }}
                     >
-                      <Text className="font-hk700 text-white text-[13px]">Do today</Text>
+                      <Text className="font-hk700 text-on-accent text-[13px]">Do today</Text>
                     </PressableScale>
                     <PressableScale
                       onPress={() => letGo(item.id)}

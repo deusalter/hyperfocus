@@ -273,7 +273,7 @@ export default function TriageScreen() {
                 className="flex-1 items-center bg-accent"
                 style={{ borderRadius: 14, paddingVertical: 14 }}
               >
-                <Text className="font-hk700 text-white text-[13.5px]">Today</Text>
+                <Text className="font-hk700 text-on-accent text-[13.5px]">Today</Text>
               </PressableScale>
             </View>
             <View style={{ minHeight: 20 }}>
@@ -312,7 +312,7 @@ export default function TriageScreen() {
               className="bg-accent mt-3.5"
               style={{ borderRadius: 14, paddingVertical: 13, paddingHorizontal: 26 }}
             >
-              <Text className="font-hk700 text-white text-[14px]">Go to Today</Text>
+              <Text className="font-hk700 text-on-accent text-[14px]">Go to Today</Text>
             </PressableScale>
             {lastSorted && (
               <Pressable

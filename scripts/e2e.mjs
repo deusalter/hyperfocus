@@ -751,9 +751,19 @@ const contrastFailures = (page) =>
       if (!box.width || !box.height || getComputedStyle(el).visibility === 'hidden') continue
       if (box.bottom < 0 || box.top > innerHeight) continue
       // Only what's actually on top at this spot. Screens underneath a modal stay in
-      // the DOM on web, and their text isn't something anyone can see.
-      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
-      if (!hit || !(el.contains(hit) || hit.contains(el))) continue
+      // the DOM on web, and their text isn't something anyone can see. Empty clear
+      // layers don't hide anything: every button's label sits under its own touch
+      // overlay, and stopping at the overlay once skipped every button in the app.
+      let onTop = false
+      for (const hit of document.elementsFromPoint(box.left + box.width / 2, box.top + box.height / 2)) {
+        if (hit === el || el.contains(hit) || hit.contains(el)) {
+          onTop = true
+          break
+        }
+        const clear = !hit.textContent.trim() && parse(getComputedStyle(hit).backgroundColor)[3] === 0
+        if (!clear) break
+      }
+      if (!onTop) continue
 
       const style = getComputedStyle(el)
       let opacity = 1

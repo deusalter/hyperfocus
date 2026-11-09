@@ -226,7 +226,7 @@ export default function RecapScreen() {
                   style={{ borderRadius: 16, paddingVertical: 16 }}
                   accessibilityHint="Takes the task off your list"
                 >
-                  <Text className="font-hk700 text-white text-[15px]">Finished it</Text>
+                  <Text className="font-hk700 text-on-accent text-[15px]">Finished it</Text>
                 </PressableScale>
               </View>
               <Pressable
@@ -248,7 +248,7 @@ export default function RecapScreen() {
                 className="bg-accent items-center mt-6 w-full"
                 style={{ borderRadius: 16, paddingVertical: 16 }}
               >
-                <Text className="font-hk700 text-white text-[15px]">Back home</Text>
+                <Text className="font-hk700 text-on-accent text-[15px]">Back home</Text>
               </PressableScale>
               {lastRecap.task && !taskStillThere && (
                 <Pressable

@@ -333,7 +333,7 @@ function FeedCard() {
               className="flex-1 items-center bg-accent"
               style={{ borderRadius: 11, paddingVertical: 11 }}
             >
-              <Text className="font-hk700 text-white text-[13px]">
+              <Text className="font-hk700 text-on-accent text-[13px]">
                 {feed.syncing ? 'Connecting…' : 'Connect'}
               </Text>
             </PressableScale>

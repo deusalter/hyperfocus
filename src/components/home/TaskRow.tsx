@@ -118,7 +118,7 @@ export default function TaskRow({ task }: { task: Task }) {
           hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
           accessibilityLabel={inSession ? `Back to ${task.title}` : `Focus on ${task.title}`}
         >
-          <Text className="font-hk700 text-white text-[12px]" maxFontSizeMultiplier={1.3}>
+          <Text className="font-hk700 text-on-accent text-[12px]" maxFontSizeMultiplier={1.3}>
             {inSession ? 'Resume' : 'Focus'}
           </Text>
         </PressableScale>

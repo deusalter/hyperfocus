@@ -278,7 +278,7 @@ export default function TaskScreen() {
           className="bg-accent items-center"
           style={{ borderRadius: 16, paddingVertical: 15, marginTop: 26 }}
         >
-          <Text className="font-hk700 text-white text-[15px]">Start focusing</Text>
+          <Text className="font-hk700 text-on-accent text-[15px]">Start focusing</Text>
         </PressableScale>
         <View className="flex-row mt-2.5" style={{ gap: 9 }}>
           <PressableScale

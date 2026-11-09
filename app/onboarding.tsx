@@ -272,7 +272,7 @@ export default function OnboardingScreen() {
                 elevation: 8,
               }}
             >
-              <Text className="font-hk700 text-white text-[15.5px]">
+              <Text className="font-hk700 text-on-accent text-[15.5px]">
                 {step >= STEPS - 1 ? "Let's go" : 'Next'}
               </Text>
             </PressableScale>

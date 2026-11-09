@@ -33,7 +33,7 @@ function Badge({ label }: { label: string }) {
       style={{ paddingHorizontal: 10, paddingVertical: 4 }}
     >
       <Text
-        className="font-hk800 text-white text-[10px]"
+        className="font-hk800 text-on-accent text-[10px]"
         style={{ letterSpacing: 0.6 }}
         maxFontSizeMultiplier={1.2}
       >

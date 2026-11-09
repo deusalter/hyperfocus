@@ -371,9 +371,9 @@ export default function HomeScreen() {
                 <PlayIcon />
               </View>
               <View className="flex-1" style={{ minWidth: 0 }}>
-                <Text className="font-hk800 text-white text-[14.5px]">Start one thing</Text>
+                <Text className="font-hk800 text-on-accent text-[14.5px]">Start one thing</Text>
                 <Text
-                  className="font-hk400 text-white text-[12px] mt-0.5"
+                  className="font-hk400 text-on-accent text-[12px] mt-0.5"
                   style={{ opacity: 0.85 }}
                   numberOfLines={1}
                 >
@@ -387,7 +387,7 @@ export default function HomeScreen() {
                   <View className="flex-row items-center mt-1" style={{ gap: 5 }}>
                     <ArrowRight size={11} />
                     <Text
-                      className="font-hk600 text-white text-[12px]"
+                      className="font-hk600 text-on-accent text-[12px]"
                       style={{ opacity: 0.95, flexShrink: 1 }}
                       numberOfLines={1}
                     >
@@ -397,7 +397,7 @@ export default function HomeScreen() {
                 )}
               </View>
               <Text
-                className="font-hk700 text-white text-[11px]"
+                className="font-hk700 text-on-accent text-[11px]"
                 style={{ opacity: 0.9, letterSpacing: 0.3 }}
               >
                 {settings.focusLen}m
@@ -443,7 +443,7 @@ export default function HomeScreen() {
                   className="bg-accent mt-3.5"
                   style={{ borderRadius: 14, paddingVertical: 13, paddingHorizontal: 26 }}
                 >
-                  <Text className="font-hk700 text-white text-[14.5px]">Start a brain dump</Text>
+                  <Text className="font-hk700 text-on-accent text-[14.5px]">Start a brain dump</Text>
                 </PressableScale>
               )}
               {!nothingAtAll && inbox.length > 0 && (

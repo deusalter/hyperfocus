@@ -311,7 +311,7 @@ export default function FocusScreen() {
                   className="bg-accent items-center justify-center"
                   style={{ borderRadius: 11, paddingHorizontal: 14 }}
                 >
-                  <Text className="font-hk700 text-white text-[13px]">Set</Text>
+                  <Text className="font-hk700 text-on-accent text-[13px]">Set</Text>
                 </PressableScale>
               </View>
             </View>
@@ -429,7 +429,7 @@ export default function FocusScreen() {
             style={{ borderRadius: 15, paddingVertical: 15 }}
             accessibilityLabel={`Done with ${title}`}
           >
-            <Text className="font-hk700 text-white text-[15px]">Done</Text>
+            <Text className="font-hk700 text-on-accent text-[15px]">Done</Text>
           </PressableScale>
         </View>
         <Pressable
