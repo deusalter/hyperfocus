@@ -138,13 +138,13 @@ export default function TriageScreen() {
                 {/* capacity is visible while deciding, not after — this is the
                     moment the choice is actually being made */}
                 <Text
-                  className="font-hk700 text-[12px]"
+                  className="font-hk700 text-footnote"
                   style={{ color: full ? palette.dangerText : palette.muted }}
                   maxFontSizeMultiplier={1.4}
                 >
                   Today {today.length}/{TODAY_CAP}
                 </Text>
-                <Text className="font-hk600 text-muted text-[12px]" maxFontSizeMultiplier={1.4}>
+                <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.4}>
                   {inbox.length} left
                 </Text>
               </View>
@@ -160,8 +160,8 @@ export default function TriageScreen() {
             {full && (
               <Animated.Text
                 entering={FadeIn.duration(200)}
-                className="font-hk600 text-muted text-center text-[12px]"
-                style={{ lineHeight: 17, paddingHorizontal: 12 }}
+                className="font-hk600 text-muted text-center text-footnote"
+                style={{ paddingHorizontal: 12 }}
               >
                 Today already holds {today.length}. Most days fit about {TODAY_CAP}, and Later
                 is not a downgrade.
@@ -174,16 +174,16 @@ export default function TriageScreen() {
               importantForAccessibility="no-hide-descendants"
             >
               <Animated.View className="flex-row items-center" style={[{ gap: 5 }, laterHint]}>
-                <ArrowLeft size={12} color={palette.muted} />
-                <Text className="font-hk700 text-muted text-[11px]" maxFontSizeMultiplier={1.4}>
-                  LATER
+                <ArrowLeft size={13} color={palette.muted} />
+                <Text className="font-hk700 text-muted text-footnote" maxFontSizeMultiplier={1.4}>
+                  Later
                 </Text>
               </Animated.View>
               <Animated.View className="flex-row items-center" style={[{ gap: 5 }, todayHint]}>
-                <Text className="font-hk700 text-accent text-[11px]" maxFontSizeMultiplier={1.4}>
-                  TODAY
+                <Text className="font-hk700 text-accent text-footnote" maxFontSizeMultiplier={1.4}>
+                  Today
                 </Text>
-                <ArrowRight size={12} color={palette.accent} />
+                <ArrowRight size={13} color={palette.accent} />
               </Animated.View>
             </View>
 
@@ -201,16 +201,15 @@ export default function TriageScreen() {
                       right: 0,
                       top: 0,
                       bottom: 0,
-                      borderRadius: 22,
-                      paddingVertical: 30,
-                      paddingHorizontal: 24,
+                      borderRadius: 28,
+                      paddingVertical: 36,
+                      paddingHorizontal: 26,
                     },
                     nextStyle,
                   ]}
                 >
                   <Text
-                    className="font-hk600 text-muted text-center text-[20px]"
-                    style={{ lineHeight: 28 }}
+                    className="font-hk700 text-muted text-center text-title2"
                     numberOfLines={2}
                   >
                     {next.title}
@@ -224,10 +223,10 @@ export default function TriageScreen() {
                   className="border border-soft items-center justify-center"
                   style={[
                     {
-                      borderRadius: 22,
-                      paddingVertical: 30,
-                      paddingHorizontal: 24,
-                      minHeight: 140,
+                      borderRadius: 28,
+                      paddingVertical: 36,
+                      paddingHorizontal: 26,
+                      minHeight: 200,
                       shadowColor: '#000',
                       shadowOpacity: 0.06,
                       shadowRadius: 20,
@@ -238,8 +237,8 @@ export default function TriageScreen() {
                   ]}
                 >
                   <Text
-                    className="font-hk600 text-ink text-center text-[20px]"
-                    style={{ lineHeight: 28 }}
+                    className="font-hk800 text-ink text-center text-title2"
+                    style={{ letterSpacing: -0.3 }}
                   >
                     {current.title}
                   </Text>
@@ -247,14 +246,14 @@ export default function TriageScreen() {
               </GestureDetector>
             </View>
 
-            <View className="flex-row" style={{ gap: 9 }}>
+            <View className="flex-row" style={{ gap: 10 }}>
               <PressableScale
                 haptic
                 onPress={() => decide(current.id, current.title, 'later')}
                 className="flex-1 items-center bg-surface border border-soft"
-                style={{ borderRadius: 14, paddingVertical: 14 }}
+                style={{ borderRadius: 18, paddingVertical: 16 }}
               >
-                <Text className="font-hk700 text-ink text-[13.5px]" maxFontSizeMultiplier={TITLE_SCALE}>
+                <Text className="font-hk700 text-ink text-subhead" maxFontSizeMultiplier={TITLE_SCALE}>
                   Later
                 </Text>
               </PressableScale>
@@ -266,15 +265,15 @@ export default function TriageScreen() {
                 }}
                 className="items-center"
                 style={{
-                  borderRadius: 14,
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
+                  borderRadius: 18,
+                  paddingVertical: 16,
+                  paddingHorizontal: 18,
                   borderWidth: 1,
                   borderStyle: 'dashed',
                   borderColor: palette.muted,
                 }}
               >
-                <Text className="font-hk600 text-muted text-[13.5px]" maxFontSizeMultiplier={TITLE_SCALE}>
+                <Text className="font-hk600 text-muted text-subhead" maxFontSizeMultiplier={TITLE_SCALE}>
                   Let go
                 </Text>
               </PressableScale>
@@ -282,9 +281,9 @@ export default function TriageScreen() {
                 haptic
                 onPress={() => decide(current.id, current.title, 'today')}
                 className="flex-1 items-center bg-accent"
-                style={{ borderRadius: 14, paddingVertical: 14 }}
+                style={{ borderRadius: 18, paddingVertical: 16 }}
               >
-                <Text className="font-hk700 text-on-accent text-[13.5px]" maxFontSizeMultiplier={TITLE_SCALE}>
+                <Text className="font-hk700 text-on-accent text-subhead" maxFontSizeMultiplier={TITLE_SCALE}>
                   Today
                 </Text>
               </PressableScale>
@@ -298,7 +297,7 @@ export default function TriageScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Undo sorting ${lastSorted.title}`}
                 >
-                  <Text className="font-hk600 text-muted text-[13px]" numberOfLines={1}>
+                  <Text className="font-hk600 text-muted text-footnote" numberOfLines={1}>
                     Undo last
                   </Text>
                 </Pressable>
@@ -312,20 +311,22 @@ export default function TriageScreen() {
             style={{ gap: 6 }}
           >
             <Sprite pose="cheer" level={level} />
-            <Text className="font-hk800 text-ink text-[19px] mt-1">All sorted.</Text>
+            <Text className="font-hk800 text-ink text-title2" style={{ marginTop: 4 }}>
+              All sorted.
+            </Text>
             <Text
-              className="font-hk400 text-muted text-[13px] text-center"
-              style={{ maxWidth: 240, lineHeight: 20 }}
+              className="font-hk400 text-muted text-subhead text-center"
+              style={{ maxWidth: 270 }}
             >
               Nothing left to sort. Pick something from Today when you&apos;re ready.
             </Text>
             <PressableScale
               haptic
               onPress={() => goBackOrHome(router)}
-              className="bg-accent mt-3.5"
-              style={{ borderRadius: 14, paddingVertical: 13, paddingHorizontal: 26 }}
+              className="bg-accent"
+              style={{ borderRadius: 18, paddingVertical: 15, paddingHorizontal: 30, marginTop: 16 }}
             >
-              <Text className="font-hk700 text-on-accent text-[14px]">Go to Today</Text>
+              <Text className="font-hk700 text-on-accent text-headline">Go to Today</Text>
             </PressableScale>
             {lastSorted && (
               <Pressable
@@ -335,7 +336,7 @@ export default function TriageScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`Undo sorting ${lastSorted.title}`}
               >
-                <Text className="font-hk600 text-muted text-[13px]">Undo last</Text>
+                <Text className="font-hk600 text-muted text-footnote">Undo last</Text>
               </Pressable>
             )}
           </Animated.View>

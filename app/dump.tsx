@@ -5,7 +5,8 @@ import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanim
 import { useRouter } from 'expo-router'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
-import { ArrowRight, CloseIcon, PlusIcon } from '@/components/ui/Icon'
+import { CloseIcon, PlusIcon } from '@/components/ui/Icon'
+import Group, { Divider } from '@/components/ui/Group'
 import { useApp } from '@/store/AppStore'
 import { MAX_TITLE } from '@/lib/tasks'
 import { useColors } from '@/lib/theme'
@@ -52,56 +53,62 @@ export default function DumpScreen() {
             placeholderTextColor={palette.muted}
             returnKeyType="next"
             accessibilityLabel="What's on your mind?"
-            className="flex-1 font-hk400 text-ink text-[15px]"
-            style={{ paddingVertical: 10, paddingHorizontal: 4 }}
+            className="flex-1 font-hk400 text-ink text-body"
+            style={{ paddingVertical: 11, paddingHorizontal: 6 }}
           />
           <PressableScale
             haptic
             onPress={submit}
             className="bg-accent items-center justify-center"
-            style={{ width: 38, height: 38, borderRadius: 12 }}
+            style={{ width: 40, height: 40, borderRadius: 13 }}
             accessibilityLabel="Add"
           >
             <PlusIcon />
           </PressableScale>
         </View>
 
-        <Text className="font-hk600 text-muted text-[11px] mt-4" style={{ letterSpacing: 0.4 }}>
-          {inbox.length} CAPTURED
+        <Text className="font-hk600 text-muted text-footnote" style={{ marginTop: 18 }}>
+          {inbox.length} captured
         </Text>
 
         <ScrollView
           showsHorizontalScrollIndicator={false}
           className="flex-1 mt-2"
-          contentContainerStyle={{ gap: 8, paddingBottom: 8 }}
+          contentContainerStyle={{ paddingBottom: 8 }}
           keyboardShouldPersistTaps="handled"
         >
-          {inbox.map((item) => (
-            <Animated.View
-              key={item.id}
-              entering={FadeIn.duration(140)}
-              exiting={FadeOut.duration(120)}
-              layout={LinearTransition.duration(160)}
-              className="bg-surface border border-soft flex-row items-center"
-              style={{ borderRadius: 12, paddingHorizontal: 13, paddingVertical: 11, gap: 11 }}
-            >
-              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: palette.accent }} />
-              <Text className="flex-1 font-hk500 text-ink text-[14px]" style={{ lineHeight: 18 }}>
-                {item.title}
-              </Text>
-              <Pressable
-                onPress={() => removeTask(item.id)}
-                hitSlop={14}
-                accessibilityRole="button"
-                accessibilityLabel={`Remove ${item.title}`}
-              >
-                <CloseIcon size={16} />
-              </Pressable>
-            </Animated.View>
-          ))}
+          {inbox.length > 0 && (
+            <Group>
+              {inbox.map((item, i) => (
+                <Animated.View
+                  key={item.id}
+                  entering={FadeIn.duration(140)}
+                  exiting={FadeOut.duration(120)}
+                  layout={LinearTransition.duration(160)}
+                >
+                  {i > 0 && <Divider inset={35} />}
+                  <View
+                    className="flex-row items-center"
+                    style={{ paddingLeft: 16, paddingRight: 14, paddingVertical: 13, gap: 12 }}
+                  >
+                    <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: palette.accent }} />
+                    <Text className="flex-1 font-hk500 text-ink text-body">{item.title}</Text>
+                    <Pressable
+                      onPress={() => removeTask(item.id)}
+                      hitSlop={14}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove ${item.title}`}
+                    >
+                      <CloseIcon size={16} />
+                    </Pressable>
+                  </View>
+                </Animated.View>
+              ))}
+            </Group>
+          )}
           {inbox.length === 0 && (
             <View className="items-center" style={{ paddingVertical: 24 }}>
-              <Text className="font-hk400 text-muted text-[13px] text-center" style={{ lineHeight: 20 }}>
+              <Text className="font-hk400 text-muted text-subhead text-center" style={{ lineHeight: 22 }}>
                 Head&apos;s clear.{'\n'}Add anything that&apos;s taking up space.
               </Text>
             </View>
@@ -112,13 +119,12 @@ export default function DumpScreen() {
           <PressableScale
             haptic
             onPress={() => router.replace('/triage')}
-            className="bg-accent flex-row items-center justify-center mt-3"
-            style={{ borderRadius: 16, paddingVertical: 15, gap: 7 }}
+            className="bg-accent items-center justify-center mt-3"
+            style={{ borderRadius: 18, paddingVertical: 16 }}
           >
-            <Text className="font-hk700 text-on-accent text-[15px]">
+            <Text className="font-hk700 text-on-accent text-headline">
               Sort {inbox.length === 1 ? 'this' : `these ${inbox.length}`}
             </Text>
-            <ArrowRight size={15} />
           </PressableScale>
         )}
       </View>
