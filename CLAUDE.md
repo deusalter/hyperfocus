@@ -25,6 +25,7 @@ ADHD-friendly productivity app on Expo SDK 54 + React Native + NativeWind. See `
 - `RCTAsyncStorageExcludeFromBackup: false` in `app.json` is load-bearing. AsyncStorage excludes itself from iCloud backups by default, so without it every phone upgrade loses all of a user's data.
 - Web resolves Reanimated from source (`metro.config.js`) so `className` on `Animated.View` works there like it does on native. Without that branch, button rows collapse and card fills vanish, but only in a browser.
 - `PressableScale`'s accessibility lives on the outer node, because the touch overlay has no children to build a label from. Don't move it back.
+- **No `KeyboardAvoidingView` inside a sheet** (`presentation: 'modal'`). It measures its own frame from the sheet's top and the keyboard from the screen's, so it lifts short by the sheet's offset and a bottom button ends up under the suggestion bar. Use `useKeyboardPadding()` from `src/lib/keyboard.ts`, which measures from the bottom, or a ScrollView with `automaticallyAdjustKeyboardInsets`.
 - Limb angles in `Sprite` are clockwise from hanging down, so a right-hand arm reaches outward at a *negative* angle. Positive swings it behind the head, where it can't be seen.
 - Import fonts per weight (`@expo-google-fonts/.../400Regular`). The package index bundles all 18 weights of each family.
 - `expo prebuild` rewrites the `ios` and `android` scripts in `package.json`. If you run it to inspect the native config, restore them and delete `ios/`.
