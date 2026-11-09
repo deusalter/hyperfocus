@@ -19,6 +19,14 @@ name: The largest text size
 - takeScreenshot: 02-home-start
 - scroll
 - takeScreenshot: 03-home-list
+# triage is the other screen that doesn't scroll as a whole
+- tapOn: "Sort 2 captured things"
+- extendedWaitUntil:
+    visible: "Text Maya back"
+    timeout: 10000
+- waitForAnimationToEnd
+- takeScreenshot: 03b-triage
+- tapOn: "Close"
 - runFlow:
     file: common/tab.yaml
     env:
