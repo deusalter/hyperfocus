@@ -22,7 +22,7 @@ import UndoToast from '@/components/UndoToast'
 import { useApp } from '@/store/AppStore'
 import { goBackOrHome } from '@/lib/nav'
 import { TODAY_CAP } from '@/lib/points'
-import { useColors } from '@/lib/theme'
+import { TITLE_SCALE, useColors } from '@/lib/theme'
 
 const COMMIT_DX = 80
 /** a flick this fast counts even if it hasn't travelled the distance */
@@ -140,10 +140,13 @@ export default function TriageScreen() {
                 <Text
                   className="font-hk700 text-[12px]"
                   style={{ color: full ? palette.dangerText : palette.muted }}
+                  maxFontSizeMultiplier={1.4}
                 >
                   Today {today.length}/{TODAY_CAP}
                 </Text>
-                <Text className="font-hk600 text-muted text-[12px]">{inbox.length} left</Text>
+                <Text className="font-hk600 text-muted text-[12px]" maxFontSizeMultiplier={1.4}>
+                  {inbox.length} left
+                </Text>
               </View>
             ) : undefined
           }
@@ -172,10 +175,14 @@ export default function TriageScreen() {
             >
               <Animated.View className="flex-row items-center" style={[{ gap: 5 }, laterHint]}>
                 <ArrowLeft size={12} color={palette.muted} />
-                <Text className="font-hk700 text-muted text-[11px]">LATER</Text>
+                <Text className="font-hk700 text-muted text-[11px]" maxFontSizeMultiplier={1.4}>
+                  LATER
+                </Text>
               </Animated.View>
               <Animated.View className="flex-row items-center" style={[{ gap: 5 }, todayHint]}>
-                <Text className="font-hk700 text-accent text-[11px]">TODAY</Text>
+                <Text className="font-hk700 text-accent text-[11px]" maxFontSizeMultiplier={1.4}>
+                  TODAY
+                </Text>
                 <ArrowRight size={12} color={palette.accent} />
               </Animated.View>
             </View>
@@ -247,7 +254,9 @@ export default function TriageScreen() {
                 className="flex-1 items-center bg-surface border border-soft"
                 style={{ borderRadius: 14, paddingVertical: 14 }}
               >
-                <Text className="font-hk700 text-ink text-[13.5px]">Later</Text>
+                <Text className="font-hk700 text-ink text-[13.5px]" maxFontSizeMultiplier={TITLE_SCALE}>
+                  Later
+                </Text>
               </PressableScale>
               <PressableScale
                 haptic
@@ -265,7 +274,9 @@ export default function TriageScreen() {
                   borderColor: palette.muted,
                 }}
               >
-                <Text className="font-hk600 text-muted text-[13.5px]">Let go</Text>
+                <Text className="font-hk600 text-muted text-[13.5px]" maxFontSizeMultiplier={TITLE_SCALE}>
+                  Let go
+                </Text>
               </PressableScale>
               <PressableScale
                 haptic
@@ -273,7 +284,9 @@ export default function TriageScreen() {
                 className="flex-1 items-center bg-accent"
                 style={{ borderRadius: 14, paddingVertical: 14 }}
               >
-                <Text className="font-hk700 text-on-accent text-[13.5px]">Today</Text>
+                <Text className="font-hk700 text-on-accent text-[13.5px]" maxFontSizeMultiplier={TITLE_SCALE}>
+                  Today
+                </Text>
               </PressableScale>
             </View>
             <View style={{ minHeight: 20 }}>
