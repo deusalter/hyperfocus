@@ -425,6 +425,7 @@ export default function YouScreen() {
       {/* Adjusting insets rather than avoiding the keyboard: the feed field sits low
           on this screen, and this also scrolls whichever input has focus into view. */}
       <ScrollView
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"

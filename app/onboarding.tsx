@@ -94,6 +94,7 @@ export default function OnboardingScreen() {
           {/* scrolls rather than clips: step three plus a keyboard is taller than
               an iPhone SE has room for */}
           <ScrollView
+            showsHorizontalScrollIndicator={false}
             className="flex-1"
             contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 12 }}
             keyboardShouldPersistTaps="handled"

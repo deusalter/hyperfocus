@@ -71,6 +71,7 @@ export default function DumpScreen() {
         </Text>
 
         <ScrollView
+          showsHorizontalScrollIndicator={false}
           className="flex-1 mt-2"
           contentContainerStyle={{ gap: 8, paddingBottom: 8 }}
           keyboardShouldPersistTaps="handled"
