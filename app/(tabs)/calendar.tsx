@@ -8,6 +8,7 @@ import Svg, { Path } from 'react-native-svg'
 import CatTag from '@/components/CatTag'
 import WeekStrip, { weekDays } from '@/components/WeekStrip'
 import PressableScale from '@/components/ui/PressableScale'
+import Group, { Divider } from '@/components/ui/Group'
 import { ChevronRight, PlusIcon, SyncIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { dayKey } from '@/lib/points'
@@ -105,33 +106,33 @@ export default function CalendarScreen() {
         >
           <View>
             <Text
-              className="font-hk800 text-ink text-[24px]"
-              style={{ letterSpacing: -0.5 }}
+              className="font-hk800 text-ink text-title1"
+              style={{ letterSpacing: -0.8 }}
               maxFontSizeMultiplier={TITLE_SCALE}
               accessibilityRole="header"
             >
               Calendar
             </Text>
-            <Text className="font-hk400 text-muted text-[13px] mt-0.5">
+            <Text className="font-hk500 text-muted text-footnote" style={{ marginTop: 1 }}>
               {format(days[0].date, 'MMMM yyyy')}
             </Text>
           </View>
           {imported > 0 && (
             <View
-              className="flex-row items-center bg-surface border border-soft rounded-full"
-              style={{ gap: 6, paddingHorizontal: 11, paddingVertical: 6, marginTop: 4 }}
+              className="flex-row items-center bg-surface rounded-full"
+              style={{ gap: 6, paddingHorizontal: 12, paddingVertical: 8, marginTop: 6 }}
               accessible
               accessibilityLabel={`${imported} imported from ${importLabel}`}
             >
               <SyncIcon />
-              <Text className="font-hk700 text-ink text-[11px]">
-                {importLabel} · {imported}
+              <Text className="font-hk700 text-ink text-caption">
+                {imported} from {importLabel}
               </Text>
             </View>
           )}
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(30).duration(260)} className="mt-3.5">
+        <Animated.View entering={FadeInUp.delay(30).duration(260)} style={{ marginTop: 18 }}>
           <WeekStrip
             days={days}
             today={todayISO}
@@ -148,114 +149,114 @@ export default function CalendarScreen() {
 
         {/* selected day */}
         <Animated.View entering={FadeInUp.delay(80).duration(260)}>
-          <View className="flex-row flex-wrap items-baseline" style={{ columnGap: 8, marginTop: 18 }}>
+          <View className="flex-row flex-wrap items-baseline" style={{ columnGap: 8, marginTop: 24 }}>
             <Text
-              className="font-hk800 text-ink text-[16px]"
-              style={{ letterSpacing: -0.3 }}
+              className="font-hk800 text-ink text-title3"
+              style={{ letterSpacing: -0.4 }}
+              maxFontSizeMultiplier={TITLE_SCALE}
               accessibilityRole="header"
             >
               {format(selectedDate, 'EEEE')}
             </Text>
-            <Text className="font-hk400 text-muted text-[13px]">
+            <Text className="font-hk500 text-muted text-subhead">
               {format(selectedDate, 'MMMM d')}
             </Text>
           </View>
 
-          <View className="mt-2.5" style={{ gap: 8 }}>
-            {dayItems.map((item) => (
-              <Pressable
-                key={item.id}
-                onPress={() => router.push({ pathname: '/task/[id]', params: { id: item.id } })}
-                className="bg-surface border border-soft flex-row items-center"
-                style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12, gap: 11 }}
-                accessibilityRole="button"
-                // title first: built from its children it read "Sprint, Clear the desk"
-                accessibilityLabel={`${item.title}${item.course ? `, ${item.course}` : ''}, ${CATS[item.cat ?? 'sprint'].label}`}
-                accessibilityHint="Opens the task to edit it"
-              >
-                <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
-                <View className="flex-1" style={{ minWidth: 0 }}>
-                  <Text className="font-hk500 text-ink text-[14px]" style={{ lineHeight: 18 }}>
-                    {item.title}
-                  </Text>
-                  {item.course && (
-                    <Text className="font-hk600 text-muted text-[11px] mt-1">{item.course}</Text>
-                  )}
-                </View>
-                <ChevronRight size={14} />
-              </Pressable>
-            ))}
+          {dayItems.length === 0 && finished.length === 0 && (
+            <Text className="font-hk400 text-muted text-subhead" style={{ marginTop: 6 }}>
+              Nothing scheduled. A clear day is a good day.
+            </Text>
+          )}
 
-            {dayItems.length === 0 && finished.length === 0 && (
-              <View className="items-center" style={{ paddingVertical: 16, paddingHorizontal: 10 }}>
-                <Text className="font-hk400 text-muted text-[13px] text-center" style={{ lineHeight: 20 }}>
-                  Nothing scheduled.{'\n'}A clear day is a good day.
-                </Text>
-              </View>
-            )}
-
-            {canAdd &&
-              (adding ? (
-                <View
-                  className="bg-surface border border-soft flex-row items-center"
-                  style={{ borderRadius: 14, paddingLeft: 10, paddingRight: 6, paddingVertical: 5, gap: 8 }}
-                >
-                  <TextInput
-                    ref={inputRef}
-                    value={draft}
-                    onChangeText={setDraft}
-                    onSubmitEditing={submit}
-                    submitBehavior="submit"
-                    autoFocus
-                    maxLength={MAX_TITLE}
-                    placeholder={`Something for ${selectedName}`}
-                    placeholderTextColor={palette.muted}
-                    returnKeyType="done"
-                    accessibilityLabel={`Add something for ${selectedName}`}
-                    className="flex-1 font-hk400 text-ink text-[14px]"
-                    style={{ paddingVertical: 8, paddingHorizontal: 3 }}
-                  />
-                  <PressableScale
-                    haptic
-                    onPress={submit}
-                    className="bg-accent items-center justify-center"
-                    style={{ width: 36, height: 36, borderRadius: 11 }}
-                    accessibilityLabel="Add"
+          {(dayItems.length > 0 || canAdd) && (
+            <Group style={{ marginTop: 12 }}>
+              {dayItems.map((item, i) => (
+                <View key={item.id}>
+                  {i > 0 && <Divider inset={56} />}
+                  <Pressable
+                    onPress={() => router.push({ pathname: '/task/[id]', params: { id: item.id } })}
+                    className="flex-row items-center"
+                    style={{ paddingLeft: 14, paddingRight: 14, paddingVertical: 13, gap: 12 }}
+                    accessibilityRole="button"
+                    // title first: built from its children it read "Sprint, Clear the desk"
+                    accessibilityLabel={`${item.title}${item.course ? `, ${item.course}` : ''}, ${CATS[item.cat ?? 'sprint'].label}`}
+                    accessibilityHint="Opens the task to edit it"
                   >
-                    <PlusIcon />
-                  </PressableScale>
+                    <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
+                    <View className="flex-1" style={{ minWidth: 0 }}>
+                      <Text className="font-hk600 text-ink text-body">{item.title}</Text>
+                      {item.course && (
+                        <Text className="font-hk600 text-muted text-caption" style={{ marginTop: 3 }}>
+                          {item.course}
+                        </Text>
+                      )}
+                    </View>
+                    <ChevronRight size={14} />
+                  </Pressable>
                 </View>
-              ) : (
-                <Pressable
-                  onPress={() => setAdding(true)}
-                  className="flex-row items-center justify-center"
-                  style={{
-                    borderRadius: 14,
-                    paddingVertical: 13,
-                    gap: 7,
-                    borderWidth: 1,
-                    borderStyle: 'dashed',
-                    borderColor: palette.muted,
-                  }}
-                  accessibilityRole="button"
-                >
-                  <PlusIcon size={13} color={palette.accent} strokeWidth={2.8} />
-                  <Text className="font-hk700 text-accent text-[13px]">
-                    Add something for {selectedName}
-                  </Text>
-                </Pressable>
               ))}
-          </View>
+
+              {canAdd && (
+                <>
+                  {dayItems.length > 0 && <Divider inset={56} />}
+                  {adding ? (
+                    <View
+                      className="flex-row items-center"
+                      style={{ paddingLeft: 14, paddingRight: 8, paddingVertical: 8, gap: 10 }}
+                    >
+                      <TextInput
+                        ref={inputRef}
+                        value={draft}
+                        onChangeText={setDraft}
+                        onSubmitEditing={submit}
+                        submitBehavior="submit"
+                        autoFocus
+                        maxLength={MAX_TITLE}
+                        placeholder={`Something for ${selectedName}`}
+                        placeholderTextColor={palette.muted}
+                        returnKeyType="done"
+                        accessibilityLabel={`Add something for ${selectedName}`}
+                        className="flex-1 font-hk400 text-ink text-body"
+                        style={{ paddingVertical: 8, paddingHorizontal: 2 }}
+                      />
+                      <PressableScale
+                        haptic
+                        onPress={submit}
+                        className="bg-accent items-center justify-center"
+                        style={{ width: 38, height: 38, borderRadius: 12 }}
+                        accessibilityLabel="Add"
+                      >
+                        <PlusIcon />
+                      </PressableScale>
+                    </View>
+                  ) : (
+                    <Pressable
+                      onPress={() => setAdding(true)}
+                      className="flex-row items-center"
+                      style={{ paddingLeft: 16, paddingRight: 14, paddingVertical: 15, gap: 10 }}
+                      accessibilityRole="button"
+                    >
+                      <PlusIcon size={14} color={palette.accent} strokeWidth={2.8} />
+                      <Text className="font-hk700 text-accent text-subhead">
+                        Add something for {selectedName}
+                      </Text>
+                    </Pressable>
+                  )}
+                </>
+              )}
+            </Group>
+          )}
 
           {finished.length > 0 && (
             <>
               <Text
-                className="font-hk700 text-muted text-[11px]"
-                style={{ letterSpacing: 0.4, marginTop: 18, marginBottom: 8, marginHorizontal: 2 }}
+                className="font-hk700 text-muted text-footnote"
+                style={{ marginTop: 22, marginBottom: 10, marginHorizontal: 2 }}
               >
-                FINISHED
+                Finished
               </Text>
-              <View style={{ gap: 7 }}>
+              <View style={{ gap: 10 }}>
                 {finished.map((c) => (
                   <View
                     key={c.id}
@@ -274,11 +275,11 @@ export default function CalendarScreen() {
                         fill="none"
                       />
                     </Svg>
-                    <Text className="flex-1 font-hk500 text-muted text-[13.5px]" numberOfLines={2}>
+                    <Text className="flex-1 font-hk500 text-muted text-subhead" numberOfLines={2}>
                       {c.title}
                     </Text>
                     {c.minutes > 0 && (
-                      <Text className="font-hk600 text-muted text-[12px]" accessibilityLabel={spoken(`${c.minutes}m`)}>
+                      <Text className="font-hk600 text-muted text-footnote" accessibilityLabel={spoken(`${c.minutes}m`)}>
                         {c.minutes}m
                       </Text>
                     )}
@@ -294,11 +295,11 @@ export default function CalendarScreen() {
           <PressableScale
             onPress={() => router.push('/debrief')}
             className="bg-accent-soft flex-row items-center"
-            style={{ borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, gap: 12, marginTop: 18 }}
+            style={{ borderRadius: 20, paddingHorizontal: 18, paddingVertical: 16, gap: 12, marginTop: 24 }}
           >
             <View className="flex-1">
-              <Text className="font-hk800 text-ink text-[13.5px]">Weekly debrief</Text>
-              <Text className="font-hk400 text-muted text-[12px] mt-0.5">
+              <Text className="font-hk800 text-ink text-headline">Weekly debrief</Text>
+              <Text className="font-hk400 text-muted text-footnote" style={{ marginTop: 2 }}>
                 {overdue.length > 0
                   ? `${overdue.length} slipped past. Decide once, calmly.`
                   : "Nothing overdue. Take a look at what's coming."}

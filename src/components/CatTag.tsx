@@ -44,7 +44,7 @@ export default function CatTag({
       <CatIcon cat={cat} />
       {showLabel && (
         <Text
-          className="font-hk800 text-[11px]"
+          className="font-hk800 text-caption"
           style={{ color: tone.textColor, letterSpacing: 0.2 }}
         >
           {meta.label}

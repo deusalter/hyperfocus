@@ -21,7 +21,7 @@ export default function DueTag({ due, today }: { due: string; today: string }) {
       accessibilityLabel={overdue ? `Was due ${text}` : `Due ${text}`}
     >
       <Text
-        className="font-hk700 text-[11px]"
+        className="font-hk700 text-caption"
         style={{ color: overdue ? palette.dangerText : palette.muted }}
         maxFontSizeMultiplier={1.3}
       >

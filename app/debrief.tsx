@@ -8,6 +8,7 @@ import CatTag from '@/components/CatTag'
 import UndoToast from '@/components/UndoToast'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
+import Group, { Divider } from '@/components/ui/Group'
 import { useApp } from '@/store/AppStore'
 import { STALE_DAYS, ageInDays } from '@/lib/points'
 import { daysBetween, noon } from '@/lib/tasks'
@@ -20,13 +21,12 @@ function SectionHeading({ color, label, count }: { color: string; label: string;
     <View className="flex-row items-center" style={{ gap: 7, marginTop: 20, marginBottom: 10, marginHorizontal: 2 }}>
       <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
       <Text
-        className="font-hk800 text-ink text-[12px]"
-        style={{ letterSpacing: 0.3 }}
+        className="font-hk800 text-ink text-subhead"
         accessibilityRole="header"
       >
         {label}
       </Text>
-      {count != null && <Text className="font-hk600 text-muted text-[12px]">{count}</Text>}
+      {count != null && <Text className="font-hk600 text-muted text-subhead">{count}</Text>}
     </View>
   )
 }
@@ -35,11 +35,10 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   return (
     <View
       className="flex-1 bg-background"
-      style={{ borderRadius: 13, paddingHorizontal: 11, paddingVertical: 9 }}
+      style={{ borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}
     >
       <Text
-        className="font-hk600 text-muted text-[11px]"
-        style={{ letterSpacing: 0.3 }}
+        className="font-hk600 text-muted text-caption"
         numberOfLines={1}
         maxFontSizeMultiplier={1.2}
       >
@@ -47,14 +46,14 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
       </Text>
       <View className="flex-row items-baseline" style={{ gap: 2 }}>
         <Text
-          className="font-mono text-ink text-[19px]"
+          className="font-mono600 text-ink text-title3"
           style={{ letterSpacing: -0.4 }}
           maxFontSizeMultiplier={1.3}
         >
           {value}
         </Text>
         {sub && (
-          <Text className="font-hk400 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
+          <Text className="font-hk400 text-muted text-caption" maxFontSizeMultiplier={1.2}>
             {sub}
           </Text>
         )}
@@ -118,11 +117,11 @@ export default function DebriefScreen() {
           className="bg-surface border border-soft mt-4"
           style={{ borderRadius: 20, padding: 16 }}
         >
-          <Text className="font-hk700 text-muted text-[11px]" style={{ letterSpacing: 0.4 }}>
-            YOUR LAST 7 DAYS
+          <Text className="font-hk600 text-muted text-footnote">
+            Your last 7 days
           </Text>
           <Text
-            className="font-hk800 text-ink text-[17px] mt-1.5"
+            className="font-hk800 text-ink text-title3 mt-1"
             style={{ letterSpacing: -0.3, lineHeight: 23 }}
           >
             {week.completed > 0
@@ -130,14 +129,14 @@ export default function DebriefScreen() {
               : 'A quiet week. It still counts as a week.'}
           </Text>
           <View className="flex-row mt-3.5" style={{ gap: 10 }}>
-            <Stat label="POINTS" value={`${week.points}`} />
-            <Stat label="FOCUSED" value={`${Math.round(week.minutes / 6) / 10}h`} />
-            {!settings.gentle && <Stat label="SHOWED UP" value={`${showedUp}`} sub="/28d" />}
+            <Stat label="Points" value={`${week.points}`} />
+            <Stat label="Focused" value={`${Math.round(week.minutes / 6) / 10}h`} />
+            {!settings.gentle && <Stat label="Showed up" value={`${showedUp}`} sub=" of 28" />}
           </View>
           {week.bestLabel && (
             <Text
-              className="font-hk400 text-muted text-[12px] mt-3"
-              style={{ lineHeight: 17 }}
+              className="font-hk400 text-muted text-caption mt-3"
+             
               accessibilityLabel={spoken(
                 `${week.bestLabel} was your strongest at ${week.bestPoints} pts. What's below is just the next set of choices.`
               )}
@@ -150,7 +149,7 @@ export default function DebriefScreen() {
 
         {overdue.length > 0 && (
           <>
-            <SectionHeading color={palette.danger} label="OVERDUE" count={overdue.length} />
+            <SectionHeading color={palette.danger} label="Overdue" count={overdue.length} />
             <View style={{ gap: 10 }}>
               {overdue.map((item) => (
                 <Animated.View
@@ -166,15 +165,15 @@ export default function DebriefScreen() {
                       <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
                     </View>
                     <View className="flex-1" style={{ minWidth: 0 }}>
-                      <Text className="font-hk600 text-ink text-[14px]" style={{ lineHeight: 18 }}>
+                      <Text className="font-hk600 text-ink text-body">
                         {item.title}
                       </Text>
                       <View className="flex-row flex-wrap items-center mt-1" style={{ gap: 8 }}>
-                        <Text className="font-hk700 text-[12px]" style={{ color: palette.dangerText }}>
+                        <Text className="font-hk700 text-caption" style={{ color: palette.dangerText }}>
                           {dueLabel(item.due!, todayISO)}
                         </Text>
                         {item.course && (
-                          <Text className="font-hk400 text-muted text-[11px]">· {item.course}</Text>
+                          <Text className="font-hk500 text-muted text-caption">{item.course}</Text>
                         )}
                       </View>
                     </View>
@@ -186,7 +185,7 @@ export default function DebriefScreen() {
                       className="flex-1 items-center bg-accent"
                       style={{ borderRadius: 11, paddingVertical: 10 }}
                     >
-                      <Text className="font-hk700 text-on-accent text-[13px]">Do today</Text>
+                      <Text className="font-hk700 text-on-accent text-footnote">Do today</Text>
                     </PressableScale>
                     <PressableScale
                       onPress={() => letGo(item.id)}
@@ -201,7 +200,7 @@ export default function DebriefScreen() {
                         borderColor: palette.muted,
                       }}
                     >
-                      <Text className="font-hk600 text-muted text-[13px]">Let go</Text>
+                      <Text className="font-hk600 text-muted text-footnote">Let go</Text>
                     </PressableScale>
                   </View>
                 </Animated.View>
@@ -212,89 +211,95 @@ export default function DebriefScreen() {
 
         {todayItems.length > 0 && (
           <>
-            <SectionHeading color={palette.accent} label="TODAY" />
-            <View style={{ gap: 8 }}>
-              {todayItems.map((item) => (
-                <Pressable
-                  key={item.id}
-                  onPress={() => openTask(item.id)}
-                  className="bg-surface border border-soft flex-row items-center"
-                  style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12, gap: 11 }}
-                  accessibilityRole="button"
-                  accessibilityHint="Opens the task to edit it"
-                >
-                  <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
-                  <Text className="flex-1 font-hk500 text-ink text-[14px]">{item.title}</Text>
-                </Pressable>
+            <SectionHeading color={palette.accent} label="Today" />
+            <Group>
+              {todayItems.map((item, i) => (
+                <View key={item.id}>
+                  {i > 0 && <Divider inset={54} />}
+                  <Pressable
+                    onPress={() => openTask(item.id)}
+                    className="flex-row items-center"
+                    style={{ paddingHorizontal: 14, paddingVertical: 13, gap: 12 }}
+                    accessibilityRole="button"
+                    accessibilityHint="Opens the task to edit it"
+                  >
+                    <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
+                    <Text className="flex-1 font-hk600 text-ink text-body">{item.title}</Text>
+                  </Pressable>
+                </View>
               ))}
-            </View>
+            </Group>
           </>
         )}
 
         {upcoming.length > 0 && (
           <>
-            <SectionHeading color={palette.muted} label="COMING UP" />
-            <View style={{ gap: 8 }}>
-              {upcoming.map((item) => (
-                <Pressable
-                  key={item.id}
-                  onPress={() => openTask(item.id)}
-                  className="bg-surface border border-soft flex-row items-center"
-                  style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12, gap: 11 }}
-                  accessibilityRole="button"
-                  accessibilityHint="Opens the task to edit it"
-                >
-                  <Text
-                    className="font-hk800 text-muted text-center text-[11px]"
-                    style={{ width: 34 }}
+            <SectionHeading color={palette.muted} label="Coming up" />
+            <Group>
+              {upcoming.map((item, i) => (
+                <View key={item.id}>
+                  {i > 0 && <Divider inset={100} />}
+                  <Pressable
+                    onPress={() => openTask(item.id)}
+                    className="flex-row items-center"
+                    style={{ paddingHorizontal: 14, paddingVertical: 13, gap: 12 }}
+                    accessibilityRole="button"
+                    accessibilityHint="Opens the task to edit it"
                   >
-                    {format(noon(item.due!), 'EEE')}
-                  </Text>
-                  <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
-                  <View className="flex-1" style={{ minWidth: 0 }}>
-                    <Text className="font-hk500 text-ink text-[14px]" style={{ lineHeight: 17 }}>
-                      {item.title}
+                    <Text
+                      className="font-hk800 text-muted text-center text-caption"
+                      style={{ width: 34 }}
+                    >
+                      {format(noon(item.due!), 'EEE')}
                     </Text>
-                    {item.course && (
-                      <Text className="font-hk400 text-muted text-[11px] mt-0.5">{item.course}</Text>
-                    )}
-                  </View>
-                </Pressable>
+                    <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
+                    <View className="flex-1" style={{ minWidth: 0 }}>
+                      <Text className="font-hk500 text-ink text-body">
+                        {item.title}
+                      </Text>
+                      {item.course && (
+                        <Text className="font-hk400 text-muted text-caption mt-0.5">{item.course}</Text>
+                      )}
+                    </View>
+                  </Pressable>
+                </View>
               ))}
-            </View>
+            </Group>
           </>
         )}
 
         {fresh.length > 0 && (
           <>
-            <SectionHeading color={palette.soft} label="SOMEDAY" />
-            <View style={{ gap: 8 }}>
-              {fresh.map((item) => (
-                <View
-                  key={item.id}
-                  className="bg-surface border border-soft flex-row items-center"
-                  style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 11, gap: 11 }}
-                >
-                  <Pressable
-                    onPress={() => openTask(item.id)}
-                    className="flex-1"
-                    accessibilityRole="button"
-                    accessibilityHint="Opens the task to edit it"
+            <SectionHeading color={palette.soft} label="Someday" />
+            <Group>
+              {fresh.map((item, i) => (
+                <View key={item.id}>
+                  {i > 0 && <Divider />}
+                  <View
+                    className="flex-row items-center"
+                    style={{ paddingLeft: 16, paddingRight: 12, paddingVertical: 12, gap: 12 }}
                   >
-                    <Text className="font-hk500 text-ink text-[14px]">{item.title}</Text>
-                  </Pressable>
-                  <PressableScale
-                    onPress={() => pullToToday(item)}
-                    className="bg-accent-soft rounded-full"
-                    style={{ paddingHorizontal: 11, paddingVertical: 6 }}
-                    hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
-                    accessibilityLabel={`Move ${item.title} to Today`}
-                  >
-                    <Text className="font-hk700 text-accent text-[12px]">+ Today</Text>
-                  </PressableScale>
+                    <Pressable
+                      onPress={() => openTask(item.id)}
+                      className="flex-1"
+                      accessibilityRole="button"
+                      accessibilityHint="Opens the task to edit it"
+                    >
+                      <Text className="font-hk600 text-ink text-body">{item.title}</Text>
+                    </Pressable>
+                    <PressableScale
+                      onPress={() => pullToToday(item)}
+                      className="bg-accent-soft rounded-full"
+                      style={{ paddingHorizontal: 13, paddingVertical: 8 }}
+                      hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
+                      accessibilityLabel={`Move ${item.title} to Today`}
+                    >
+                      <Text className="font-hk700 text-accent text-footnote">+ Today</Text>
+                    </PressableScale>
+                  </View>
                 </View>
               ))}
-            </View>
+            </Group>
           </>
         )}
 
@@ -302,7 +307,7 @@ export default function DebriefScreen() {
           <>
             <SectionHeading color={palette.soft} label="STILL WAITING" count={stale.length} />
             <Text
-              className="font-hk400 text-muted text-[12.5px]"
+              className="font-hk400 text-muted text-footnote"
               style={{ marginHorizontal: 2, marginTop: -4, marginBottom: 10, lineHeight: 18 }}
             >
               These have been sitting {STALE_DAYS}+ days. Letting one go is a decision, and the
@@ -319,10 +324,10 @@ export default function DebriefScreen() {
                   style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12 }}
                 >
                   <View className="flex-row items-baseline" style={{ gap: 8 }}>
-                    <Text className="flex-1 font-hk500 text-ink text-[14px]" style={{ lineHeight: 18 }}>
+                    <Text className="flex-1 font-hk500 text-ink text-body">
                       {item.title}
                     </Text>
-                    <Text className="font-hk600 text-muted text-[11px]">
+                    <Text className="font-hk600 text-muted text-caption">
                       {Math.floor(ageInDays(item.createdAt, todayISO) / 7)}w
                     </Text>
                   </View>
@@ -339,14 +344,14 @@ export default function DebriefScreen() {
                         borderColor: palette.muted,
                       }}
                     >
-                      <Text className="font-hk700 text-muted text-[12.5px]">Let it go</Text>
+                      <Text className="font-hk700 text-muted text-footnote">Let it go</Text>
                     </PressableScale>
                     <PressableScale
                       onPress={() => pullToToday(item)}
                       className="flex-1 items-center bg-accent-soft"
                       style={{ borderRadius: 11, paddingVertical: 9 }}
                     >
-                      <Text className="font-hk700 text-accent text-[12.5px]">Still want it</Text>
+                      <Text className="font-hk700 text-accent text-footnote">Still want it</Text>
                     </PressableScale>
                   </View>
                 </Animated.View>
@@ -356,7 +361,7 @@ export default function DebriefScreen() {
         )}
 
         <Text
-          className="font-hk400 text-muted text-center text-[13px]"
+          className="font-hk400 text-muted text-center text-footnote"
           style={{ marginTop: 24, lineHeight: 19 }}
         >
           That&apos;s the week closed. You only have to do the next thing.

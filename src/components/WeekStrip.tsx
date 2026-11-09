@@ -58,18 +58,18 @@ export default function WeekStrip({
           accessibilityLabel="Previous week"
         >
           <ChevronLeft size={15} />
-          <Text className="font-hk700 text-muted text-[14px]" maxFontSizeMultiplier={1.4}>
+          <Text className="font-hk700 text-muted text-subhead" maxFontSizeMultiplier={1.4}>
             Prev
           </Text>
         </Pressable>
         {offset !== 0 ? (
           <Pressable onPress={() => onJump(0)} hitSlop={14} accessibilityRole="button">
-            <Text className="font-hk700 text-accent text-[13px]" maxFontSizeMultiplier={1.4}>
+            <Text className="font-hk700 text-accent text-footnote" maxFontSizeMultiplier={1.4}>
               Back to today
             </Text>
           </Pressable>
         ) : (
-          <Text className="font-hk600 text-muted text-[12.5px]" maxFontSizeMultiplier={1.4}>
+          <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.4}>
             This week
           </Text>
         )}
@@ -80,7 +80,7 @@ export default function WeekStrip({
           accessibilityRole="button"
           accessibilityLabel="Next week"
         >
-          <Text className="font-hk700 text-muted text-[14px]" maxFontSizeMultiplier={1.4}>
+          <Text className="font-hk700 text-muted text-subhead" maxFontSizeMultiplier={1.4}>
             Next
           </Text>
           <ChevronRight size={15} />
@@ -88,8 +88,8 @@ export default function WeekStrip({
       </View>
 
       <View
-        className="bg-surface border border-soft flex-row justify-between mt-2"
-        style={{ borderRadius: 18, paddingVertical: 12, paddingHorizontal: 6 }}
+        className="bg-surface border border-soft flex-row justify-between"
+        style={{ borderRadius: 20, paddingVertical: 12, paddingHorizontal: 6, marginTop: 10 }}
       >
         {days.map((cell) => {
           const isSelected = cell.key === selected
@@ -109,14 +109,14 @@ export default function WeekStrip({
               accessibilityState={{ selected: isSelected, disabled }}
               accessibilityLabel={`${isToday ? 'Today, ' : ''}${when}${count > 0 ? `, ${count} ${count === 1 ? 'task' : 'tasks'}` : ''}`}
             >
-              <Text className="font-hk700 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
+              <Text className="font-hk700 text-muted text-caption" maxFontSizeMultiplier={1.2}>
                 {cell.letter}
               </Text>
               <View
                 style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 15,
+                  width: 34,
+                  height: 34,
+                  borderRadius: 17,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: isSelected ? palette.accent : 'transparent',
@@ -125,7 +125,7 @@ export default function WeekStrip({
                 }}
               >
                 <Text
-                  className="font-hk800 text-[13.5px]"
+                  className="font-hk800 text-subhead"
                   maxFontSizeMultiplier={1.2}
                   style={{
                     color: isSelected ? palette.onAccent : isToday ? palette.accent : palette.ink,

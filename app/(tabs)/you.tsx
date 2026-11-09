@@ -33,8 +33,8 @@ import { SoundKind } from '@/lib/types'
 function SectionLabel({ children }: { children: string }) {
   return (
     <Text
-      className="font-hk700 text-muted text-[11px]"
-      style={{ letterSpacing: 0.4, marginTop: 20, marginBottom: 8, marginHorizontal: 4 }}
+      className="font-hk700 text-muted text-footnote"
+      style={{ marginTop: 26, marginBottom: 8, marginHorizontal: 4 }}
       accessibilityRole="header"
     >
       {children}
@@ -44,7 +44,7 @@ function SectionLabel({ children }: { children: string }) {
 
 function Card({ children, style }: { children: ReactNode; style?: object }) {
   return (
-    <View className="bg-surface border border-soft" style={[{ borderRadius: 16 }, style]}>
+    <View className="bg-surface border border-soft" style={[{ borderRadius: 20 }, style]}>
       {children}
     </View>
   )
@@ -89,7 +89,7 @@ function Segments<T extends string | number>({
             accessibilityLabel={o.a11y ?? o.label}
           >
             <Text
-              className="font-hk700 text-[14px]"
+              className="font-hk700 text-subhead"
               numberOfLines={1}
               style={{ color: active ? palette.onAccent : palette.ink }}
               maxFontSizeMultiplier={1.3}
@@ -132,8 +132,8 @@ function ToggleRow({
       }}
     >
       <View className="flex-1">
-        <Text className="font-hk700 text-ink text-[14.5px]">{title}</Text>
-        <Text className="font-hk400 text-muted text-[12.5px] mt-0.5" style={{ lineHeight: 17 }}>
+        <Text className="font-hk700 text-ink text-body">{title}</Text>
+        <Text className="font-hk400 text-muted text-footnote mt-0.5">
           {subtitle}
         </Text>
       </View>
@@ -171,7 +171,7 @@ function LinkRow({
       }}
     >
       <Text
-        className="flex-1 font-hk600 text-[14.5px]"
+        className="flex-1 font-hk600 text-body"
         style={{ color: danger ? palette.dangerText : palette.ink }}
       >
         {title}
@@ -220,10 +220,10 @@ function FeedCard() {
             <SyncIcon size={20} strokeWidth={2} />
           </View>
           <View className="flex-1">
-            <Text className="font-hk700 text-ink text-[14.5px]">
+            <Text className="font-hk700 text-ink text-body">
               {isCanvasUrl(url) ? 'Canvas connected' : 'Calendar connected'}
             </Text>
-            <Text className="font-hk400 text-muted text-[12.5px] mt-0.5" style={{ lineHeight: 17 }}>
+            <Text className="font-hk400 text-muted text-footnote mt-0.5">
               {feed.syncing
                 ? 'Checking now…'
                 : settings.feedSyncedAt
@@ -234,7 +234,7 @@ function FeedCard() {
           </View>
         </View>
         {!feed.syncing && (feed.added ?? 0) + feed.moved > 0 && (
-          <Text className="font-hk600 text-accent text-[12.5px] mt-2.5" style={{ lineHeight: 17 }}>
+          <Text className="font-hk600 text-accent text-footnote mt-2.5">
             {(feed.added ?? 0) > 0 ? `Brought in ${feed.added} new. They're waiting in Later. ` : ''}
             {feed.moved > 0
               ? `${feed.moved} ${feed.moved === 1 ? 'deadline' : 'deadlines'} moved on the calendar, so the ${feed.moved === 1 ? 'date was' : 'dates were'} updated.`
@@ -242,7 +242,7 @@ function FeedCard() {
           </Text>
         )}
         {feed.error && !feed.syncing && (
-          <Text className="font-hk600 text-[12.5px] mt-2.5" style={{ color: palette.dangerText, lineHeight: 17 }}>
+          <Text className="font-hk600 text-footnote mt-2.5" style={{ color: palette.dangerText }}>
             {FEED_ERRORS[feed.error]}
           </Text>
         )}
@@ -253,14 +253,14 @@ function FeedCard() {
             className="flex-1 items-center bg-accent-soft"
             style={{ borderRadius: 11, paddingVertical: 10 }}
           >
-            <Text className="font-hk700 text-accent text-[13px]">Check now</Text>
+            <Text className="font-hk700 text-accent text-footnote">Check now</Text>
           </PressableScale>
           <PressableScale
             onPress={disconnect}
             className="flex-1 items-center bg-surface border border-soft"
             style={{ borderRadius: 11, paddingVertical: 10 }}
           >
-            <Text className="font-hk600 text-muted text-[13px]">Disconnect</Text>
+            <Text className="font-hk600 text-muted text-footnote">Disconnect</Text>
           </PressableScale>
         </View>
       </Card>
@@ -277,8 +277,8 @@ function FeedCard() {
           <SyncIcon size={20} strokeWidth={2} />
         </View>
         <View className="flex-1">
-          <Text className="font-hk700 text-ink text-[14.5px]">Canvas or calendar</Text>
-          <Text className="font-hk400 text-muted text-[12.5px] mt-0.5" style={{ lineHeight: 17 }}>
+          <Text className="font-hk700 text-ink text-body">Canvas or calendar</Text>
+          <Text className="font-hk400 text-muted text-footnote mt-0.5">
             Bring in what&apos;s due, without typing it.
           </Text>
         </View>
@@ -289,13 +289,13 @@ function FeedCard() {
             style={{ paddingHorizontal: 13, paddingVertical: 7 }}
             hitSlop={{ top: 8, bottom: 8 }}
           >
-            <Text className="font-hk700 text-accent text-[12.5px]">Connect</Text>
+            <Text className="font-hk700 text-accent text-footnote">Connect</Text>
           </PressableScale>
         )}
       </View>
       {open && (
         <Animated.View entering={FadeIn.duration(160)} className="mt-3">
-          <Text className="font-hk400 text-muted text-[12.5px]" style={{ lineHeight: 18 }}>
+          <Text className="font-hk400 text-muted text-footnote">
             In Canvas, open Calendar and tap Calendar Feed, then copy the link. Google and Outlook
             calendars have one too, usually called the secret or public iCal address.
           </Text>
@@ -311,11 +311,11 @@ function FeedCard() {
             placeholder="Paste the link here"
             placeholderTextColor={palette.muted}
             accessibilityLabel="Calendar feed link"
-            className="bg-background border border-soft font-hk400 text-ink text-[14px] mt-2.5"
+            className="bg-background border border-soft font-hk400 text-ink text-subhead mt-2.5"
             style={{ borderRadius: 11, paddingHorizontal: 12, paddingVertical: 11 }}
           />
           {feed.error && !feed.syncing && (
-            <Text className="font-hk600 text-[12.5px] mt-2" style={{ color: palette.dangerText, lineHeight: 17 }}>
+            <Text className="font-hk600 text-footnote mt-2" style={{ color: palette.dangerText }}>
               {FEED_ERRORS[feed.error]}
             </Text>
           )}
@@ -325,7 +325,7 @@ function FeedCard() {
               className="items-center bg-surface border border-soft"
               style={{ borderRadius: 11, paddingVertical: 11, paddingHorizontal: 18 }}
             >
-              <Text className="font-hk600 text-muted text-[13px]">Cancel</Text>
+              <Text className="font-hk600 text-muted text-footnote">Cancel</Text>
             </PressableScale>
             <PressableScale
               onPress={connect}
@@ -333,12 +333,12 @@ function FeedCard() {
               className="flex-1 items-center bg-accent"
               style={{ borderRadius: 11, paddingVertical: 11 }}
             >
-              <Text className="font-hk700 text-on-accent text-[13px]">
+              <Text className="font-hk700 text-on-accent text-footnote">
                 {feed.syncing ? 'Connecting…' : 'Connect'}
               </Text>
             </PressableScale>
           </View>
-          <Text className="font-hk400 text-muted text-[12px] mt-2.5" style={{ lineHeight: 17 }}>
+          <Text className="font-hk400 text-muted text-caption mt-2.5">
             Only what&apos;s due in the next 30 days comes in, and it waits in Later. The link stays
             on this phone and is only ever sent to the calendar it points at.
           </Text>
@@ -434,8 +434,8 @@ export default function YouScreen() {
       >
         <Animated.View entering={FadeInUp.duration(260)}>
           <Text
-            className="font-hk800 text-ink text-[24px]"
-            style={{ letterSpacing: -0.5 }}
+            className="font-hk800 text-ink text-title1"
+            style={{ letterSpacing: -0.8 }}
             maxFontSizeMultiplier={TITLE_SCALE}
             accessibilityRole="header"
           >
@@ -446,8 +446,8 @@ export default function YouScreen() {
         {/* profile card */}
         <Animated.View
           entering={FadeInUp.delay(40).duration(260)}
-          className="bg-surface border border-soft items-center mt-4"
-          style={{ borderRadius: 20, paddingVertical: 18, paddingHorizontal: 16 }}
+          className="bg-surface border border-soft items-center"
+          style={{ marginTop: 18, borderRadius: 24, paddingVertical: 20, paddingHorizontal: 16 }}
         >
           <Sprite pose="idle" level={companionLevel} />
           {editingName ? (
@@ -462,7 +462,7 @@ export default function YouScreen() {
               placeholder="Your name"
               placeholderTextColor={palette.muted}
               accessibilityLabel="Your name"
-              className="font-hk800 text-ink text-[20px] text-center mt-1"
+              className="font-hk800 text-ink text-title2 text-center mt-1"
               style={{ minWidth: 160, paddingVertical: 2, borderBottomWidth: 1.5, borderBottomColor: palette.accent }}
             />
           ) : (
@@ -475,18 +475,18 @@ export default function YouScreen() {
               accessibilityRole="button"
               accessibilityHint="Change your name"
             >
-              <Text className="font-hk800 text-ink text-[20px] mt-1" style={{ letterSpacing: -0.3 }}>
+              <Text className="font-hk800 text-ink text-title2 mt-1" style={{ letterSpacing: -0.4 }}>
                 {settings.name.trim() || 'Add your name'}
               </Text>
             </Pressable>
           )}
           <View className="flex-row flex-wrap justify-center mt-2.5" style={{ gap: 8 }}>
             <View className="bg-accent-soft rounded-full" style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
-              <Text className="font-hk700 text-accent text-[12px]">Level {companionLevel}</Text>
+              <Text className="font-hk700 text-accent text-caption">Level {companionLevel}</Text>
             </View>
             {!settings.gentle && showedUp > 0 && (
               <View className="bg-accent-soft rounded-full" style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
-                <Text className="font-hk700 text-accent text-[12px]">
+                <Text className="font-hk700 text-accent text-caption">
                   {showedUp} {showedUp === 1 ? 'day' : 'days'} in 4 weeks
                 </Text>
               </View>
@@ -495,9 +495,9 @@ export default function YouScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(80).duration(260)}>
-          <SectionLabel>FOCUS</SectionLabel>
+          <SectionLabel>Focus</SectionLabel>
           <Card style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
-            <Text className="font-hk700 text-ink text-[14px]">Session length</Text>
+            <Text className="font-hk700 text-ink text-subhead">Session length</Text>
             <View className="mt-2.5">
               <Segments
                 groupLabel="Session length"
@@ -510,13 +510,13 @@ export default function YouScreen() {
                 }))}
               />
             </View>
-            <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ lineHeight: 17 }}>
+            <Text className="font-hk400 text-muted text-footnote mt-2">
               You can always add or take off time during a session.
             </Text>
 
             <View style={{ height: 1, backgroundColor: palette.soft, marginVertical: 14 }} />
 
-            <Text className="font-hk700 text-ink text-[14px]">Focus sound</Text>
+            <Text className="font-hk700 text-ink text-subhead">Focus sound</Text>
             <View className="mt-2.5">
               <Segments
                 groupLabel="Focus sound"
@@ -529,14 +529,14 @@ export default function YouScreen() {
                 }))}
               />
             </View>
-            <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ lineHeight: 17 }}>
+            <Text className="font-hk400 text-muted text-footnote mt-2">
               {sound === 'off'
                 ? 'Plays during sessions and mixes with your own music.'
                 : `${SOUNDS[sound].blurb}. Plays during sessions and mixes with your own music.`}
             </Text>
           </Card>
 
-          <SectionLabel>REMINDERS</SectionLabel>
+          <SectionLabel>Reminders</SectionLabel>
           <Card style={{ overflow: 'hidden' }}>
             <ToggleRow
               title="A daily nudge"
@@ -560,7 +560,7 @@ export default function YouScreen() {
                     className="mt-2.5"
                     accessibilityRole="button"
                   >
-                    <Text className="font-hk600 text-[12.5px]" style={{ color: palette.dangerText, lineHeight: 17 }}>
+                    <Text className="font-hk600 text-footnote" style={{ color: palette.dangerText }}>
                       Notifications are off for Hyperfocus, so these can&apos;t reach you. Tap to open
                       Settings.
                     </Text>
@@ -570,10 +570,10 @@ export default function YouScreen() {
             )}
           </Card>
 
-          <SectionLabel>IMPORT</SectionLabel>
+          <SectionLabel>Import</SectionLabel>
           <FeedCard />
 
-          <SectionLabel>PREFERENCES</SectionLabel>
+          <SectionLabel>Preferences</SectionLabel>
           <Card style={{ overflow: 'hidden' }}>
             <ToggleRow
               title="Gentle mode"
@@ -582,7 +582,7 @@ export default function YouScreen() {
               onToggle={() => updateSettings({ gentle: !settings.gentle })}
             />
             <View style={{ paddingHorizontal: 16, paddingVertical: 14 }}>
-              <Text className="font-hk700 text-ink text-[14.5px]">Appearance</Text>
+              <Text className="font-hk700 text-ink text-body">Appearance</Text>
               <View className="mt-2.5">
                 <Segments
                   groupLabel="Appearance"
@@ -598,7 +598,7 @@ export default function YouScreen() {
             </View>
           </Card>
 
-          <SectionLabel>ABOUT</SectionLabel>
+          <SectionLabel>About</SectionLabel>
           <Card style={{ overflow: 'hidden' }}>
             <LinkRow title="Replay welcome" onPress={() => router.push('/onboarding')} />
             <LinkRow
@@ -617,7 +617,7 @@ export default function YouScreen() {
             <LinkRow title="Reset everything" danger last onPress={confirmReset} />
           </Card>
 
-          <Text className="font-hk400 text-muted text-center text-[12px]" style={{ marginTop: 22, lineHeight: 18 }}>
+          <Text className="font-hk400 text-muted text-center text-caption" style={{ marginTop: 22 }}>
             Hyperfocus{version ? ` · v${version}` : ''}
             {'\n'}
             Everything stays on this phone. A productivity tool, not medical advice or treatment.

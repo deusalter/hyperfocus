@@ -58,7 +58,7 @@ export default function UndoToast({ bottom = 20 }: { bottom?: number }) {
         }}
       >
         <Text
-          className="flex-1 font-hk600 text-white text-[14px]"
+          className="flex-1 font-hk600 text-white text-subhead"
           numberOfLines={1}
           maxFontSizeMultiplier={1.4}
         >
@@ -71,7 +71,7 @@ export default function UndoToast({ bottom = 20 }: { bottom?: number }) {
           style={{ paddingHorizontal: 12, paddingVertical: 13 }}
         >
           <Text
-            className="font-hk800 text-[14px]"
+            className="font-hk800 text-subhead"
             style={{ color: UNDO_COLOR }}
             maxFontSizeMultiplier={1.4}
           >

@@ -46,7 +46,7 @@ function Chip({
       >
         <CatIcon cat={cat} color={selected ? palette.onAccent : tone.color} />
         <Text
-          className="font-hk800 text-[11px]"
+          className="font-hk800 text-caption"
           style={{ color: selected ? palette.onAccent : tone.textColor, letterSpacing: 0.2 }}
         >
           {meta.label}
@@ -114,7 +114,7 @@ export default function CatPicker({
         }}
       >
         <CatIcon cat={value} />
-        <Text className="font-hk800 text-[11px]" style={{ color: tone.textColor, letterSpacing: 0.2 }}>
+        <Text className="font-hk800 text-caption" style={{ color: tone.textColor, letterSpacing: 0.2 }}>
           {meta.label}
         </Text>
         {/* a caret carries "this opens" without a sentence repeated on every

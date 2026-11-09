@@ -39,7 +39,7 @@ export default function ScreenHeader({
           {variant === 'close' ? <CloseIcon size={24} /> : <ChevronLeft size={24} />}
         </Pressable>
         <Text
-          className="font-hk800 text-ink text-[22px]"
+          className="font-hk800 text-ink text-title2"
           maxFontSizeMultiplier={TITLE_SCALE}
           style={{ letterSpacing: -0.4 }}
           accessibilityRole="header"
@@ -50,8 +50,7 @@ export default function ScreenHeader({
       </View>
       {subtitle && (
         <Text
-          className="font-hk400 text-muted text-[13px] mt-1.5"
-          style={{ lineHeight: 18 }}
+          className="font-hk400 text-muted text-footnote mt-1.5"
           // past twice its size it pushed the Brain dump's field under the keyboard
           maxFontSizeMultiplier={TITLE_SCALE}
         >

@@ -18,8 +18,8 @@ import { CATS, CAT_ORDER, tintOn, useColors } from '@/lib/theme'
 function Label({ children }: { children: string }) {
   return (
     <Text
-      className="font-hk700 text-muted text-[11px]"
-      style={{ letterSpacing: 0.4, marginTop: 20, marginBottom: 8, marginHorizontal: 2 }}
+      className="font-hk700 text-muted text-footnote"
+      style={{ marginTop: 22, marginBottom: 8, marginHorizontal: 2 }}
     >
       {children}
     </Text>
@@ -56,7 +56,7 @@ function Choice({
       hitSlop={{ top: 4, bottom: 4 }}
     >
       <Text
-        className="font-hk700 text-[13px]"
+        className="font-hk700 text-footnote"
         style={{ color: selected ? palette.onAccent : palette.ink }}
       >
         {label}
@@ -162,16 +162,16 @@ export default function TaskScreen() {
           accessibilityLabel="Task title"
           submitBehavior="blurAndSubmit"
           returnKeyType="done"
-          className="bg-surface border border-soft font-hk700 text-ink text-[18px] mt-4"
+          className="bg-surface border border-soft font-hk700 text-ink text-title3 mt-4"
           style={{ borderRadius: 16, paddingHorizontal: 15, paddingTop: 13, paddingBottom: 13, lineHeight: 24 }}
         />
         {task.course && (
-          <Text className="font-hk600 text-muted text-[12px] mt-2" style={{ marginHorizontal: 2 }}>
+          <Text className="font-hk600 text-muted text-caption mt-2" style={{ marginHorizontal: 2 }}>
             {task.source === 'canvas' ? 'From Canvas' : 'From your calendar'} · {task.course}
           </Text>
         )}
 
-        <Label>WHEN I START, I WILL…</Label>
+        <Label>When I start, I will…</Label>
         {/* The same if-then plan the focus screen asks for. Filling it in here
             means the move is already on the Start card before you commit. */}
         <TextInput
@@ -183,11 +183,11 @@ export default function TaskScreen() {
           placeholderTextColor={palette.muted}
           accessibilityLabel="The very first move"
           returnKeyType="done"
-          className="bg-surface border border-soft font-hk400 text-ink text-[14px]"
+          className="bg-surface border border-soft font-hk400 text-ink text-subhead"
           style={{ borderRadius: 13, paddingHorizontal: 14, paddingVertical: 12 }}
         />
 
-        <Label>WHAT KIND</Label>
+        <Label>What kind</Label>
         <View className="flex-row" style={{ gap: 8 }}>
           {CAT_ORDER.map((c) => {
             const meta = CATS[c]
@@ -213,7 +213,7 @@ export default function TaskScreen() {
               >
                 <CatIcon cat={c} size={13} color={selected ? palette.onAccent : tone.color} />
                 <Text
-                  className="font-hk800 text-[12.5px]"
+                  className="font-hk800 text-footnote"
                   style={{ color: selected ? palette.onAccent : tone.textColor }}
                 >
                   {meta.label}
@@ -222,11 +222,11 @@ export default function TaskScreen() {
             )
           })}
         </View>
-        <Text className="font-hk400 text-muted text-[12.5px] mt-2" style={{ marginHorizontal: 2 }}>
+        <Text className="font-hk400 text-muted text-footnote mt-2" style={{ marginHorizontal: 2 }}>
           {CATS[cat].blurb}
         </Text>
 
-        <Label>WHEN</Label>
+        <Label>When</Label>
         <View className="flex-row flex-wrap" style={{ gap: 7 }}>
           <Choice label="No date" selected={!task.due} onPress={() => setDue(undefined)} />
           {quick.map((q) => (
@@ -259,7 +259,7 @@ export default function TaskScreen() {
           </View>
         )}
 
-        <Label>WHICH LIST</Label>
+        <Label>Which list</Label>
         <View className="flex-row" style={{ gap: 8 }}>
           <View className="flex-1">
             <Choice label="Today" selected={onToday} onPress={() => moveTo('today')} />
@@ -279,7 +279,7 @@ export default function TaskScreen() {
           className="bg-accent items-center"
           style={{ borderRadius: 16, paddingVertical: 15, marginTop: 26 }}
         >
-          <Text className="font-hk700 text-on-accent text-[15px]">Start focusing</Text>
+          <Text className="font-hk700 text-on-accent text-headline">Start focusing</Text>
         </PressableScale>
         <View className="flex-row mt-2.5" style={{ gap: 9 }}>
           <PressableScale
@@ -292,7 +292,7 @@ export default function TaskScreen() {
             className="flex-1 items-center bg-surface border border-soft"
             style={{ borderRadius: 14, paddingVertical: 13 }}
           >
-            <Text className="font-hk700 text-ink text-[14px]">Mark done</Text>
+            <Text className="font-hk700 text-ink text-subhead">Mark done</Text>
           </PressableScale>
           <PressableScale
             haptic
@@ -309,7 +309,7 @@ export default function TaskScreen() {
               borderColor: palette.muted,
             }}
           >
-            <Text className="font-hk600 text-muted text-[14px]">Let go</Text>
+            <Text className="font-hk600 text-muted text-subhead">Let go</Text>
           </PressableScale>
         </View>
       </ScrollView>

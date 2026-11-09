@@ -53,8 +53,8 @@ function HowItem({ kind, title, body }: { kind: 'dump' | 'start' | 'grow'; title
     <View className="flex-row items-start" style={{ gap: 14 }} accessible>
       <StepIcon kind={kind} />
       <View className="flex-1">
-        <Text className="font-hk700 text-ink text-[15.5px]">{title}</Text>
-        <Text className="font-hk400 text-muted text-[13px] mt-0.5" style={{ lineHeight: 19 }}>
+        <Text className="font-hk700 text-ink text-headline">{title}</Text>
+        <Text className="font-hk400 text-muted text-subhead mt-0.5">
           {body}
         </Text>
       </View>
@@ -88,7 +88,7 @@ export default function OnboardingScreen() {
           {/* grows with the text rather than clipping Skip at the largest sizes */}
           <View className="flex-row justify-end" style={{ minHeight: 24 }}>
             <Pressable onPress={finish} hitSlop={14} accessibilityRole="button" accessibilityLabel="Skip the introduction">
-              <Text className="font-hk600 text-muted text-[13.5px]" maxFontSizeMultiplier={TITLE_SCALE}>
+              <Text className="font-hk600 text-muted text-subhead" maxFontSizeMultiplier={TITLE_SCALE}>
                 Skip
               </Text>
             </Pressable>
@@ -107,7 +107,7 @@ export default function OnboardingScreen() {
               <Animated.View entering={FadeInUp.duration(400)} className="items-center">
                 <Sprite pose="wave" level={4} scale={1.1} />
                 <Text
-                  className="font-hk800 text-ink text-[30px] mt-2.5"
+                  className="font-hk800 text-ink text-[34px] mt-2.5"
                   maxFontSizeMultiplier={TITLE_SCALE}
                   style={{ letterSpacing: -1 }}
                   accessibilityRole="header"
@@ -115,13 +115,13 @@ export default function OnboardingScreen() {
                   Hyperfocus
                 </Text>
                 <Text
-                  className="font-hk500 text-ink text-center text-[16px] mt-2.5"
+                  className="font-hk500 text-ink text-center text-headline mt-2.5"
                   style={{ lineHeight: 24, maxWidth: 290 }}
                 >
                   Race your past self, gently.
                 </Text>
                 <Text
-                  className="font-hk400 text-muted text-center text-[14px] mt-2"
+                  className="font-hk400 text-muted text-center text-subhead mt-2"
                   style={{ lineHeight: 21, maxWidth: 290 }}
                 >
                   Built for ADHD brains. Miss a day and nothing breaks. You just pick up from
@@ -133,7 +133,7 @@ export default function OnboardingScreen() {
             {step === 1 && (
               <Animated.View entering={FadeInUp.duration(400)} style={{ width: '100%', maxWidth: 310 }}>
                 <Text
-                  className="font-hk800 text-ink text-center text-[24px] mb-6"
+                  className="font-hk800 text-ink text-center text-title1 mb-6"
                   maxFontSizeMultiplier={TITLE_SCALE}
                   style={{ letterSpacing: -0.5 }}
                   accessibilityRole="header"
@@ -163,20 +163,20 @@ export default function OnboardingScreen() {
             {step === 2 && (
               <Animated.View entering={FadeInUp.duration(400)} style={{ width: '100%', maxWidth: 310 }}>
                 <Text
-                  className="font-hk800 text-ink text-center text-[24px]"
+                  className="font-hk800 text-ink text-center text-title1"
                   style={{ letterSpacing: -0.5 }}
                   maxFontSizeMultiplier={TITLE_SCALE}
                   accessibilityRole="header"
                 >
                   Set your pace
                 </Text>
-                <Text className="font-hk400 text-muted text-center text-[13px] mt-1.5" style={{ lineHeight: 19 }}>
+                <Text className="font-hk400 text-muted text-center text-subhead mt-1.5">
                   All optional. You can change anything later.
                 </Text>
 
                 <View style={{ marginTop: 22 }}>
-                  <Text className="font-hk700 text-muted text-[12px]" style={{ letterSpacing: 0.3 }}>
-                    WHAT SHOULD WE CALL YOU?
+                  <Text className="font-hk700 text-muted text-footnote">
+                    What should we call you?
                   </Text>
                   <TextInput
                     value={name}
@@ -186,14 +186,14 @@ export default function OnboardingScreen() {
                     placeholderTextColor={palette.muted}
                     returnKeyType="done"
                     accessibilityLabel="Your name"
-                    className="bg-surface border border-soft font-hk400 text-ink text-[15px]"
+                    className="bg-surface border border-soft font-hk400 text-ink text-body"
                     style={{ marginTop: 7, borderRadius: 13, paddingHorizontal: 14, paddingVertical: 13 }}
                   />
                 </View>
 
                 <View style={{ marginTop: 18 }}>
-                  <Text className="font-hk700 text-muted text-[12px]" style={{ letterSpacing: 0.3 }}>
-                    FOCUS SESSION LENGTH
+                  <Text className="font-hk700 text-muted text-footnote">
+                    Focus session length
                   </Text>
                   <View className="flex-row" style={{ gap: 8, marginTop: 7 }} accessibilityRole="radiogroup">
                     {FOCUS_OPTIONS.map((n) => {
@@ -215,7 +215,7 @@ export default function OnboardingScreen() {
                           accessibilityLabel={`${n} minutes`}
                         >
                           <Text
-                            className="font-hk700 text-[14px]"
+                            className="font-hk700 text-subhead"
                             style={{ color: active ? palette.onAccent : palette.ink }}
                           >
                             {n}m
@@ -234,8 +234,8 @@ export default function OnboardingScreen() {
                   accessibilityState={{ checked: gentle }}
                 >
                   <View className="flex-1">
-                    <Text className="font-hk700 text-ink text-[14.5px]">Gentle mode</Text>
-                    <Text className="font-hk400 text-muted text-[12.5px] mt-0.5" style={{ lineHeight: 17 }}>
+                    <Text className="font-hk700 text-ink text-body">Gentle mode</Text>
+                    <Text className="font-hk400 text-muted text-footnote mt-0.5">
                       No comparisons. Hides the race field and day counts.
                     </Text>
                   </View>
@@ -279,7 +279,7 @@ export default function OnboardingScreen() {
                 elevation: 8,
               }}
             >
-              <Text className="font-hk700 text-on-accent text-[15.5px]">
+              <Text className="font-hk700 text-on-accent text-headline">
                 {step >= STEPS - 1 ? "Let's go" : 'Next'}
               </Text>
             </PressableScale>
