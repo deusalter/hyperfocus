@@ -102,8 +102,15 @@ jobs:
       - name: Unpack
         run: ditto -x -k Hyperfocus.app.zip .
       - name: Install Maestro
+        # The installer once finished without installing anything, and every flow
+        # then failed with "command not found", so it retries and checks.
         run: |
-          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          for attempt in 1 2 3; do
+            curl -fsSL "https://get.maestro.mobile.dev" | bash && [ -x "$HOME/.maestro/bin/maestro" ] && break
+            echo "install attempt $attempt didn't work; trying again"
+            sleep 15
+          done
+          "$HOME/.maestro/bin/maestro" --version
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Simulators available
         run: xcrun simctl list runtimes | grep -i ios; xcrun simctl list devicetypes | grep -E "iPhone (17|SE)"
