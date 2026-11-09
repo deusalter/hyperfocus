@@ -7,7 +7,7 @@ name: Store shot, focus
     timeout: 60000
 - tapOn: "Session in progress.*"
 - extendedWaitUntil:
-    visible: "FOCUSING ON"
+    visible: "Focusing on"
     timeout: 8000
 - waitForAnimationToEnd
 - takeScreenshot: 02-focus

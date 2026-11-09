@@ -12,7 +12,7 @@ name: Editing a task
     centerElement: true
 - tapOn: "Clear the desk"
 - extendedWaitUntil:
-    visible: "WHAT KIND"
+    visible: "What kind"
     timeout: 5000
 - tapOn: "Fire.*"
 - tapOn: "Tomorrow"

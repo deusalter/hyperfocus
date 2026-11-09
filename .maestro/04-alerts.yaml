@@ -11,7 +11,7 @@ name: System alerts
 # of our own on "Allow" raced it, and once the prompt was gone the tap landed on
 # the app at the same spot: on Focus at the largest text size, Stop without saving.
 - extendedWaitUntil:
-    visible: "FOCUSING ON"
+    visible: "Focusing on"
     timeout: 8000
 - tapOn: "Back"
 - extendedWaitUntil:
@@ -25,7 +25,7 @@ name: System alerts
 - takeScreenshot: 01-already-focusing
 - tapOn: "Back to it"
 - extendedWaitUntil:
-    visible: "FOCUSING ON"
+    visible: "Focusing on"
     timeout: 5000
 - tapOn: "Stop without saving"
 # under a minute in, so this one stops straight away

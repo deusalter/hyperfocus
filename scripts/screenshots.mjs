@@ -147,7 +147,7 @@ const SHOTS = [
       }),
     act: async (page) => {
       await page.getByLabel('Done with Clear the desk').click()
-      await page.getByText('SESSION COMPLETE').first().waitFor({ timeout: 6000 })
+      await page.getByText('Session complete').first().waitFor({ timeout: 6000 })
       await page.waitForTimeout(1250)
     },
   },

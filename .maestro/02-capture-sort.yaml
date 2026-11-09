@@ -19,7 +19,7 @@ name: Capture and sort
 - inputText: "Clean desk"
 - pressKey: Enter
 - takeScreenshot: 01-dump
-- assertVisible: "4 CAPTURED"
+- assertVisible: "4 captured"
 - tapOn: "Sort these 4"
 - extendedWaitUntil:
     visible: "Clean desk"

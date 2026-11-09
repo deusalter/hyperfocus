@@ -7,11 +7,11 @@ name: Store shot, recap
     timeout: 60000
 - tapOn: "Session in progress.*"
 - extendedWaitUntil:
-    visible: "FOCUSING ON"
+    visible: "Focusing on"
     timeout: 8000
 - tapOn: "Done with .*"
 - extendedWaitUntil:
-    visible: "SESSION COMPLETE"
+    visible: "Session complete"
     timeout: 8000
 - waitForAnimationToEnd
 - takeScreenshot: 05-recap

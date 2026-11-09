@@ -16,7 +16,7 @@ name: Focus session
 # of our own on "Allow" raced it, and once the prompt was gone the tap landed on
 # the app at the same spot: on Focus at the largest text size, Stop without saving.
 - extendedWaitUntil:
-    visible: "FOCUSING ON"
+    visible: "Focusing on"
     timeout: 8000
 - takeScreenshot: 02-focus
 - tapOn: "Add 5 minutes"
@@ -28,7 +28,7 @@ name: Focus session
 - takeScreenshot: 04-home-banner
 - tapOn: "Session in progress.*"
 - extendedWaitUntil:
-    visible: "FOCUSING ON"
+    visible: "Focusing on"
     timeout: 5000
 - tapOn: "Pause"
 - extendedWaitUntil:
@@ -45,7 +45,7 @@ name: Focus session
 - tapOn: "Set"
 - tapOn: "Done with .*"
 - extendedWaitUntil:
-    visible: "SESSION COMPLETE"
+    visible: "Session complete"
     timeout: 6000
 - waitForAnimationToEnd
 - takeScreenshot: 07-recap

@@ -60,10 +60,12 @@ const open = async (page, path = '/') => {
   await page.goto(BASE + path, { waitUntil: 'load', timeout: 180000 })
   await page.waitForTimeout(700)
 }
+// Screens under a modal stay in the page on web, so the first match can be a
+// hidden copy of the same words. Only a visible one counts as seen.
 const see = (page, text, timeout = 6000) =>
-  page.getByText(text, { exact: false }).first().waitFor({ state: 'visible', timeout })
+  page.getByText(text, { exact: false }).filter({ visible: true }).first().waitFor({ state: 'visible', timeout })
 const seeExact = (page, text, timeout = 6000) =>
-  page.getByText(text, { exact: true }).first().waitFor({ state: 'visible', timeout })
+  page.getByText(text, { exact: true }).filter({ visible: true }).first().waitFor({ state: 'visible', timeout })
 const gone = (page, text, timeout = 6000) =>
   page.getByText(text, { exact: false }).first().waitFor({ state: 'hidden', timeout })
 const tap = async (page, text) => {
@@ -71,6 +73,9 @@ const tap = async (page, text) => {
   await el.waitFor({ state: 'visible', timeout: 6000 })
   await el.click()
 }
+// Triage's swipe hints read "Today" and "Later" too; they're hidden from screen
+// readers, so pressing by role reaches the real button the way a user would.
+const choose = (page, name) => page.getByRole('button', { name, exact: true }).first().click()
 const stored = (page, key) =>
   page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? 'null'), key)
 function assert(cond, msg) {
@@ -114,23 +119,23 @@ await scenario('capture, then sort with undo', seed({ tasks: [] }), async (page)
     await input.fill(t)
     await input.press('Enter')
   }
-  await see(page, '3 CAPTURED')
+  await see(page, '3 captured')
   await see(page, 'Sort these 3')
   await page.getByText('Sort these 3').click()
 
   // newest first
   await see(page, 'Water plants')
-  await tap(page, 'Today')
+  await choose(page, 'Today')
   await see(page, 'Call dentist')
-  await tap(page, 'Later')
+  await choose(page, 'Later')
   await see(page, 'Buy stamps')
-  await tap(page, 'Let go')
+  await choose(page, 'Let go')
   await see(page, 'All sorted')
 
   await see(page, 'Let go of "Buy stamps"')
   await tap(page, 'Undo')
   await see(page, 'Buy stamps')
-  await tap(page, 'Today')
+  await choose(page, 'Today')
   await see(page, 'All sorted')
 
   const tasks = await stored(page, 'hf2-tasks')
@@ -149,14 +154,14 @@ await scenario('the last sort can be taken back, including the final card', seed
   await open(page, '/triage')
   await see(page, 'First card')
   await gone(page, 'Undo last', 500)
-  await tap(page, 'Later')
+  await choose(page, 'Later')
   await see(page, 'Second card')
   await tap(page, 'Undo last')
   await see(page, 'First card')
   assert((await stored(page, 'hf2-tasks')).find((t) => t.id === 'a').bucket === 'inbox', 'not back in the inbox')
-  await tap(page, 'Today')
+  await choose(page, 'Today')
   await see(page, 'Second card')
-  await tap(page, 'Today')
+  await choose(page, 'Today')
   await see(page, 'All sorted')
   await tap(page, 'Undo last')
   await see(page, 'Second card')
@@ -171,7 +176,7 @@ await scenario('the soft cap warns but never blocks', seed({
 }), async (page) => {
   await open(page, '/triage')
   await see(page, 'Later is not a downgrade')
-  await tap(page, 'Today')
+  await choose(page, 'Today')
   await see(page, 'All sorted')
   const moved = (await stored(page, 'hf2-tasks')).find((t) => t.id === 'i')
   assert(moved.bucket === 'today', 'over-cap task was not allowed through')
@@ -197,26 +202,26 @@ await scenario('checking something off scores it and can be undone', seed(), asy
 await scenario('back leaves the session running, and Home can find it', seed(), async (page) => {
   await open(page)
   await page.getByText('Start one thing').click()
-  await see(page, 'FOCUSING ON')
+  await see(page, 'Focusing on')
   await page.getByLabel('Back', { exact: true }).click()
-  await see(page, 'Session in progress')
+  await see(page, 'Focusing until')
   assert(await stored(page, 'hf2-focus'), 'session was destroyed by going back')
   await gone(page, 'Start one thing', 1000)
-  await page.getByText('Session in progress').click()
-  await see(page, 'FOCUSING ON')
+  await page.getByText(/Focusing until/).click()
+  await see(page, 'Focusing on')
 })
 
 await scenario('pause holds the clock across a reload', seed(), async (page) => {
   await open(page)
   await page.getByText('Start one thing').click()
-  await see(page, 'FOCUSING ON')
+  await see(page, 'Focusing on')
   await tap(page, 'Pause')
-  await seeExact(page, 'PAUSED')
+  await seeExact(page, 'Paused')
   const saved = await stored(page, 'hf2-focus')
   assert(saved.running === false, 'pause not persisted')
   await page.reload()
   await page.waitForTimeout(900)
-  await seeExact(page, 'PAUSED')
+  await seeExact(page, 'Paused')
   await page.waitForTimeout(1500)
   assert((await stored(page, 'hf2-focus')).pausedRemaining === saved.pausedRemaining, 'clock moved while paused')
 })
@@ -224,7 +229,7 @@ await scenario('pause holds the clock across a reload', seed(), async (page) => 
 await scenario('time can be added and taken off a running session', seed(), async (page) => {
   await open(page)
   await page.getByText('Start one thing').click()
-  await see(page, 'FOCUSING ON')
+  await see(page, 'Focusing on')
   const total = async () => (await stored(page, 'hf2-focus')).totalSec
   assert((await total()) === 1500, 'unexpected starting length')
   await page.getByLabel('Add 5 minutes').click()
@@ -239,9 +244,9 @@ await scenario('time can be added and taken off a running session', seed(), asyn
 await scenario('Done finishes the task, and it can be put back', seed(), async (page) => {
   await open(page)
   await page.getByLabel(/^Focus on Clear the desk/).click()
-  await see(page, 'FOCUSING ON')
+  await see(page, 'Focusing on')
   await page.getByLabel('Done with Clear the desk').click()
-  await see(page, 'SESSION COMPLETE')
+  await see(page, 'Session complete')
   await see(page, 'for starting')
   assert(!(await stored(page, 'hf2-tasks')).some((t) => t.id === 't3'), 'task not removed on Done')
   await page.getByText('Not actually finished').click()
@@ -256,7 +261,7 @@ await scenario('stopping in the first minute keeps the task and logs nothing', s
   await open(page)
   const before = (await stored(page, 'hf2-history')).length
   await page.getByText('Start one thing').click()
-  await see(page, 'FOCUSING ON')
+  await see(page, 'Focusing on')
   await tap(page, 'Stop without saving')
   await see(page, 'Today')
   assert((await stored(page, 'hf2-history')).length === before, 'stopped session was logged')
@@ -269,7 +274,7 @@ const nearlyDone = () =>
 
 await scenario('a session running out does not delete the unfinished task', nearlyDone(), async (page) => {
   await open(page, '/focus')
-  await see(page, "TIME'S UP", 8000)
+  await see(page, "Time's up", 8000)
   await see(page, 'Did you finish it?')
   assert((await stored(page, 'hf2-tasks')).some((t) => t.id === 't1'), 'task deleted when time ran out')
   assert((await stored(page, 'hf2-history')).length === 15, 'session not banked')
@@ -290,18 +295,18 @@ await scenario('another round starts the same task again', nearlyDone(), async (
   await open(page, '/focus')
   await see(page, 'Did you finish it?', 8000)
   await page.getByText('Go another 25 minutes').click()
-  await see(page, 'FOCUSING ON')
+  await see(page, 'Focusing on')
   await see(page, 'Draft intro for history essay')
   const session = await stored(page, 'hf2-focus')
   assert(session?.taskId === 't1' && session.running, 'second round did not start')
   await page.waitForTimeout(600)
-  await see(page, 'FOCUSING ON') // must not bounce home
+  await see(page, 'Focusing on') // must not bounce home
 })
 
 await scenario('a session ending on another tab still gets its recap', nearlyDone(), async (page) => {
   await open(page, '/calendar')
   await see(page, 'Calendar')
-  await see(page, "TIME'S UP", 8000)
+  await see(page, "Time's up", 8000)
   assert((await stored(page, 'hf2-history')).length === 15, 'session not banked')
 })
 
@@ -312,7 +317,7 @@ await scenario('a recap waits for an open sheet instead of interrupting it', nea
   assert(await page.getByPlaceholder("What's on your mind?").isVisible(), 'recap interrupted brain dump')
   assert((await page.getByPlaceholder("What's on your mind?").inputValue()) === 'half a thought', 'draft lost')
   await page.getByLabel('Close').click()
-  await see(page, "TIME'S UP", 6000)
+  await see(page, "Time's up", 6000)
 })
 
 await scenario('a session that ran out long ago is credited to when it ended', seed({
@@ -332,7 +337,7 @@ await scenario('a session that ran out long ago is credited to when it ended', s
     `credited to ${entry.completedAt}, not the day it ended`
   )
   assert(!(await stored(page, 'hf2-focus')), 'stale session still stored')
-  await gone(page, "TIME'S UP", 1000) // a forgotten session shouldn't open on a recap
+  await gone(page, "Time's up", 1000) // a forgotten session shouldn't open on a recap
 })
 
 // ---- editing and dates: the calendar has to be real ----
@@ -340,7 +345,7 @@ await scenario('a session that ran out long ago is credited to when it ended', s
 await scenario('the editor changes a task and saves without a button', seed(), async (page) => {
   await open(page)
   await page.getByText('Clear the desk').first().click()
-  await see(page, 'WHAT KIND')
+  await see(page, 'What kind')
   await page.getByLabel('Task title').fill('Clear the whole desk')
   await page.getByLabel('The very first move').fill('move the mugs')
   await page.getByLabel(/^Fire\./).click()
@@ -366,7 +371,7 @@ await scenario('a dated task appears on the calendar and on its day', seed({
   tasks: [{ id: 'x', title: 'Dated thing', cat: 'sprint', bucket: 'later', createdAt: new Date().toISOString() }],
 }), async (page) => {
   await open(page, '/task/x')
-  await see(page, 'WHAT KIND')
+  await see(page, 'What kind')
   await tap(page, 'Today')
   await page.getByLabel('Close').click()
   await see(page, 'Start one thing')
@@ -390,7 +395,7 @@ await scenario('moving a due-today task to Later actually moves it', seed({
 await scenario('letting go from the editor closes it and offers undo', seed(), async (page) => {
   await open(page)
   await page.getByText('Clear the desk').first().click()
-  await see(page, 'WHAT KIND')
+  await see(page, 'What kind')
   await tap(page, 'Let go')
   await see(page, 'Let go of "Clear the desk"')
   assert(!(await stored(page, 'hf2-tasks')).some((t) => t.id === 't3'), 'task not removed')
@@ -433,7 +438,7 @@ await scenario('a session started from the editor uses the title just typed', se
   await open(page, '/task/t3')
   await page.getByLabel('Task title').fill('Clear the whole desk')
   await tap(page, 'Start focusing')
-  await see(page, 'FOCUSING ON')
+  await see(page, 'Focusing on')
   assert((await stored(page, 'hf2-focus')).title === 'Clear the whole desk', 'session has the old title')
 })
 
@@ -498,13 +503,13 @@ await scenario('what is due gets suggested first', seed(), async (page) => {
 await scenario('gentle mode removes every comparison', seed({ settings: { gentle: true } }), async (page) => {
   await open(page)
   await see(page, 'pts so far today')
-  for (const text of ['typical', 'PASSED', 'TYPICAL DAY']) {
+  for (const text of ['typical', 'passed', 'Typical day']) {
     assert(!(await page.getByText(text, { exact: false }).first().isVisible().catch(() => false)), `Home still shows "${text}"`)
   }
   assert(!(await page.getByText('days', { exact: true }).first().isVisible().catch(() => false)), 'Home still shows the day count')
   await open(page, '/insights')
   await see(page, 'What your week contained')
-  for (const text of ['vs last week', 'typical', 'SHOWED UP', 'Quieter']) {
+  for (const text of ['vs last week', 'typical', 'Showed up', 'Quieter']) {
     assert(!(await page.getByText(text, { exact: false }).first().isVisible().catch(() => false)), `Insights still shows "${text}"`)
   }
 })
@@ -645,7 +650,7 @@ await scenario('the session banner gives a clock time for how long is left', see
 }), async (page) => {
   await open(page)
   await see(page, 'until ')
-  const text = await page.getByText(/Session in progress/).first().textContent()
+  const text = await page.getByText(/Focusing until/).first().textContent()
   assert(/until \d{1,2}:\d{2} [AP]M/.test(text), `banner said: ${text}`)
 })
 
@@ -701,7 +706,7 @@ await scenario('screens that do not scroll still fit on the smallest phones', se
   await tap(page, 'Not yet')
   await see(page, 'Start one thing')
   await page.getByText('Start one thing').first().click()
-  await see(page, 'FOCUSING ON')
+  await see(page, 'Focusing on')
   await page.waitForTimeout(300)
   over = await clipped()
   assert(over.length === 0, `focus at 320x568: ${over.join('; ')}`)
@@ -831,13 +836,13 @@ for (const colorScheme of ['light', 'dark']) {
     await audit('feed error')
     await open(page)
     await page.getByText('Start one thing').first().click()
-    await see(page, 'FOCUSING ON')
+    await see(page, 'Focusing on')
     await audit('focus')
     await tap(page, 'Pause')
     await audit('paused')
     await page.getByText('Resume', { exact: true }).last().click()
     await page.getByLabel(/^Done with /).click()
-    await see(page, 'SESSION COMPLETE')
+    await see(page, 'Session complete')
     await page.waitForTimeout(1200)
     await audit('recap')
 

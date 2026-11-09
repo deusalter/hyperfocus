@@ -7,7 +7,7 @@ name: Store shot, brain dump
     timeout: 60000
 - tapOn: "Brain dump"
 - extendedWaitUntil:
-    visible: "5 CAPTURED"
+    visible: "5 captured"
     timeout: 8000
 - waitForAnimationToEnd
 - takeScreenshot: 03-dump
