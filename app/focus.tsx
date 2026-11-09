@@ -278,7 +278,9 @@ export default function FocusScreen() {
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets
         >
-          <Text className="font-hk600 text-muted text-footnote">Focusing on</Text>
+          <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={TITLE_SCALE}>
+            Focusing on
+          </Text>
           <Text
             className="font-hk800 text-ink text-center text-title2"
             style={{ letterSpacing: -0.4, paddingHorizontal: 10, marginTop: 2 }}
@@ -293,7 +295,7 @@ export default function FocusScreen() {
               className="bg-accent-soft rounded-[16px]"
               style={{ paddingHorizontal: 14, paddingVertical: 8, maxWidth: 300, marginTop: 10 }}
             >
-              <Text className="font-hk600 text-accent text-center text-footnote">
+              <Text className="font-hk600 text-accent text-center text-footnote" maxFontSizeMultiplier={TITLE_SCALE}>
                 Start by: {focusTask.firstStep}
               </Text>
             </View>

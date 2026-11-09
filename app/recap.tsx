@@ -146,6 +146,7 @@ export default function RecapScreen() {
         <Animated.Text
           entering={FadeIn.duration(240)}
           className="font-hk700 text-accent text-footnote"
+          maxFontSizeMultiplier={TITLE_SCALE}
         >
           {expired ? "Time's up" : 'Session complete'}
         </Animated.Text>
@@ -172,6 +173,7 @@ export default function RecapScreen() {
           entering={FadeIn.delay(190).duration(240)}
           className="font-hk400 text-muted text-center text-subhead"
           style={{ maxWidth: 300, marginTop: 6 }}
+          maxFontSizeMultiplier={TITLE_SCALE}
           numberOfLines={4}
           accessibilityLabel={spoken(msg)}
         >

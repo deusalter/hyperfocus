@@ -119,7 +119,7 @@ export default function InsightsScreen() {
           >
             Insights
           </Text>
-          <Text className="font-hk500 text-muted text-footnote" style={{ marginTop: 1 }}>
+          <Text className="font-hk500 text-muted text-footnote" style={{ marginTop: 1 }} maxFontSizeMultiplier={TITLE_SCALE}>
             {gentle ? 'What your week contained' : 'You vs your past self'}
           </Text>
         </Animated.View>

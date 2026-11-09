@@ -113,7 +113,7 @@ export default function CalendarScreen() {
             >
               Calendar
             </Text>
-            <Text className="font-hk500 text-muted text-footnote" style={{ marginTop: 1 }}>
+            <Text className="font-hk500 text-muted text-footnote" style={{ marginTop: 1 }} maxFontSizeMultiplier={TITLE_SCALE}>
               {format(days[0].date, 'MMMM yyyy')}
             </Text>
           </View>
@@ -125,7 +125,7 @@ export default function CalendarScreen() {
               accessibilityLabel={`${imported} imported from ${importLabel}`}
             >
               <SyncIcon />
-              <Text className="font-hk700 text-ink text-caption">
+              <Text className="font-hk700 text-ink text-caption" maxFontSizeMultiplier={1.4}>
                 {imported} from {importLabel}
               </Text>
             </View>

@@ -211,6 +211,7 @@ export default function TriageScreen() {
                   <Text
                     className="font-hk700 text-muted text-center text-title2"
                     numberOfLines={2}
+                    maxFontSizeMultiplier={TITLE_SCALE}
                   >
                     {next.title}
                   </Text>
@@ -239,6 +240,7 @@ export default function TriageScreen() {
                   <Text
                     className="font-hk800 text-ink text-center text-title2"
                     style={{ letterSpacing: -0.3 }}
+                    maxFontSizeMultiplier={TITLE_SCALE}
                   >
                     {current.title}
                   </Text>

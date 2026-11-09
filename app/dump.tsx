@@ -9,7 +9,7 @@ import { CloseIcon, PlusIcon } from '@/components/ui/Icon'
 import Group, { Divider } from '@/components/ui/Group'
 import { useApp } from '@/store/AppStore'
 import { MAX_TITLE } from '@/lib/tasks'
-import { useColors } from '@/lib/theme'
+import { TITLE_SCALE, useColors } from '@/lib/theme'
 import { useKeyboardPadding } from '@/lib/keyboard'
 
 export default function DumpScreen() {
@@ -55,6 +55,8 @@ export default function DumpScreen() {
             accessibilityLabel="What's on your mind?"
             className="flex-1 font-hk400 text-ink text-body"
             style={{ paddingVertical: 11, paddingHorizontal: 6 }}
+            // past twice its size the field and Sort can't both stay above the keyboard
+            maxFontSizeMultiplier={TITLE_SCALE}
           />
           <PressableScale
             haptic
@@ -122,7 +124,7 @@ export default function DumpScreen() {
             className="bg-accent items-center justify-center mt-3"
             style={{ borderRadius: 18, paddingVertical: 16 }}
           >
-            <Text className="font-hk700 text-on-accent text-headline">
+            <Text className="font-hk700 text-on-accent text-headline" maxFontSizeMultiplier={TITLE_SCALE}>
               Sort {inbox.length === 1 ? 'this' : `these ${inbox.length}`}
             </Text>
           </PressableScale>

@@ -99,7 +99,7 @@ export default function HomeScreen() {
           style={{ gap: 10, flexDirection: large ? 'column' : 'row' }}
         >
           <View style={{ flexShrink: 1 }}>
-            <Text className="font-hk600 text-muted text-footnote">
+            <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={TITLE_SCALE}>
               {format(new Date(), 'EEEE, MMMM d')}
             </Text>
             <Text

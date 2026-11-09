@@ -163,7 +163,7 @@ export default function RaceCard() {
             {title}
           </Text>
           {detail && (
-            <Text className="font-hk500 text-muted text-subhead" style={{ marginTop: 2 }}>
+            <Text className="font-hk500 text-muted text-subhead" style={{ marginTop: 2 }} maxFontSizeMultiplier={TITLE_SCALE}>
               {detail}
             </Text>
           )}
