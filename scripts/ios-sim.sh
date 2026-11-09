@@ -95,6 +95,11 @@ new_device() {
     note "FAIL  install on $type"
     return 1
   }
+  # One launch creates the app's data folder. On a slow runner it wasn't there yet
+  # when the first flow's data was written, so that flow opened on the welcome screen.
+  with_timeout 60 xcrun simctl launch "$UDID" "$BUNDLE" > /dev/null 2>&1
+  sleep 4
+  with_timeout 30 xcrun simctl terminate "$UDID" "$BUNDLE" > /dev/null 2>&1
   log "ready"
 }
 
