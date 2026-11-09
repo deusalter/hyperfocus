@@ -95,6 +95,7 @@ export default function CalendarScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 130 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         automaticallyAdjustKeyboardInsets
       >
         <Animated.View entering={FadeInUp.duration(260)} className="flex-row justify-between items-start">
