@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { View, Text, Pressable, ScrollView } from 'react-native'
+import { View, Text, Pressable, ScrollView, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
@@ -11,6 +11,7 @@ import { useApp } from '@/store/AppStore'
 import { scoreParts } from '@/lib/points'
 import { spoken } from '@/lib/speech'
 import { TITLE_SCALE } from '@/lib/theme'
+import { Divider } from '@/components/ui/Group'
 
 /** Finished things logged before asking for a review. Enough to have an opinion. */
 const REVIEW_AFTER = 5
@@ -45,6 +46,7 @@ function useCountUp(target: number, duration = 700, delay = 380) {
 
 export default function RecapScreen() {
   const router = useRouter()
+  const { height } = useWindowDimensions()
   const {
     lastRecap,
     todayTotals,
@@ -78,6 +80,9 @@ export default function RecapScreen() {
     if (!lastRecap && !leaving.current) router.dismissTo('/')
   }, [lastRecap, router])
 
+  // On a short phone the time's-up recap holds a question and three buttons as well,
+  // so the cheer shrinks and the gaps close up rather than pushing anything off screen.
+  const compact = height < 700
   if (!lastRecap) return <View className="flex-1 bg-background" />
 
   const goHome = () => {
@@ -140,34 +145,33 @@ export default function RecapScreen() {
       >
         <Animated.Text
           entering={FadeIn.duration(240)}
-          className="font-hk800 text-accent text-[11px]"
-          style={{ letterSpacing: 1.5 }}
+          className="font-hk700 text-accent text-footnote"
         >
-          {expired ? "TIME'S UP" : 'SESSION COMPLETE'}
+          {expired ? "Time's up" : 'Session complete'}
         </Animated.Text>
 
         <Animated.View
           entering={ZoomIn.duration(260).delay(80)}
-          className="mt-2.5"
+          style={{ marginTop: 6 }}
           importantForAccessibility="no-hide-descendants"
           accessibilityElementsHidden
         >
-          <Sprite pose="cheer" level={Math.max(level, 1)} />
+          <Sprite pose="cheer" level={Math.max(level, 1)} scale={compact ? 0.8 : 1.15} />
         </Animated.View>
 
         <Animated.Text
           entering={FadeIn.delay(140).duration(240)}
-          className="font-hk800 text-ink text-[23px] mt-1 text-center"
+          className="font-hk800 text-ink text-title1 text-center"
           maxFontSizeMultiplier={TITLE_SCALE}
-          style={{ letterSpacing: -0.3 }}
+          style={{ letterSpacing: -0.8, marginTop: 2 }}
           accessibilityRole="header"
         >
           {title}
         </Animated.Text>
         <Animated.Text
           entering={FadeIn.delay(190).duration(240)}
-          className="font-hk400 text-muted text-center text-[13.5px] mt-2"
-          style={{ maxWidth: 280, lineHeight: 20 }}
+          className="font-hk400 text-muted text-center text-subhead"
+          style={{ maxWidth: 300, marginTop: 6 }}
           numberOfLines={4}
           accessibilityLabel={spoken(msg)}
         >
@@ -176,41 +180,52 @@ export default function RecapScreen() {
 
         <Animated.View
           entering={FadeIn.delay(240).duration(240)}
-          className="flex-row mt-5 w-full"
-          style={{ gap: 10 }}
+          className="bg-surface border border-soft w-full"
+          style={{ borderRadius: 22, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 14, marginTop: compact ? 16 : 24 }}
         >
-          <View
-            className="flex-1 bg-surface border border-soft"
-            style={{ borderRadius: 16, padding: 14 }}
-            accessible
-            accessibilityLabel={`Plus ${lastRecap.points} points this session: ${parts.start} for starting${parts.focus > 0 ? `, ${parts.focus} focused` : ''}.`}
-          >
-            <Text className="font-mono text-accent text-[24px]" style={{ letterSpacing: -0.5 }} maxFontSizeMultiplier={TITLE_SCALE}>
-              +{sessionPts}
-            </Text>
-            <Text className="font-hk600 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
-              PTS THIS SESSION
-            </Text>
-            {/* Naming the start portion once per session is the point of the
-                scoring change — the reward for beginning should be something
-                you can see, not a number folded invisibly into a total. */}
-            <Text className="font-hk400 text-muted text-[11px] mt-1.5" style={{ lineHeight: 14 }}>
-              {parts.start} for starting{parts.focus > 0 ? ` · ${parts.focus} focused` : ''}
-            </Text>
+          <View className="flex-row items-end justify-between" style={{ gap: 12 }}>
+            <View
+              className="flex-1"
+              accessible
+              accessibilityLabel={`Plus ${lastRecap.points} points this session: ${parts.start} for starting${parts.focus > 0 ? `, ${parts.focus} focused` : ''}.`}
+            >
+              <Text
+                className="font-mono600 text-accent"
+                style={{ fontSize: 40, letterSpacing: -1.5 }}
+                maxFontSizeMultiplier={TITLE_SCALE}
+              >
+                +{sessionPts}
+              </Text>
+              <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.4}>
+                points this session
+              </Text>
+            </View>
+            <View
+              className="items-end"
+              accessible
+              accessibilityLabel={`${todayTotals.points} points of momentum today.`}
+            >
+              <Text
+                className="font-mono600 text-ink text-title2"
+                style={{ letterSpacing: -0.5 }}
+                maxFontSizeMultiplier={TITLE_SCALE}
+              >
+                {momentumPts}
+              </Text>
+              <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.4}>
+                today
+              </Text>
+            </View>
           </View>
-          <View
-            className="flex-1 bg-surface border border-soft"
-            style={{ borderRadius: 16, padding: 14 }}
-            accessible
-            accessibilityLabel={`${todayTotals.points} points of momentum today.`}
-          >
-            <Text className="font-mono text-ink text-[24px]" style={{ letterSpacing: -0.5 }} maxFontSizeMultiplier={TITLE_SCALE}>
-              {momentumPts}
-            </Text>
-            <Text className="font-hk600 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
-              MOMENTUM TODAY
-            </Text>
+          <View style={{ marginVertical: 12 }}>
+            <Divider inset={0} />
           </View>
+          {/* Naming the start portion once per session is the point of the
+              scoring change — the reward for beginning should be something
+              you can see, not a number folded invisibly into a total. */}
+          <Text className="font-hk500 text-muted text-footnote">
+            {parts.start} for starting{parts.focus > 0 ? `, ${parts.focus} for the focus` : ''}
+          </Text>
         </Animated.View>
 
         <Animated.View entering={FadeIn.delay(290).duration(240)} className="w-full">
@@ -220,29 +235,30 @@ export default function RecapScreen() {
                   rather than assumed: deleting an unfinished task is the failure
                   that matters here, and both answers still keep the points. */}
               <Text
-                className="font-hk700 text-ink text-center text-[14px] mt-6"
+                className="font-hk700 text-ink text-center text-headline"
+                style={{ marginTop: compact ? 16 : 26 }}
                 numberOfLines={2}
               >
                 Did you finish it?
               </Text>
-              <View className="flex-row mt-2.5" style={{ gap: 10 }}>
+              <View className="flex-row" style={{ gap: 10, marginTop: 12 }}>
                 <PressableScale
                   haptic
                   onPress={goHome}
                   className="flex-1 items-center bg-surface border border-soft"
-                  style={{ borderRadius: 16, paddingVertical: 16 }}
+                  style={{ borderRadius: 18, paddingVertical: 16 }}
                   accessibilityHint="Keeps the task on your list"
                 >
-                  <Text className="font-hk700 text-ink text-[15px]">Not yet</Text>
+                  <Text className="font-hk700 text-ink text-headline">Not yet</Text>
                 </PressableScale>
                 <PressableScale
                   haptic
                   onPress={finished}
                   className="flex-1 items-center bg-accent"
-                  style={{ borderRadius: 16, paddingVertical: 16 }}
+                  style={{ borderRadius: 18, paddingVertical: 16 }}
                   accessibilityHint="Takes the task off your list"
                 >
-                  <Text className="font-hk700 text-on-accent text-[15px]">Finished it</Text>
+                  <Text className="font-hk700 text-on-accent text-headline">Finished it</Text>
                 </PressableScale>
               </View>
               <Pressable
@@ -251,7 +267,7 @@ export default function RecapScreen() {
                 className="self-center mt-4"
                 accessibilityRole="button"
               >
-                <Text className="font-hk700 text-accent text-[13.5px]">
+                <Text className="font-hk700 text-accent text-subhead">
                   Go another {settings.focusLen} minutes
                 </Text>
               </Pressable>
@@ -261,10 +277,10 @@ export default function RecapScreen() {
               <PressableScale
                 haptic
                 onPress={goHome}
-                className="bg-accent items-center mt-6 w-full"
-                style={{ borderRadius: 16, paddingVertical: 16 }}
+                className="bg-accent items-center w-full"
+                style={{ borderRadius: 18, paddingVertical: 16, marginTop: compact ? 16 : 24 }}
               >
-                <Text className="font-hk700 text-on-accent text-[15px]">Back home</Text>
+                <Text className="font-hk700 text-on-accent text-headline">Back home</Text>
               </PressableScale>
               {lastRecap.task && !taskStillThere && (
                 <Pressable
@@ -273,7 +289,7 @@ export default function RecapScreen() {
                   className="self-center mt-4"
                   accessibilityRole="button"
                 >
-                  <Text className="font-hk600 text-muted text-[13px]">
+                  <Text className="font-hk600 text-muted text-footnote">
                     Not actually finished? Put it back on Today
                   </Text>
                 </Pressable>
