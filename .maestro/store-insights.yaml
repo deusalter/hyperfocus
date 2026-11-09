@@ -5,6 +5,9 @@ name: Store shot, insights
 - extendedWaitUntil:
     visible: "Start one thing.*"
     timeout: 60000
-- tapOn: "Insights"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Insights
 - waitForAnimationToEnd
 - takeScreenshot: 07-insights

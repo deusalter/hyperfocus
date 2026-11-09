@@ -5,14 +5,20 @@ name: Choosing dark
 - extendedWaitUntil:
     visible: "Start one thing.*"
     timeout: 45000
-- tapOn: "You"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: You
 - scrollUntilVisible:
     element: "Appearance"
     direction: DOWN
 - tapOn: "Dark"
 - waitForAnimationToEnd
 - takeScreenshot: 01-you-dark
-- tapOn: "Home"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Home
 - waitForAnimationToEnd
 - takeScreenshot: 02-home-dark
 # the keyboard is system UI, so this shows whether the override reaches it
@@ -27,7 +33,10 @@ name: Choosing dark
     timeout: 45000
 - waitForAnimationToEnd
 - takeScreenshot: 04-home-dark-after-relaunch
-- tapOn: "You"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: You
 - scrollUntilVisible:
     element: "Reset everything"
     direction: DOWN

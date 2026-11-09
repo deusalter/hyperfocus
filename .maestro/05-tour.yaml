@@ -9,20 +9,32 @@ name: Every screen on realistic data
 - takeScreenshot: 01-home
 - scroll
 - takeScreenshot: 02-home-scrolled
-- tapOn: "Calendar"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Calendar
 - waitForAnimationToEnd
 - takeScreenshot: 03-calendar
-- tapOn: "Insights"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Insights
 - waitForAnimationToEnd
 - takeScreenshot: 04-insights
-- tapOn: "You"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: You
 - waitForAnimationToEnd
 - takeScreenshot: 05-you
 - scroll
 - takeScreenshot: 06-you-scrolled
 - scroll
 - takeScreenshot: 07-you-bottom
-- tapOn: "Home"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Home
 - extendedWaitUntil:
     visible: "Start one thing.*"
     timeout: 5000
@@ -38,7 +50,10 @@ name: Every screen on realistic data
 - waitForAnimationToEnd
 - takeScreenshot: 10-task-editor
 - tapOn: "Close"
-- tapOn: "Calendar"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Calendar
 - scrollUntilVisible:
     element: "Weekly debrief.*"
     direction: DOWN

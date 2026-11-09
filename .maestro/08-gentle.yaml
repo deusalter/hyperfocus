@@ -7,6 +7,9 @@ name: Gentle mode
     timeout: 45000
 - waitForAnimationToEnd
 - takeScreenshot: 01-home
-- tapOn: "Insights"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Insights
 - waitForAnimationToEnd
 - takeScreenshot: 02-insights

@@ -5,7 +5,10 @@ name: Keyboard never covers the field
 - extendedWaitUntil:
     visible: "Start one thing.*"
     timeout: 45000
-- tapOn: "You"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: You
 - scrollUntilVisible:
     element: "Connect"
     direction: DOWN
@@ -24,7 +27,10 @@ name: Keyboard never covers the field
     end: 50%, 60%
 - waitForAnimationToEnd
 - takeScreenshot: 03-keyboard-dismissed
-- tapOn: "Calendar"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Calendar
 - waitForAnimationToEnd
 - tapOn: "Add something for today"
 - waitForAnimationToEnd

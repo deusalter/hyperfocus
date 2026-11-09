@@ -1,0 +1,15 @@
+appId: com.deusalter.hyperfocus
+name: Switch tab
+---
+# A press can go missing on a CI simulator, which draws in software and gets
+# swamped while an animation runs. Press again until that tab says it's selected,
+# so a flow can't carry on with screenshots of the wrong screen.
+- retry:
+    maxRetries: 2
+    commands:
+      - tapOn: ${TAB}
+      - extendedWaitUntil:
+          visible:
+            text: ${TAB}
+            selected: true
+          timeout: 4000

@@ -16,13 +16,22 @@ name: The largest text size
 - takeScreenshot: 02-home-start
 - scroll
 - takeScreenshot: 03-home-list
-- tapOn: "Calendar"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Calendar
 - waitForAnimationToEnd
 - takeScreenshot: 04-calendar
-- tapOn: "Insights"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Insights
 - waitForAnimationToEnd
 - takeScreenshot: 05-insights
-- tapOn: "You"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: You
 - waitForAnimationToEnd
 - takeScreenshot: 06-you
 - scroll
@@ -31,7 +40,10 @@ name: The largest text size
 - waitForAnimationToEnd
 - takeScreenshot: 08-dump-with-keyboard
 - tapOn: "Close"
-- tapOn: "Home"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Home
 - scrollUntilVisible:
     element: "Start one thing.*"
     direction: DOWN

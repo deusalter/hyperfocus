@@ -5,6 +5,9 @@ name: Store shot, calendar
 - extendedWaitUntil:
     visible: "Start one thing.*"
     timeout: 60000
-- tapOn: "Calendar"
+- runFlow:
+    file: common/tab.yaml
+    env:
+      TAB: Calendar
 - waitForAnimationToEnd
 - takeScreenshot: 06-calendar
