@@ -60,12 +60,23 @@ new_device() {
     return 1
   }
   log "booting $UDID"
-  with_timeout 120 xcrun simctl boot "$UDID"
-  # bootstatus can wait forever on a first boot that never reports finished
-  if ! with_timeout 420 xcrun simctl bootstatus "$UDID" > /dev/null; then
-    log "boot status never came back; carrying on, since the device is usually usable"
+  # A first boot on a busy runner sometimes never finishes, and then nothing can
+  # drive the device. Restarting it gets it going far more often than waiting does.
+  local booted=""
+  for attempt in 1 2; do
+    with_timeout 120 xcrun simctl boot "$UDID" 2> /dev/null
+    if with_timeout 360 xcrun simctl bootstatus "$UDID" > /dev/null; then
+      booted=1
+      break
+    fi
+    log "boot $attempt never finished; restarting the device"
+    with_timeout 120 xcrun simctl shutdown "$UDID" 2> /dev/null
+  done
+  if [ -z "$booted" ]; then
+    with_timeout 120 xcrun simctl boot "$UDID" 2> /dev/null
+    note "NOTE  the $type never reported a finished boot, so failures below may be the device's"
   fi
-  with_timeout 60 xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged \
+  with_timeout 60 xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState discharging \
     --batteryLevel 100 --cellularMode active --cellularBars 4 --dataNetwork wifi --wifiMode active --wifiBars 3
   # The first keyboard on a new device opens a full-screen slide-to-type tip. Real
   # phones have long since dismissed it; the suggestion bar stays, as on a real phone.
@@ -98,13 +109,23 @@ run_flow() {
   log "flow $flow"
   local args=(--device "$UDID" test)
   [ -n "$OUTPUT_FLAG" ] && args+=(--test-output-dir "$dir/maestro")
-  if (cd "$dir" && with_timeout 480 maestro "${args[@]}" "$ROOT/.maestro/$flow.yaml" > "$dir/maestro.log" 2>&1); then
-    note "PASS  $flow ($((SECONDS - start))s)"
-  else
+  local tries=1
+  while :; do
+    if (cd "$dir" && with_timeout 480 maestro "${args[@]}" "$ROOT/.maestro/$flow.yaml" > "$dir/maestro.log" 2>&1); then
+      note "PASS  $flow ($((SECONDS - start))s)"
+      break
+    fi
+    # the app never got a say if Maestro's own test runner didn't start
+    if [ $tries -eq 1 ] && grep -q "driver not ready in time" "$dir/maestro.log"; then
+      log "the test driver never started; once more"
+      tries=2
+      continue
+    fi
     note "FAIL  $flow ($((SECONDS - start))s)"
     tail -25 "$dir/maestro.log" | sed 's/^/      /' >> "$RESULTS"
     with_timeout 30 xcrun simctl io "$UDID" screenshot "$dir/failure.png" > /dev/null 2>&1
-  fi
+    break
+  done
   # whichever folder this Maestro version wrote them to, bring the screenshots up
   # beside the log, where the artifact upload and the compositor look for them
   find "$dir/maestro" "$HOME/.maestro/tests" -name "*.png" -newer "$dir/.started" 2> /dev/null |

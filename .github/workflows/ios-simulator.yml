@@ -73,7 +73,8 @@ jobs:
     needs: build
     if: ${{ !cancelled() && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     runs-on: macos-15
-    timeout-minutes: 45
+    # a stuck first boot can take two restarts before the flows begin
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
