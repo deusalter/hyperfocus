@@ -12,7 +12,7 @@ import { ChevronRight, PlusIcon, SyncIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { dayKey } from '@/lib/points'
 import { MAX_TITLE, noon } from '@/lib/tasks'
-import { TITLE_SCALE, useColors } from '@/lib/theme'
+import { CATS, TITLE_SCALE, useColors } from '@/lib/theme'
 import { spoken } from '@/lib/speech'
 import { Task } from '@/lib/types'
 
@@ -169,6 +169,8 @@ export default function CalendarScreen() {
                 className="bg-surface border border-soft flex-row items-center"
                 style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12, gap: 11 }}
                 accessibilityRole="button"
+                // title first: built from its children it read "Sprint, Clear the desk"
+                accessibilityLabel={`${item.title}${item.course ? `, ${item.course}` : ''}, ${CATS[item.cat ?? 'sprint'].label}`}
                 accessibilityHint="Opens the task to edit it"
               >
                 <CatTag cat={item.cat ?? 'sprint'} showLabel={false} />
