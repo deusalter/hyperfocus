@@ -93,8 +93,17 @@ new_device() {
 
 seed_state() {
   with_timeout 30 xcrun simctl terminate "$UDID" "$BUNDLE" 2> /dev/null
-  local data dir
-  data=$(with_timeout 30 xcrun simctl get_app_container "$UDID" "$BUNDLE" data)
+  local data="" dir
+  # a busy runner can take a while to answer, and an empty answer would seed nothing
+  for _ in 1 2 3; do
+    data=$(with_timeout 60 xcrun simctl get_app_container "$UDID" "$BUNDLE" data 2> /dev/null)
+    [ -n "$data" ] && break
+    sleep 5
+  done
+  if [ -z "$data" ]; then
+    note "NOTE  couldn't find the app's data folder, so the next flow starts with no data"
+    return 1
+  fi
   dir="$data/Library/Application Support/$BUNDLE/RCTAsyncLocalStorage_V1"
   mkdir -p "$dir"
   node "$ROOT/scripts/sim-seed.mjs" "$1" > "$dir/manifest.json"
