@@ -89,7 +89,7 @@ Upload in this order from `store/screenshots/`. The first three are what most pe
 - `6.9-inch` (1320 × 2868) goes in **iPhone with Dynamic Island (large)**.
 - iPhone only, so no iPad set is needed.
 
-These are the app's real interface, rendered from the web build into a phone frame by `npm run screenshots`. Compare them against a TestFlight build, and retake any that differ.
+These are the Release build itself, captured on iOS 26 simulators (iPhone 17 Pro Max and iPhone 17 Pro), then framed and captioned by `npm run screenshots`. The triage shot is a frame from a screen recording, taken mid-swipe. How to retake them is in `RELEASE.md`.
 
 ## Other fields
 

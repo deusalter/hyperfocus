@@ -253,3 +253,5 @@ esac
 
 echo
 cat "$RESULTS"
+# the job's colour should say whether every flow passed; the upload runs regardless
+if grep -q "^FAIL" "$RESULTS"; then exit 1; fi

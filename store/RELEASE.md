@@ -111,5 +111,5 @@ Select the TestFlight build and submit for review. The review notes are in `list
 |---|---|
 | Icon and splash | `python3 assets/_generate.py` |
 | Focus sounds | `python3 assets/sounds/_generate.py` |
-| Screenshots | `npx expo start --web --port 8099`, then `npm run screenshots` |
+| Screenshots | `gh workflow run ios-simulator.yml -f groups='["store-6.9","store-6.3"]'`, then `gh run download <run id> -p 'sim-store-*' -D /tmp/store-raw` and `npm run screenshots -- --raw /tmp/store-raw`. The header of `scripts/screenshots.mjs` has the one-line step for the mid-swipe triage frame. Without `--raw` it renders the web build instead |
 | Check everything | `npm run verify`, then `npm run e2e` with the web server running |
