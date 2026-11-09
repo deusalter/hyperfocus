@@ -20,6 +20,10 @@ name: The largest text size
 - scroll
 - takeScreenshot: 03-home-list
 # triage is the other screen that doesn't scroll as a whole
+- scrollUntilVisible:
+    element: "Sort 2 captured things"
+    direction: UP
+    timeout: 20000
 - tapOn: "Sort 2 captured things"
 - extendedWaitUntil:
     visible: "Text Maya back"
