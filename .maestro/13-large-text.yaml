@@ -11,6 +11,9 @@ name: The largest text size
 - takeScreenshot: 01-home
 - scrollUntilVisible:
     element: "Start one thing.*"
+    # it's taller than a scroll step at this size, so half in view counts
+    visibilityPercentage: 50
+    centerElement: true
     direction: DOWN
     timeout: 30000
 - takeScreenshot: 02-home-start
@@ -50,6 +53,9 @@ name: The largest text size
 # Home kept its place further down the list
 - scrollUntilVisible:
     element: "Start one thing.*"
+    # it's taller than a scroll step at this size, so half in view counts
+    visibilityPercentage: 50
+    centerElement: true
     direction: UP
     timeout: 30000
 - tapOn: "Start one thing.*"
