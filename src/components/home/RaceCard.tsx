@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { View, Text } from 'react-native'
 import Animated, {
-  FadeIn,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -11,38 +10,26 @@ import * as Haptics from 'expo-haptics'
 import Sprite from '@/components/Sprite'
 import Confetti from '@/components/Confetti'
 import { useApp } from '@/store/AppStore'
-import { hexA, useColors } from '@/lib/theme'
+import { TITLE_SCALE, hexA, useColors } from '@/lib/theme'
 import { levelForPoints, RaceField } from '@/lib/points'
 import { EASE_OUT } from '@/lib/motion'
 import { sentence, spoken } from '@/lib/speech'
 
-const SPRITE_SCALE = 0.5
-const GHOST_SCALE = 0.44
+const SPRITE_SCALE = 0.68
+const GHOST_SCALE = 0.54
 const SPRITE_W = 130 * SPRITE_SCALE
-const TRACK_H = 76
+/** a sprite's feet sit this far down its box, so it can stand on the lane */
+const FEET = 0.85
+const LANE_H = 10
+const LABEL_H = 18
+const TRACK_H = 100
+const LANE_TOP = TRACK_H - LABEL_H - LANE_H
+const BEAD = 6
 /** where the pacer sits on the track — leaves room to run past it */
 const PACER_AT = 0.72
 const EDGE = 0.98
 /** Gentle mode has no target to scale against, so the runner eases along a curve. */
 const GENTLE_HALFWAY_PTS = 80
-
-function Badge({ label }: { label: string }) {
-  return (
-    <Animated.View
-      entering={FadeIn.duration(220)}
-      className="bg-accent rounded-full"
-      style={{ paddingHorizontal: 10, paddingVertical: 4 }}
-    >
-      <Text
-        className="font-hk800 text-on-accent text-[10px]"
-        style={{ letterSpacing: 0.6 }}
-        maxFontSizeMultiplier={1.2}
-      >
-        {label}
-      </Text>
-    </Animated.View>
-  )
-}
 
 /**
  * "You & your recent days" — the live race against a field of past selves.
@@ -138,54 +125,78 @@ export default function RaceCard() {
     return () => clearTimeout(t)
   }, [pts, hydrated])
 
-  const { headline, sub, said } = gentle ? gentleMessage(pts) : message(race, pts)
+  const { title, detail, sub, said } = gentle ? gentleMessage(pts) : message(race, pts)
   const pacerLevel = levelForPoints(race.pacer)
-  const eyebrow = gentle
-    ? 'TODAY'
-    : race.hasField
-      ? `PASSED ${race.passed} OF ${race.ghosts.length}`
-      : 'YOUR FIRST DAY'
-  const showBadge = race.ahead && !gentle
+  // gentle mode's headline is already today's points
+  const showPts = !gentle && (race.hasField || pts > 0)
+  const { completed, minutes } = todayTotals
+  const facts = [
+    completed > 0 ? `${completed} ${completed === 1 ? 'task' : 'tasks'} done` : null,
+    minutes > 0 ? `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} focused` : null,
+  ].filter(Boolean)
+  const spokenLabel = [
+    said ? sentence(said) : [title, detail].filter(Boolean).map((t) => sentence(t as string)).join(' '),
+    showPts && !said ? `${pts} pts today.` : null,
+    sub,
+    facts.length ? sentence(facts.join(', ')) : null,
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <View
       className="bg-surface border border-soft"
-      style={{
-        borderRadius: 22,
-        paddingHorizontal: 16,
-        paddingTop: 14,
-        paddingBottom: 13,
-        overflow: 'hidden',
-      }}
+      style={{ borderRadius: 24, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16, overflow: 'hidden' }}
       // the track is a picture of these sentences, so read it as them
       accessible
-      accessibilityLabel={spoken(`${sentence(said ?? headline)} ${sub}`)}
+      accessibilityLabel={spoken(spokenLabel)}
     >
       {burstKey + paceKey > 0 && <Confetti key={`c${burstKey}-${paceKey}`} />}
 
-      <View className="flex-row items-center justify-between" style={{ minHeight: 22 }}>
-        <Text
-          className="font-hk700 text-muted text-[11px]"
-          style={{ letterSpacing: 0.5 }}
-          maxFontSizeMultiplier={1.2}
-        >
-          {eyebrow}
-        </Text>
-        {showBadge && <Badge label="PAST A TYPICAL DAY" />}
+      <View className="flex-row items-start" style={{ gap: 12 }}>
+        <View className="flex-1" style={{ minWidth: 0 }}>
+          <Text
+            className="font-hk800 text-ink text-title3"
+            style={{ letterSpacing: -0.4 }}
+            maxFontSizeMultiplier={TITLE_SCALE}
+          >
+            {title}
+          </Text>
+          {detail && (
+            <Text className="font-hk500 text-muted text-subhead" style={{ marginTop: 2 }}>
+              {detail}
+            </Text>
+          )}
+        </View>
+        {showPts && (
+          <View className="items-end">
+            <Text
+              className="font-mono600 text-title3"
+              style={{ color: race.ahead ? palette.accent : palette.ink, letterSpacing: -0.5 }}
+              maxFontSizeMultiplier={TITLE_SCALE}
+            >
+              {pts}
+            </Text>
+            <Text className="font-hk600 text-muted text-caption" maxFontSizeMultiplier={1.4}>
+              pts today
+            </Text>
+          </View>
+        )}
       </View>
 
       <View
-        style={{ height: TRACK_H, marginTop: 6 }}
+        style={{ height: TRACK_H, marginTop: 2 }}
         onLayout={(e) => setTrackW(e.nativeEvent.layout.width)}
       >
+        {/* the lane */}
         <View
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
-            bottom: 18,
-            height: 4,
-            borderRadius: 3,
+            top: LANE_TOP,
+            height: LANE_H,
+            borderRadius: LANE_H / 2,
             backgroundColor: palette.soft,
           }}
         />
@@ -194,16 +205,16 @@ export default function RaceCard() {
             {
               position: 'absolute',
               left: 0,
-              bottom: 18,
-              height: 4,
-              borderRadius: 3,
-              backgroundColor: hexA(palette.accent, 0.4),
+              top: LANE_TOP,
+              height: LANE_H,
+              borderRadius: LANE_H / 2,
+              backgroundColor: palette.accent,
             },
             trailStyle,
           ]}
         />
 
-        {/* one tick per recent day — fills in as you pass it */}
+        {/* each recent day is a bead on the lane, turning light once you pass it */}
         {showField &&
           trackW > 0 &&
           race.ghosts.map((g) => (
@@ -211,12 +222,12 @@ export default function RaceCard() {
               key={g.day}
               style={{
                 position: 'absolute',
-                left: frac(g.points) * trackW - 1.5,
-                bottom: 14,
-                width: 3,
-                height: 12,
-                borderRadius: 2,
-                backgroundColor: g.passed ? palette.accent : palette.soft,
+                left: Math.max(LANE_H / 2, Math.min(trackW - LANE_H / 2, frac(g.points) * trackW)) - BEAD / 2,
+                top: LANE_TOP + (LANE_H - BEAD) / 2,
+                width: BEAD,
+                height: BEAD,
+                borderRadius: BEAD / 2,
+                backgroundColor: g.passed ? palette.onAccent : hexA(palette.muted, 0.55),
               }}
             />
           ))}
@@ -224,50 +235,51 @@ export default function RaceCard() {
         {/* the pacer: a typical day, with a past self standing on it */}
         {showField && trackW > 0 && (
           <>
-            {/* stops at the ghost's feet — a taller rule reads as a flagpole */}
             <View
               style={{
                 position: 'absolute',
-                left: pacerFrac * trackW,
-                bottom: 14,
-                top: 34,
+                left: pacerFrac * trackW - 1,
+                top: LANE_TOP - 8,
+                height: LANE_H + 16,
                 width: 2,
-                borderRadius: 2,
+                borderRadius: 1,
                 backgroundColor: palette.muted,
-                opacity: 0.35,
               }}
             />
             <View
               style={{
                 position: 'absolute',
                 left: pacerFrac * trackW - (130 * GHOST_SCALE) / 2,
-                top: -6,
+                top: LANE_TOP - 8 - 140 * GHOST_SCALE * FEET,
               }}
             >
               <Sprite ghost level={pacerLevel} scale={GHOST_SCALE} />
             </View>
             {/* clamped so the label can never run off the card edge */}
             <Text
-              className="font-hk700 text-muted"
-              maxFontSizeMultiplier={1.1}
+              className="font-hk600 text-muted text-micro"
+              maxFontSizeMultiplier={1.2}
               numberOfLines={1}
               style={{
                 position: 'absolute',
-                left: Math.max(0, Math.min(trackW - 76, pacerFrac * trackW - 38)),
-                bottom: 0,
-                width: 76,
+                left: Math.max(0, Math.min(trackW - 84, pacerFrac * trackW - 42)),
+                top: LANE_TOP + LANE_H + 4,
+                width: 84,
                 textAlign: 'center',
-                fontSize: 10,
-                letterSpacing: 0.3,
               }}
             >
-              TYPICAL DAY
+              Typical day
             </Text>
           </>
         )}
 
         {/* you */}
-        <Animated.View style={[{ position: 'absolute', left: 0, top: -2 }, runnerStyle]}>
+        <Animated.View
+          style={[
+            { position: 'absolute', left: 0, top: LANE_TOP + 3 - 140 * SPRITE_SCALE * FEET },
+            runnerStyle,
+          ]}
+        >
           <Sprite
             pose={cheering ? 'cheer' : moving ? 'run' : race.ahead && !gentle ? 'cheer' : 'idle'}
             // animates while it's saying something, then holds the pose
@@ -278,18 +290,18 @@ export default function RaceCard() {
         </Animated.View>
       </View>
 
-      <Text
-        className="font-hk600 text-ink text-center text-[13.5px]"
-        style={{ lineHeight: 19, marginTop: 2 }}
-      >
-        {headline}
-      </Text>
-      <Text
-        className="font-hk400 text-muted text-center text-[12px]"
-        style={{ lineHeight: 16, marginTop: 3 }}
-      >
+      <Text className="font-hk400 text-muted text-footnote" style={{ marginTop: 2 }}>
         {sub}
       </Text>
+      {facts.length > 0 && (
+        <View className="flex-row flex-wrap" style={{ columnGap: 16, rowGap: 4, marginTop: 12 }}>
+          {facts.map((f) => (
+            <Text key={f} className="font-hk700 text-ink text-footnote">
+              {f}
+            </Text>
+          ))}
+        </View>
+      )}
     </View>
   )
 }
@@ -299,9 +311,10 @@ export default function RaceCard() {
  * runs hotter than the response to success, so a shortfall is stated as a
  * distance to cover — never as a verdict on the day.
  */
-/** `said` stands in for a headline too terse to hear on its own. */
+/** `said` stands in for a title too terse to hear on its own. */
 interface Message {
-  headline: string
+  title: string
+  detail?: string
   sub: string
   said?: string
 }
@@ -309,40 +322,46 @@ interface Message {
 function message(race: RaceField, pts: number): Message {
   if (!race.hasField) {
     return {
-      headline: 'Nothing to race yet. Today sets the pace.',
+      title: 'Nothing to race yet',
+      detail: 'Today sets the pace.',
       sub: 'Finish anything, even something tiny, and the field starts filling in.',
     }
   }
   if (race.ahead) {
-    return {
-      headline:
-        race.passed === race.ghosts.length
-          ? 'Past every one of your recent days.'
-          : `Past a typical day. ${race.passed} of ${race.ghosts.length} behind you.`,
-      sub: 'However the rest of today goes, this already counts.',
-    }
+    return race.passed === race.ghosts.length
+      ? {
+          title: 'Past every recent day',
+          detail: `${pts - race.pacer} pts beyond a typical one.`,
+          sub: 'However the rest of today goes, this already counts.',
+        }
+      : {
+          title: 'Past a typical day',
+          detail: `${race.passed} of your last ${race.ghosts.length} days are behind you.`,
+          sub: 'However the rest of today goes, this already counts.',
+        }
   }
   if (pts === 0) {
     return {
-      headline: `A typical day for you is ${race.pacer} pts.`,
+      title: `A typical day is ${race.pacer} pts`,
       sub: 'No rush. One small session puts a runner on the board.',
     }
   }
   if (race.passed > 0) {
     return {
-      headline: `${race.passed} of ${race.ghosts.length} passed · ${race.pacer - pts} to typical`,
+      title: `${race.passed} of ${race.ghosts.length} passed`,
+      detail: `${race.pacer - pts} pts to a typical day`,
       said: `Passed ${race.passed} of your last ${race.ghosts.length} days. ${race.pacer - pts} pts to a typical day.`,
       sub: 'Every one you pass stays passed.',
     }
   }
   return {
-    headline: `${race.pacer - pts} pts to a typical day.`,
+    title: `${race.pacer - pts} pts to a typical day`,
     sub: 'Quiet days count too. Showing up is the part that compounds.',
   }
 }
 
 function gentleMessage(pts: number): Message {
   return pts > 0
-    ? { headline: `${pts} pts so far today.`, sub: 'However the rest of today goes, this counts.' }
-    : { headline: 'A fresh day.', sub: 'One small thing is plenty to start with.' }
+    ? { title: `${pts} pts so far today`, sub: 'However the rest of today goes, this counts.' }
+    : { title: 'A fresh day', sub: 'One small thing is plenty to start with.' }
 }

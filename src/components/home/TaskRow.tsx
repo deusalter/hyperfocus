@@ -14,15 +14,17 @@ import Svg, { Path } from 'react-native-svg'
 import CatPicker from '@/components/CatPicker'
 import DueTag from '@/components/DueTag'
 import PressableScale from '@/components/ui/PressableScale'
+import { Divider } from '@/components/ui/Group'
+import { PlayIcon } from '@/components/ui/Icon'
 import { Task } from '@/lib/types'
 import { useApp } from '@/store/AppStore'
 import { useStartFocus } from '@/lib/useStartFocus'
-import { useColors, useLargeText } from '@/lib/theme'
+import { hexA, useColors, useLargeText } from '@/lib/theme'
 
 const CHECK_DELAY_MS = 320
 
-/** One task on the Home Today list: check-off circle, title, Focus pill, category. */
-export default function TaskRow({ task }: { task: Task }) {
+/** One row of the Home Today list: check-off circle, title, category, and a play button. */
+export default function TaskRow({ task, first = false }: { task: Task; first?: boolean }) {
   const palette = useColors()
   // at the accessibility sizes Focus moves down beside the tags, so the title gets
   // the row's width instead of breaking words in a narrow column
@@ -35,9 +37,11 @@ export default function TaskRow({ task }: { task: Task }) {
 
   // check-off micro-moment: fill + pop, then the row leaves
   const fill = useSharedValue(0)
+  // a control's outline needs 3:1 against the row; the soft grey it used was 1.2:1
+  const ring = hexA(palette.muted, 0.75)
   const circleStyle = useAnimatedStyle(() => ({
     backgroundColor: fill.value > 0.5 ? palette.accent : 'transparent',
-    borderColor: fill.value > 0.5 ? palette.accent : palette.soft,
+    borderColor: fill.value > 0.5 ? palette.accent : ring,
     transform: [{ scale: 1 + fill.value * 0.18 }],
   }))
   const checkStyle = useAnimatedStyle(() => ({
@@ -56,19 +60,19 @@ export default function TaskRow({ task }: { task: Task }) {
     pending.current = setTimeout(() => completeTask(task.id), CHECK_DELAY_MS)
   }
 
+  // A round play button rather than a filled "Focus" pill on every row: three filled
+  // buttons in a list competed with Start one thing, the one action Home is for.
   const focusButton = (
     <PressableScale
       haptic
       onPress={() => start(task.id)}
-      className="bg-accent rounded-full"
-      style={{ paddingHorizontal: 12, paddingVertical: 6 }}
-      // 26pt tall as drawn, so vertical slop carries it to 44
-      hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
+      className={inSession ? 'bg-accent' : 'bg-accent-soft'}
+      style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' }}
+      // 38pt as drawn, so a little slop carries it to 44
+      hitSlop={4}
       accessibilityLabel={inSession ? `Back to ${task.title}` : `Focus on ${task.title}`}
     >
-      <Text className="font-hk700 text-on-accent text-[12px]" maxFontSizeMultiplier={1.3}>
-        {inSession ? 'Resume' : 'Focus'}
-      </Text>
+      <PlayIcon size={14} color={inSession ? palette.onAccent : palette.accent} />
     </PressableScale>
   )
 
@@ -77,10 +81,9 @@ export default function TaskRow({ task }: { task: Task }) {
       entering={FadeIn.duration(160)}
       exiting={FadeOut.duration(140)}
       layout={LinearTransition.duration(180)}
-      className="bg-surface border border-soft"
-      style={{ borderRadius: 14, paddingHorizontal: 13, paddingVertical: 11 }}
     >
-      <View className="flex-row items-center" style={{ gap: 12 }}>
+      {!first && <Divider inset={54} />}
+      <View className="flex-row items-center" style={{ gap: 14, paddingLeft: 16, paddingRight: 12, paddingVertical: 13 }}>
         <Pressable
           onPress={onCheck}
           hitSlop={12}
@@ -90,9 +93,9 @@ export default function TaskRow({ task }: { task: Task }) {
           <Animated.View
             style={[
               {
-                width: 22,
-                height: 22,
-                borderRadius: 11,
+                width: 24,
+                height: 24,
+                borderRadius: 12,
                 borderWidth: 2,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -114,38 +117,39 @@ export default function TaskRow({ task }: { task: Task }) {
             </Animated.View>
           </Animated.View>
         </Pressable>
-        {/* the row is the way in to everything else about the task */}
-        <Pressable
-          onPress={() => router.push({ pathname: '/task/[id]', params: { id: task.id } })}
-          className="flex-1"
-          accessibilityRole="button"
-          accessibilityHint="Opens the task to edit it"
-        >
-          <Text
-            className="font-hk500 text-[14px]"
-            style={{ lineHeight: 18, color: checking ? palette.muted : palette.ink }}
+        <View className="flex-1" style={{ minWidth: 0 }}>
+          {/* the title is the way in to everything else about the task */}
+          <Pressable
+            onPress={() => router.push({ pathname: '/task/[id]', params: { id: task.id } })}
+            accessibilityRole="button"
+            accessibilityHint="Opens the task to edit it"
           >
-            {task.title}
-          </Text>
-        </Pressable>
+            <Text
+              className="font-hk600 text-body"
+              style={{ color: checking ? palette.muted : palette.ink }}
+            >
+              {task.title}
+            </Text>
+          </Pressable>
+          <View className="flex-row flex-wrap items-center" style={{ gap: 8, marginTop: 7 }}>
+            <CatPicker
+              value={task.cat ?? 'sprint'}
+              onChange={(cat) => updateTask(task.id, { cat })}
+            />
+            {task.due && <DueTag due={task.due} today={todayKey} />}
+            {task.course && (
+              <Text
+                className="font-hk600 text-muted text-caption"
+                numberOfLines={1}
+                style={{ flexShrink: 1 }}
+              >
+                {task.course}
+              </Text>
+            )}
+            {large && focusButton}
+          </View>
+        </View>
         {!large && focusButton}
-      </View>
-      <View className="flex-row flex-wrap items-center mt-2" style={{ paddingLeft: 34, gap: 6 }}>
-        <CatPicker
-          value={task.cat ?? 'sprint'}
-          onChange={(cat) => updateTask(task.id, { cat })}
-        />
-        {task.due && <DueTag due={task.due} today={todayKey} />}
-        {task.course && (
-          <Text
-            className="font-hk600 text-muted text-[11px]"
-            numberOfLines={1}
-            style={{ flexShrink: 1 }}
-          >
-            {task.course}
-          </Text>
-        )}
-        {large && focusButton}
       </View>
     </Animated.View>
   )
