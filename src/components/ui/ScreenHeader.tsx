@@ -49,7 +49,12 @@ export default function ScreenHeader({
         {right && <View className="ml-auto">{right}</View>}
       </View>
       {subtitle && (
-        <Text className="font-hk400 text-muted text-[13px] mt-1.5" style={{ lineHeight: 18 }}>
+        <Text
+          className="font-hk400 text-muted text-[13px] mt-1.5"
+          style={{ lineHeight: 18 }}
+          // past twice its size it pushed the Brain dump's field under the keyboard
+          maxFontSizeMultiplier={TITLE_SCALE}
+        >
           {subtitle}
         </Text>
       )}

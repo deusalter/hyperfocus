@@ -7,6 +7,7 @@ import {
   TextInput,
   Pressable,
   useWindowDimensions,
+  ScrollView,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useKeepAwake } from 'expo-keep-awake'
@@ -262,7 +263,17 @@ export default function FocusScreen() {
 
         {/* the session block owns the space between header and controls, so
             the ring sits optically centred instead of stranded up top */}
-        <View className="flex-1 items-center justify-center self-stretch">
+        {/* Centred when it fits, which is always at default sizes. At the largest
+            text sizes it scrolls rather than spilling over the header and buttons. */}
+        <ScrollView
+          className="flex-1 self-stretch"
+          contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
+          alwaysBounceVertical={false}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets
+        >
           <Text className="font-hk600 text-muted text-[11px]" style={{ letterSpacing: 0.4 }}>
             FOCUSING ON
           </Text>
@@ -409,7 +420,7 @@ export default function FocusScreen() {
               onPress={() => adjustFocus(STEP_MIN)}
             />
           </View>
-        </View>
+        </ScrollView>
 
         <View className="flex-row w-full" style={{ gap: 10 }}>
           <PressableScale
