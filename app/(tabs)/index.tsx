@@ -284,13 +284,21 @@ export default function HomeScreen() {
               accessibilityLabel={`Start one thing: ${next.title}, ${settings.focusLen} minutes.${next.firstStep ? ` First move: ${next.firstStep}.` : ''}`}
             >
               <View className="flex-1" style={{ minWidth: 0 }}>
-                <Text className="font-hk700 text-on-accent text-footnote" style={{ opacity: 0.88 }}>
+                {/* A button's words stop at twice their size. Uncapped, this card grew
+                    taller than the screen at the largest text setting, and its middle,
+                    where a thumb aims, sat under the tab bar. */}
+                <Text
+                  className="font-hk700 text-on-accent text-footnote"
+                  style={{ opacity: 0.88 }}
+                  maxFontSizeMultiplier={TITLE_SCALE}
+                >
                   Start one thing
                 </Text>
                 <Text
                   className="font-hk800 text-on-accent text-headline"
                   style={{ marginTop: 3 }}
                   numberOfLines={large ? 4 : 2}
+                  maxFontSizeMultiplier={TITLE_SCALE}
                 >
                   {next.title}
                 </Text>
@@ -303,6 +311,7 @@ export default function HomeScreen() {
                     className="font-hk500 text-on-accent text-footnote"
                     style={{ opacity: 0.92, marginTop: 6 }}
                     numberOfLines={large ? 4 : 2}
+                    maxFontSizeMultiplier={TITLE_SCALE}
                   >
                     First move: {next.firstStep}
                   </Text>
