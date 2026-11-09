@@ -52,6 +52,14 @@ with_timeout() {
   return $rc
 }
 
+# 9:41, full bars and a plain full battery. SpringBoard can reset this when a slow
+# first boot restarts it, which once left store shots with a live clock, so it's
+# applied again before every flow.
+pin_status_bar() {
+  with_timeout 60 xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState discharging \
+    --batteryLevel 100 --cellularMode active --cellularBars 4 --dataNetwork wifi --wifiMode active --wifiBars 3
+}
+
 new_device() {
   local name="$1" type="$2"
   log "creating $name ($type)"
@@ -76,8 +84,7 @@ new_device() {
     with_timeout 120 xcrun simctl boot "$UDID" 2> /dev/null
     note "NOTE  the $type never reported a finished boot, so failures below may be the device's"
   fi
-  with_timeout 60 xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState discharging \
-    --batteryLevel 100 --cellularMode active --cellularBars 4 --dataNetwork wifi --wifiMode active --wifiBars 3
+  pin_status_bar
   # The first keyboard on a new device opens a full-screen slide-to-type tip. Real
   # phones have long since dismissed it; the suggestion bar stays, as on a real phone.
   for key in DidShowContinuousPathIntroduction DidShowGestureKeyboardIntroduction KeyboardDidShowProductivityTutorial; do
@@ -115,6 +122,7 @@ run_flow() {
   local dir="$OUT/$flow"
   mkdir -p "$dir"
   touch "$dir/.started"
+  pin_status_bar
   log "flow $flow"
   local args=(--device "$UDID" test)
   [ -n "$OUTPUT_FLAG" ] && args+=(--test-output-dir "$dir/maestro")
