@@ -7,6 +7,7 @@ import Sprite from '@/components/Sprite'
 import { TriangleUp } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { addDays } from '@/lib/points'
+import { spoken } from '@/lib/speech'
 import { hexA, useColors } from '@/lib/theme'
 
 const CHART_H = 132
@@ -301,7 +302,11 @@ export default function InsightsScreen() {
             <Circle cx={12} cy={12} r={9} stroke={palette.accent} strokeWidth={2} fill="none" />
             <Path d="M12 8v5M12 16h.01" stroke={palette.accent} strokeWidth={2} strokeLinecap="round" fill="none" />
           </Svg>
-          <Text className="flex-1 font-hk400 text-ink text-[13px]" style={{ lineHeight: 20 }}>
+          <Text
+            className="flex-1 font-hk400 text-ink text-[13px]"
+            style={{ lineHeight: 20 }}
+            accessibilityLabel={spoken(insightMsg)}
+          >
             {insightMsg}
           </Text>
         </Animated.View>

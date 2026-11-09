@@ -12,6 +12,7 @@ import { useApp } from '@/store/AppStore'
 import { STALE_DAYS, ageInDays } from '@/lib/points'
 import { daysBetween, noon } from '@/lib/tasks'
 import { useColors } from '@/lib/theme'
+import { spoken } from '@/lib/speech'
 import { Task } from '@/lib/types'
 
 function SectionHeading({ color, label, count }: { color: string; label: string; count?: number }) {
@@ -133,7 +134,13 @@ export default function DebriefScreen() {
             {!settings.gentle && <Stat label="SHOWED UP" value={`${showedUp}`} sub="/28d" />}
           </View>
           {week.bestLabel && (
-            <Text className="font-hk400 text-muted text-[12px] mt-3" style={{ lineHeight: 17 }}>
+            <Text
+              className="font-hk400 text-muted text-[12px] mt-3"
+              style={{ lineHeight: 17 }}
+              accessibilityLabel={spoken(
+                `${week.bestLabel} was your strongest at ${week.bestPoints} pts. What's below is just the next set of choices.`
+              )}
+            >
               {week.bestLabel} was your strongest at {week.bestPoints} pts. What&apos;s below is
               just the next set of choices.
             </Text>

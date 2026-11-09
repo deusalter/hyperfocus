@@ -4,6 +4,7 @@ import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated'
 import { useIsFocused } from '@react-navigation/native'
 import { useApp } from '@/store/AppStore'
 import { useColors } from '@/lib/theme'
+import { spoken } from '@/lib/speech'
 
 // the accent, lifted until it clears AA against the toast's ink background
 const UNDO_COLOR = '#a9c8e8'
@@ -25,7 +26,7 @@ export default function UndoToast({ bottom = 20 }: { bottom?: number }) {
   const message = undoOffer?.message
 
   useEffect(() => {
-    if (focused && message) AccessibilityInfo.announceForAccessibility(`${message}. Undo available.`)
+    if (focused && message) AccessibilityInfo.announceForAccessibility(`${spoken(message)}. Undo available.`)
   }, [focused, message, id])
 
   if (!undoOffer || !focused) return null

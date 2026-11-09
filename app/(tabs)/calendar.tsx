@@ -13,6 +13,7 @@ import { useApp } from '@/store/AppStore'
 import { dayKey } from '@/lib/points'
 import { MAX_TITLE, noon } from '@/lib/tasks'
 import { useColors } from '@/lib/theme'
+import { spoken } from '@/lib/speech'
 import { Task } from '@/lib/types'
 
 /** Which calendar day a task belongs to — explicit due date, or today for the Today bucket. */
@@ -268,7 +269,9 @@ export default function CalendarScreen() {
                       {c.title}
                     </Text>
                     {c.minutes > 0 && (
-                      <Text className="font-hk600 text-muted text-[12px]">{c.minutes}m</Text>
+                      <Text className="font-hk600 text-muted text-[12px]" accessibilityLabel={spoken(`${c.minutes}m`)}>
+                        {c.minutes}m
+                      </Text>
                     )}
                   </View>
                 ))}

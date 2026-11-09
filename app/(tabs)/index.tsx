@@ -14,6 +14,7 @@ import { ArrowRight, ChevronDown, ChevronRight, PauseIcon, PlayIcon } from '@/co
 import { useApp } from '@/store/AppStore'
 import { useStartFocus } from '@/lib/useStartFocus'
 import { AWAY_DAYS, greeting } from '@/lib/points'
+import { spoken } from '@/lib/speech'
 import { hexA, useColors } from '@/lib/theme'
 
 /** Growth, not a burning streak — nothing here can go out. */
@@ -68,7 +69,7 @@ function StatTile({
       className="flex-1 bg-surface border border-soft"
       style={{ borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12 }}
       accessible
-      accessibilityLabel={`${label.toLowerCase()}: ${value} ${unit}. ${note}.`}
+      accessibilityLabel={spoken(`${label[0]}${label.slice(1).toLowerCase()}: ${value} ${unit}. ${note}.`)}
     >
       <Text className="font-hk600 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
         {label}

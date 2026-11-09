@@ -14,6 +14,7 @@ import { useApp } from '@/store/AppStore'
 import { hexA, useColors } from '@/lib/theme'
 import { levelForPoints, RaceField } from '@/lib/points'
 import { EASE_OUT } from '@/lib/motion'
+import { sentence, spoken } from '@/lib/speech'
 
 const SPRITE_SCALE = 0.5
 const GHOST_SCALE = 0.44
@@ -137,7 +138,7 @@ export default function RaceCard() {
     return () => clearTimeout(t)
   }, [pts, hydrated])
 
-  const { headline, sub } = gentle ? gentleMessage(pts) : message(race, pts)
+  const { headline, sub, said } = gentle ? gentleMessage(pts) : message(race, pts)
   const pacerLevel = levelForPoints(race.pacer)
   const eyebrow = gentle
     ? 'TODAY'
@@ -158,7 +159,7 @@ export default function RaceCard() {
       }}
       // the track is a picture of these sentences, so read it as them
       accessible
-      accessibilityLabel={`${showField ? `${eyebrow.toLowerCase()} recent days. ` : ''}${headline} ${sub}`}
+      accessibilityLabel={spoken(`${sentence(said ?? headline)} ${sub}`)}
     >
       {burstKey + paceKey > 0 && <Confetti key={`c${burstKey}-${paceKey}`} />}
 
@@ -298,7 +299,14 @@ export default function RaceCard() {
  * runs hotter than the response to success, so a shortfall is stated as a
  * distance to cover — never as a verdict on the day.
  */
-function message(race: RaceField, pts: number): { headline: string; sub: string } {
+/** `said` stands in for a headline too terse to hear on its own. */
+interface Message {
+  headline: string
+  sub: string
+  said?: string
+}
+
+function message(race: RaceField, pts: number): Message {
   if (!race.hasField) {
     return {
       headline: 'Nothing to race yet. Today sets the pace.',
@@ -323,6 +331,7 @@ function message(race: RaceField, pts: number): { headline: string; sub: string 
   if (race.passed > 0) {
     return {
       headline: `${race.passed} of ${race.ghosts.length} passed · ${race.pacer - pts} to typical`,
+      said: `Passed ${race.passed} of your last ${race.ghosts.length} days. ${race.pacer - pts} pts to a typical day.`,
       sub: 'Every one you pass stays passed.',
     }
   }
@@ -332,7 +341,7 @@ function message(race: RaceField, pts: number): { headline: string; sub: string 
   }
 }
 
-function gentleMessage(pts: number): { headline: string; sub: string } {
+function gentleMessage(pts: number): Message {
   return pts > 0
     ? { headline: `${pts} pts so far today.`, sub: 'However the rest of today goes, this counts.' }
     : { headline: 'A fresh day.', sub: 'One small thing is plenty to start with.' }

@@ -9,6 +9,7 @@ import Confetti from '@/components/Confetti'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
 import { scoreParts } from '@/lib/points'
+import { spoken } from '@/lib/speech'
 
 /** Finished things logged before asking for a review. Enough to have an opinion. */
 const REVIEW_AFTER = 5
@@ -158,6 +159,7 @@ export default function RecapScreen() {
           className="font-hk400 text-muted text-center text-[13.5px] mt-2"
           style={{ maxWidth: 280, lineHeight: 20 }}
           numberOfLines={4}
+          accessibilityLabel={spoken(msg)}
         >
           {msg}
         </Animated.Text>
