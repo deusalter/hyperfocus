@@ -26,8 +26,9 @@ import * as Haptics from 'expo-haptics'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
 import { SoundIcon } from '@/components/ui/Icon'
+import { CatIcon } from '@/components/CatTag'
 import { useApp } from '@/store/AppStore'
-import { CATS, useColors } from '@/lib/theme'
+import { CATS, TITLE_SCALE, useColors } from '@/lib/theme'
 import { formatClock, scoreCompletion } from '@/lib/points'
 import { canAdjust, focusedMinutes, remainingSec } from '@/lib/session'
 import { goBackOrHome } from '@/lib/nav'
@@ -36,10 +37,12 @@ import { GLIDE } from '@/lib/motion'
 
 const R = 94
 const CIRCUMFERENCE = 2 * Math.PI * R
-const RING_MAX = 212
+const RING_MAX = 280
 const STEP_MIN = 5
-/** room for a side button and its gap on each side of the ring, plus screen padding */
-const RING_CHROME = 144
+/** screen padding either side of the ring */
+const RING_CHROME = 80
+/** the ring's share of the screen's height, so a small phone still fits without scrolling */
+const RING_OF_HEIGHT = 0.34
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
 
@@ -64,10 +67,12 @@ function AdjustButton({
       accessibilityRole="button"
       accessibilityLabel={a11y}
       accessibilityState={{ disabled }}
-      className="bg-surface border border-soft items-center justify-center"
-      style={{ width: 44, height: 44, borderRadius: 22, opacity: disabled ? 0.4 : 1 }}
+      // 36pt as drawn, so the slop carries it to 44
+      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+      className="bg-surface border border-soft items-center justify-center rounded-full"
+      style={{ height: 36, paddingHorizontal: 16, opacity: disabled ? 0.4 : 1 }}
     >
-      <Text className="font-hk700 text-ink text-[13px]" maxFontSizeMultiplier={1.2}>
+      <Text className="font-hk700 text-ink text-footnote" maxFontSizeMultiplier={1.4}>
         {label}
       </Text>
     </Pressable>
@@ -78,7 +83,7 @@ export default function FocusScreen() {
   const palette = useColors()
   useKeepAwake() // a focus session shouldn't die to auto-lock
   const router = useRouter()
-  const { width } = useWindowDimensions()
+  const { width, height } = useWindowDimensions()
   const {
     hydrated,
     focus,
@@ -186,8 +191,7 @@ export default function FocusScreen() {
   const title = focusTask?.title ?? focus.title ?? 'One thing'
   // the same sum Done is about to bank, so the number doesn't change on the recap
   const livePts = scoreCompletion(cat, focusedMinutes(focus, now))
-  const ring = Math.min(RING_MAX, width - RING_CHROME)
-  const ringScale = ring / RING_MAX
+  const ring = Math.round(Math.min(RING_MAX, width - RING_CHROME, height * RING_OF_HEIGHT))
   const leftMin = Math.ceil(focusRemaining / 60)
 
   const sound = settings.sound
@@ -250,7 +254,7 @@ export default function FocusScreen() {
                   color={sound === 'off' ? palette.muted : palette.accent}
                 />
                 <Text
-                  className="font-hk700 text-[12px]"
+                  className="font-hk700 text-caption"
                   style={{ color: sound === 'off' ? palette.muted : palette.accent }}
                   maxFontSizeMultiplier={1.3}
                 >
@@ -274,23 +278,22 @@ export default function FocusScreen() {
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets
         >
-          <Text className="font-hk600 text-muted text-[11px]" style={{ letterSpacing: 0.4 }}>
-            FOCUSING ON
-          </Text>
+          <Text className="font-hk600 text-muted text-footnote">Focusing on</Text>
           <Text
-            className="font-hk700 text-ink text-center text-[17px] mt-1"
-            style={{ lineHeight: 22, paddingHorizontal: 10 }}
+            className="font-hk800 text-ink text-center text-title2"
+            style={{ letterSpacing: -0.4, paddingHorizontal: 10, marginTop: 2 }}
             numberOfLines={3}
+            maxFontSizeMultiplier={TITLE_SCALE}
           >
             {title}
           </Text>
 
           {focusTask?.firstStep ? (
             <View
-              className="bg-accent-soft rounded-[16px] mt-2"
-              style={{ paddingHorizontal: 13, paddingVertical: 7, maxWidth: 280 }}
+              className="bg-accent-soft rounded-[16px]"
+              style={{ paddingHorizontal: 14, paddingVertical: 8, maxWidth: 300, marginTop: 10 }}
             >
-              <Text className="font-hk600 text-accent text-center text-[12.5px]" style={{ lineHeight: 17 }}>
+              <Text className="font-hk600 text-accent text-center text-footnote">
                 Start by: {focusTask.firstStep}
               </Text>
             </View>
@@ -300,8 +303,8 @@ export default function FocusScreen() {
                   action is what closes the gap between intending and starting —
                   the activation cost is in specifying the move, not in wanting
                   the goal. */}
-              <Text className="font-hk700 text-muted text-center text-[11px]" style={{ letterSpacing: 0.3 }}>
-                WHEN I START, I WILL…
+              <Text className="font-hk700 text-muted text-center text-caption">
+                When I start, I will…
               </Text>
               <View className="flex-row mt-1.5" style={{ gap: 7 }}>
                 <TextInput
@@ -314,15 +317,15 @@ export default function FocusScreen() {
                   placeholderTextColor={palette.muted}
                   returnKeyType="done"
                   accessibilityLabel="The very first move"
-                  className="flex-1 bg-surface border border-soft font-hk400 text-ink text-[13px]"
-                  style={{ borderRadius: 11, paddingHorizontal: 12, paddingVertical: 9 }}
+                  className="flex-1 bg-surface border border-soft font-hk400 text-ink text-subhead"
+                  style={{ borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 }}
                 />
                 <PressableScale
                   onPress={saveStep}
                   className="bg-accent items-center justify-center"
-                  style={{ borderRadius: 11, paddingHorizontal: 14 }}
+                  style={{ borderRadius: 12, paddingHorizontal: 16 }}
                 >
-                  <Text className="font-hk700 text-on-accent text-[13px]">Set</Text>
+                  <Text className="font-hk700 text-on-accent text-subhead">Set</Text>
                 </PressableScale>
               </View>
             </View>
@@ -334,87 +337,86 @@ export default function FocusScreen() {
                 className="mt-2"
                 accessibilityRole="button"
               >
-                <Text className="font-hk700 text-accent text-[12.5px]">
+                <Text className="font-hk700 text-accent text-footnote">
                   Can&apos;t start? Name the very first move
                 </Text>
               </Pressable>
             )
           )}
 
-          <View className="flex-row items-center" style={{ gap: 8, marginTop: 18 }}>
+          {/* progress ring */}
+          <Animated.View
+            style={[{ width: ring, height: ring, marginTop: 22 }, ringDim]}
+            accessible
+            accessibilityRole="timer"
+            accessibilityLabel={
+              focus.running
+                ? `${leftMin} ${leftMin === 1 ? 'minute' : 'minutes'} left. ${meta.label}, plus ${livePts} points.`
+                : `Paused with ${leftMin} ${leftMin === 1 ? 'minute' : 'minutes'} left.`
+            }
+          >
+            <Svg width={ring} height={ring} viewBox="0 0 212 212">
+              <Circle cx={106} cy={106} r={R} fill="none" stroke={palette.soft} strokeWidth={12} />
+              <AnimatedCircle
+                cx={106}
+                cy={106}
+                r={R}
+                fill="none"
+                stroke={palette.accent}
+                strokeWidth={12}
+                strokeLinecap="round"
+                strokeDasharray={`${CIRCUMFERENCE}`}
+                animatedProps={ringProps}
+                transform="rotate(-90 106 106)"
+              />
+            </Svg>
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                className="font-mono600 text-ink"
+                style={{ fontSize: Math.round(60 * (ring / RING_MAX)), letterSpacing: -2 }}
+                maxFontSizeMultiplier={1.15}
+              >
+                {formatClock(focusRemaining)}
+              </Text>
+              <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.2}>
+                {focus.running ? 'left' : 'Paused'}
+              </Text>
+            </View>
+          </Animated.View>
+
+          {/* Elapsed as well as remaining, on purpose: duration-estimation errors run
+              high and low, so remaining alone can't correct a mis-read either way. */}
+          <View className="flex-row flex-wrap justify-center" style={{ columnGap: 18, rowGap: 4, marginTop: 14 }}>
+            <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.4}>
+              {formatClock(focus.totalSec - focusRemaining)} focused
+            </Text>
+            <View className="flex-row items-center" style={{ gap: 5 }}>
+              <CatIcon cat={cat} size={12} />
+              <Text className="font-hk700 text-footnote" style={{ color: palette.cats[cat].textColor }} maxFontSizeMultiplier={1.4}>
+                {meta.label}, +{livePts} pts
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row" style={{ gap: 10, marginTop: 14 }}>
             <AdjustButton
-              label={`−${STEP_MIN}`}
+              label={`−${STEP_MIN} min`}
               a11y={`Take off ${STEP_MIN} minutes`}
               disabled={!canAdjust(focus, -STEP_MIN, now)}
               onPress={() => adjustFocus(-STEP_MIN)}
             />
-
-            {/* progress ring */}
-            <Animated.View
-              style={[{ width: ring, height: ring }, ringDim]}
-              accessible
-              accessibilityRole="timer"
-              accessibilityLabel={
-                focus.running
-                  ? `${leftMin} ${leftMin === 1 ? 'minute' : 'minutes'} left. ${meta.label}, plus ${livePts} points.`
-                  : `Paused with ${leftMin} ${leftMin === 1 ? 'minute' : 'minutes'} left.`
-              }
-            >
-              <Svg width={ring} height={ring} viewBox="0 0 212 212">
-                <Circle cx={106} cy={106} r={R} fill="none" stroke={palette.soft} strokeWidth={13} />
-                <AnimatedCircle
-                  cx={106}
-                  cy={106}
-                  r={R}
-                  fill="none"
-                  stroke={palette.accent}
-                  strokeWidth={13}
-                  strokeLinecap="round"
-                  strokeDasharray={`${CIRCUMFERENCE}`}
-                  animatedProps={ringProps}
-                  transform="rotate(-90 106 106)"
-                />
-              </Svg>
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text
-                  className="font-mono text-ink"
-                  style={{ fontSize: Math.round(46 * ringScale), letterSpacing: -1.5 }}
-                  maxFontSizeMultiplier={1.15}
-                >
-                  {formatClock(focusRemaining)}
-                </Text>
-                {/* Both directions on purpose: duration-estimation errors run high
-                    and low, so remaining alone can't correct a mis-read either way. */}
-                <Text
-                  className="font-hk600 text-muted text-[11px]"
-                  style={{ letterSpacing: 0.5 }}
-                  maxFontSizeMultiplier={1.15}
-                >
-                  {focus.running
-                    ? `left · ${formatClock(focus.totalSec - focusRemaining)} focused`
-                    : 'PAUSED'}
-                </Text>
-                <Text
-                  className="font-hk700 text-accent text-[12px] mt-1.5"
-                  maxFontSizeMultiplier={1.15}
-                >
-                  {meta.label} · +{livePts} pts
-                </Text>
-              </View>
-            </Animated.View>
-
             <AdjustButton
-              label={`+${STEP_MIN}`}
+              label={`+${STEP_MIN} min`}
               a11y={`Add ${STEP_MIN} minutes`}
               disabled={!canAdjust(focus, STEP_MIN, now)}
               onPress={() => adjustFocus(STEP_MIN)}
@@ -427,9 +429,9 @@ export default function FocusScreen() {
             haptic
             onPress={toggleFocusRun}
             className="flex-1 items-center bg-surface border border-soft"
-            style={{ borderRadius: 15, paddingVertical: 15 }}
+            style={{ borderRadius: 18, paddingVertical: 16 }}
           >
-            <Text className="font-hk700 text-ink text-[15px]">
+            <Text className="font-hk700 text-ink text-headline">
               {focus.running ? 'Pause' : 'Resume'}
             </Text>
           </PressableScale>
@@ -437,10 +439,10 @@ export default function FocusScreen() {
             haptic
             onPress={() => finishFocus('done')}
             className="flex-1 items-center bg-accent"
-            style={{ borderRadius: 15, paddingVertical: 15 }}
+            style={{ borderRadius: 18, paddingVertical: 16 }}
             accessibilityLabel={`Done with ${title}`}
           >
-            <Text className="font-hk700 text-on-accent text-[15px]">Done</Text>
+            <Text className="font-hk700 text-on-accent text-headline">Done</Text>
           </PressableScale>
         </View>
         <Pressable
@@ -449,7 +451,7 @@ export default function FocusScreen() {
           className="mt-3"
           accessibilityRole="button"
         >
-          <Text className="font-hk400 text-muted text-[13px]">Stop without saving</Text>
+          <Text className="font-hk500 text-muted text-footnote">Stop without saving</Text>
         </Pressable>
       </View>
     </SafeAreaView>
