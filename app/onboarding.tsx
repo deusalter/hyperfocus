@@ -85,9 +85,12 @@ export default function OnboardingScreen() {
         className="flex-1"
       >
         <View className="flex-1" style={{ paddingHorizontal: 26, paddingTop: 8, paddingBottom: 24 }}>
-          <View className="flex-row justify-end" style={{ height: 24 }}>
+          {/* grows with the text rather than clipping Skip at the largest sizes */}
+          <View className="flex-row justify-end" style={{ minHeight: 24 }}>
             <Pressable onPress={finish} hitSlop={14} accessibilityRole="button" accessibilityLabel="Skip the introduction">
-              <Text className="font-hk600 text-muted text-[13.5px]">Skip</Text>
+              <Text className="font-hk600 text-muted text-[13.5px]" maxFontSizeMultiplier={TITLE_SCALE}>
+                Skip
+              </Text>
             </Pressable>
           </View>
 
