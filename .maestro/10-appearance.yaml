@@ -37,10 +37,11 @@ name: Choosing dark
     timeout: 5000
 - takeScreenshot: 05-alert-dark
 - tapOn: "Cancel"
+# reads "Auto" on screen; VoiceOver, and so Maestro, gets the longer name
 - scrollUntilVisible:
-    element: "Auto"
+    element: "Match my phone"
     direction: UP
-- tapOn: "Auto"
+- tapOn: "Match my phone"
 - waitForAnimationToEnd
 - takeScreenshot: 06-auto
 - tapOn: "Light"

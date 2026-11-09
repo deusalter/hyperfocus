@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Drives the compiled app on an iOS simulator and collects what it finds into
-# sim-output/: screenshots, logs, the accessibility tree, results.txt.
+# sim-output/<group>/: results.txt, then one folder per flow with its screenshots
+# and log, plus the app's own log and the accessibility tree where a group takes them.
 #
 #   bash scripts/ios-sim.sh <group>
 #
@@ -23,6 +24,11 @@ export MAESTRO_DRIVER_STARTUP_TIMEOUT=240000
 mkdir -p "$OUT"
 RESULTS="$OUT/results.txt"
 : > "$RESULTS"
+LOG_PID=""
+
+# Newer Maestro writes screenshots under ~/.maestro/tests unless told otherwise
+OUTPUT_FLAG=""
+if maestro test --help 2>&1 | grep -q -- "--test-output-dir"; then OUTPUT_FLAG=1; fi
 
 log() { echo "[$(date +%H:%M:%S)] $*"; }
 note() { log "$*"; echo "$*" >> "$RESULTS"; }
@@ -61,6 +67,11 @@ new_device() {
   fi
   with_timeout 60 xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged \
     --batteryLevel 100 --cellularMode active --cellularBars 4 --dataNetwork wifi --wifiMode active --wifiBars 3
+  # The first keyboard on a new device opens a full-screen slide-to-type tip. Real
+  # phones have long since dismissed it; the suggestion bar stays, as on a real phone.
+  for key in DidShowContinuousPathIntroduction DidShowGestureKeyboardIntroduction KeyboardDidShowProductivityTutorial; do
+    with_timeout 30 xcrun simctl spawn "$UDID" defaults write com.apple.keyboard.preferences "$key" -bool true
+  done
   log "installing"
   with_timeout 180 xcrun simctl install "$UDID" "$APP" || {
     note "FAIL  install on $type"
@@ -78,18 +89,27 @@ seed_state() {
   node "$ROOT/scripts/sim-seed.mjs" "$1" > "$dir/manifest.json"
 }
 
-# run_flow <subfolder> <flow>
+# run_flow <flow>: screenshots and log land in $OUT/<flow>/
 run_flow() {
-  local dir="$OUT/$1" flow="$2" start=$SECONDS
+  local flow="$1" start=$SECONDS
+  local dir="$OUT/$flow"
   mkdir -p "$dir"
-  log "flow $1/$flow"
-  if (cd "$dir" && with_timeout 480 maestro --device "$UDID" test "$ROOT/.maestro/$flow.yaml" > "$flow.log" 2>&1); then
-    note "PASS  $1/$flow ($((SECONDS - start))s)"
+  touch "$dir/.started"
+  log "flow $flow"
+  local args=(--device "$UDID" test)
+  [ -n "$OUTPUT_FLAG" ] && args+=(--test-output-dir "$dir/maestro")
+  if (cd "$dir" && with_timeout 480 maestro "${args[@]}" "$ROOT/.maestro/$flow.yaml" > "$dir/maestro.log" 2>&1); then
+    note "PASS  $flow ($((SECONDS - start))s)"
   else
-    note "FAIL  $1/$flow ($((SECONDS - start))s)"
-    tail -25 "$dir/$flow.log" | sed 's/^/      /' >> "$RESULTS"
-    with_timeout 30 xcrun simctl io "$UDID" screenshot "$dir/$flow-failure.png" > /dev/null 2>&1
+    note "FAIL  $flow ($((SECONDS - start))s)"
+    tail -25 "$dir/maestro.log" | sed 's/^/      /' >> "$RESULTS"
+    with_timeout 30 xcrun simctl io "$UDID" screenshot "$dir/failure.png" > /dev/null 2>&1
   fi
+  # whichever folder this Maestro version wrote them to, bring the screenshots up
+  # beside the log, where the artifact upload and the compositor look for them
+  find "$dir/maestro" "$HOME/.maestro/tests" -name "*.png" -newer "$dir/.started" 2> /dev/null |
+    while read -r png; do mv "$png" "$dir/"; done
+  rm -f "$dir/.started"
 }
 
 start_log() {
@@ -97,37 +117,41 @@ start_log() {
     --predicate 'process == "Hyperfocus"' > "$OUT/app.log" 2>&1 &
   LOG_PID=$!
 }
-stop_log() { kill "$LOG_PID" 2> /dev/null; }
+stop_log() { if [ -n "$LOG_PID" ]; then kill "$LOG_PID" 2> /dev/null; fi; }
 
 finish() {
-  stop_log 2> /dev/null
+  stop_log
   with_timeout 60 xcrun simctl shutdown "$UDID" 2> /dev/null
+  return 0
 }
 
-note "== $GROUP · $(xcodebuild -version | tr '\n' ' ')"
+note "== $GROUP · $(xcodebuild -version | tr '\n' ' ')· Maestro $(maestro --version 2> /dev/null | tail -1)"
 
 case "$GROUP" in
   flows)
     # every flow on the phone most people have, with the app's own log
     new_device hf-pro "iPhone 17 Pro" || exit 1
     start_log
-    run_flow . 01-first-run
-    run_flow . 02-capture-sort
-    run_flow . 03-focus
-    run_flow . 04-alerts
+    run_flow 01-first-run
+    run_flow 02-capture-sort
     seed_state full
-    run_flow . 05-tour
-    run_flow . 06-edit
+    run_flow 03-focus
     seed_state full
-    run_flow . 07-keyboard
+    run_flow 04-alerts
     seed_state full
-    run_flow . 10-appearance
+    run_flow 05-tour
     seed_state full
-    run_flow . 12-deep-link
+    run_flow 06-edit
+    seed_state full
+    run_flow 07-keyboard
+    seed_state full
+    run_flow 10-appearance
+    seed_state full
+    run_flow 12-deep-link
     seed_state gentle
-    run_flow . 08-gentle
+    run_flow 08-gentle
     seed_state away
-    run_flow . 09-coming-back
+    run_flow 09-coming-back
     seed_state full
     with_timeout 30 xcrun simctl launch "$UDID" "$BUNDLE" > /dev/null
     sleep 8
@@ -140,19 +164,17 @@ case "$GROUP" in
     new_device hf-large "iPhone 17 Pro" || exit 1
     with_timeout 30 xcrun simctl ui "$UDID" content_size accessibility-extra-extra-extra-large
     seed_state full
-    run_flow . 05-tour
-    seed_state full
-    run_flow . 03b-focus-screen
+    run_flow 13-large-text
     finish
     ;;
 
   small)
     new_device hf-se "iPhone SE (3rd generation)" || exit 1
-    run_flow . 01-first-run
+    run_flow 01-first-run
     seed_state full
-    run_flow . 05-tour
+    run_flow 05-tour
     seed_state full
-    run_flow . 03b-focus-screen
+    run_flow 03b-focus-screen
     finish
     ;;
 
@@ -163,11 +185,11 @@ case "$GROUP" in
     with_timeout 30 xcrun simctl spawn "$UDID" defaults write com.apple.Accessibility ReduceMotionEnabled -bool true
     with_timeout 30 xcrun simctl spawn "$UDID" defaults write com.apple.Accessibility EnhancedBackgroundContrastEnabled -bool true
     seed_state full
-    run_flow . 05-tour
+    run_flow 05-tour
     seed_state full
-    run_flow . 11-springboard
+    run_flow 11-springboard
     seed_state full
-    run_flow . 10-appearance
+    run_flow 10-appearance
     finish
     ;;
 
@@ -181,24 +203,24 @@ case "$GROUP" in
     if [ "$GROUP" = store-6.9 ]; then TYPE="iPhone 17 Pro Max"; else TYPE="iPhone 17 Pro"; fi
     new_device hf-store "$TYPE" || exit 1
     seed_state store-home
-    run_flow . store-race
+    run_flow store-race
     seed_state store-focus
-    run_flow . store-focus
+    run_flow store-focus
     seed_state store-dump
-    run_flow . store-dump
+    run_flow store-dump
     seed_state full
     # slow, and on video: one frame of the card mid-swipe explains the gesture
     xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$OUT/swipe.mp4" &
     SWIPE_PID=$!
-    run_flow . store-triage
+    run_flow store-triage
     kill -INT "$SWIPE_PID" 2> /dev/null
     wait "$SWIPE_PID" 2> /dev/null
     seed_state store-recap
-    run_flow . store-recap
+    run_flow store-recap
     seed_state store-calendar
-    run_flow . store-calendar
+    run_flow store-calendar
     seed_state store-home
-    run_flow . store-insights
+    run_flow store-insights
     finish
     ;;
 

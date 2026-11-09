@@ -1,0 +1,63 @@
+appId: com.deusalter.hyperfocus
+name: The largest text size
+---
+# Run with the phone at the largest accessibility size. Most of Home is below the
+# fold there, so this scrolls to things instead of expecting them on screen.
+- launchApp
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 60000
+- waitForAnimationToEnd
+- takeScreenshot: 01-home
+- scrollUntilVisible:
+    element: "Start one thing.*"
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: 02-home-start
+- scroll
+- takeScreenshot: 03-home-list
+- tapOn: "Calendar"
+- waitForAnimationToEnd
+- takeScreenshot: 04-calendar
+- tapOn: "Insights"
+- waitForAnimationToEnd
+- takeScreenshot: 05-insights
+- tapOn: "You"
+- waitForAnimationToEnd
+- takeScreenshot: 06-you
+- scroll
+- takeScreenshot: 07-you-scrolled
+- tapOn: "Brain dump"
+- waitForAnimationToEnd
+- takeScreenshot: 08-dump-with-keyboard
+- tapOn: "Close"
+- tapOn: "Home"
+- scrollUntilVisible:
+    element: "Start one thing.*"
+    direction: DOWN
+    timeout: 30000
+- tapOn: "Start one thing.*"
+- tapOn:
+    text: "Allow"
+    optional: true
+- extendedWaitUntil:
+    visible: "FOCUSING ON"
+    timeout: 8000
+- waitForAnimationToEnd
+- takeScreenshot: 09-focus
+# every control has to be reachable, even if the screen has to scroll to show it
+- scrollUntilVisible:
+    element: "Done with .*"
+    direction: DOWN
+    timeout: 15000
+- tapOn: "Done with .*"
+- extendedWaitUntil:
+    visible: "SESSION COMPLETE"
+    timeout: 6000
+- waitForAnimationToEnd
+- takeScreenshot: 10-recap
+- scrollUntilVisible:
+    element: "Back home"
+    direction: DOWN
+    timeout: 15000
+- takeScreenshot: 11-recap-bottom

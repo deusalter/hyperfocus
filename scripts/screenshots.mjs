@@ -3,7 +3,10 @@
 // From real iOS captures (preferred). Download what the simulator workflow took:
 //   gh run download <run id> -p 'sim-store-*' -D /tmp/store-raw
 //   npm run screenshots -- --raw /tmp/store-raw
-// That reads sim-store-6.9/store-6.9/<id>.png and the 6.3 equivalent.
+// That finds <id>.png anywhere under sim-store-6.9/ and sim-store-6.3/. A frame
+// pulled from the run's swipe.mp4 makes a better 04-triage than the still: save it
+// over store-triage/04-triage.png before composing, for example
+//   ffmpeg -ss 71.8 -i swipe.mp4 -frames:v 1 -y store-triage/04-triage.png
 //
 // Or from the web build, when no simulator run is handy:
 //   npx expo start --web --port 8099   (in another terminal)
@@ -13,7 +16,7 @@
 // PNG with an alpha channel, and this is much smaller at no visible cost.
 
 import { chromium } from 'playwright-core'
-import { existsSync, mkdirSync, readFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { HISTORY, TASKS, daysFromNow, dayKey, freezeTime, runningSession, seed } from './seed.mjs'
@@ -34,11 +37,25 @@ const SIZES = [
 const rawIndex = process.argv.indexOf('--raw')
 const RAW = rawIndex > 0 ? process.argv[rawIndex + 1] : null
 
+/** The first file with this name under dir, at any depth, or null. */
+function findFile(dir, name) {
+  if (!existsSync(dir)) return null
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name)
+    if (entry.isFile() && entry.name === name) return path
+    if (entry.isDirectory()) {
+      const found = findFile(path, name)
+      if (found) return found
+    }
+  }
+  return null
+}
+
 /** A real capture for this shot and size, or null. */
 function rawCapture(shot, size) {
   if (!RAW) return null
-  const file = join(RAW, `sim-${size.group}`, size.group, `${shot.id}.png`)
-  return existsSync(file) ? readFileSync(file).toString('base64') : null
+  const file = findFile(join(RAW, `sim-${size.group}`), `${shot.id}.png`)
+  return file ? readFileSync(file).toString('base64') : null
 }
 
 // iPhone 16 Pro in points. The app renders between the status bar and home indicator.

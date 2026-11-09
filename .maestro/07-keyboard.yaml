@@ -14,9 +14,8 @@ name: Keyboard never covers the field
 - takeScreenshot: 01-feed-field-with-keyboard
 - assertVisible: "Calendar feed link"
 - inputText: "not a link"
-- tapOn:
-    text: "Connect"
-    index: 1
+# the card's own Connect gives way to the form's while the form is open
+- tapOn: "Connect"
 - waitForAnimationToEnd
 - takeScreenshot: 02-feed-error
 - tapOn: "Calendar"

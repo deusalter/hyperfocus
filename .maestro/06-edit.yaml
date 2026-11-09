@@ -5,6 +5,11 @@ name: Editing a task
 - extendedWaitUntil:
     visible: "Start one thing.*"
     timeout: 45000
+# the last row starts under the + button, which would take the tap
+- scrollUntilVisible:
+    element: "Clear the desk"
+    direction: DOWN
+    centerElement: true
 - tapOn: "Clear the desk"
 - extendedWaitUntil:
     visible: "WHAT KIND"
