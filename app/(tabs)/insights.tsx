@@ -326,7 +326,9 @@ export default function InsightsScreen() {
             </>
           )}
           <Stat
-            label="Focus this week"
+            // the card sits under "This week's momentum", and a longer label
+            // was cut off to "Focus this we…" on an iPhone SE
+            label="Focused"
             value={(weekMinutes / 60).toFixed(1)}
             unit="h"
             a11y={`${(weekMinutes / 60).toFixed(1)} hours focused this week`}
