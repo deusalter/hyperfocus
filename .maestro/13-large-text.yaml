@@ -37,6 +37,9 @@ name: The largest text size
 - scroll
 - takeScreenshot: 07-you-scrolled
 - tapOn: "Brain dump"
+- extendedWaitUntil:
+    visible: "What's on your mind\\?"
+    timeout: 10000
 - waitForAnimationToEnd
 - takeScreenshot: 08-dump-with-keyboard
 - tapOn: "Close"
@@ -44,9 +47,10 @@ name: The largest text size
     file: common/tab.yaml
     env:
       TAB: Home
+# Home kept its place further down the list
 - scrollUntilVisible:
     element: "Start one thing.*"
-    direction: DOWN
+    direction: UP
     timeout: 30000
 - tapOn: "Start one thing.*"
 - tapOn:
