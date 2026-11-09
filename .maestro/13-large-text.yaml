@@ -59,9 +59,9 @@ name: The largest text size
     direction: UP
     timeout: 30000
 - tapOn: "Start one thing.*"
-- tapOn:
-    text: "Allow"
-    optional: true
+# Maestro's iOS driver answers the system's notification prompt by itself. A tap
+# of our own on "Allow" raced it, and once the prompt was gone the tap landed on
+# the app at the same spot: on Focus at the largest text size, Stop without saving.
 - extendedWaitUntil:
     visible: "FOCUSING ON"
     timeout: 8000
