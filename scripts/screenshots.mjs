@@ -204,12 +204,20 @@ function statusBar() {
     </div>`
 }
 
+/**
+ * The Dynamic Island in capture pixels, the same on both sizes. Simulator screenshots
+ * leave it out but its screen recordings draw it, so without this the one shot taken
+ * from video would be the only phone with an island. Measured from those recordings.
+ */
+const ISLAND = { width: 376, height: 110, top: 42 }
+
 function compose(shot, image, size, real = false) {
   const k = size.width / 1320
   const phoneW = 1060
   const scale = phoneW / SCREEN.width
   // a real capture already has the status bar and home indicator, at its own aspect
   const phoneH = real ? phoneW * (size.height / size.width) : SCREEN.height * scale
+  const px = phoneW / size.width
   return `<!doctype html><html><head><style>
     @font-face { font-family: Hanken; font-weight: 800; src: url(data:font/ttf;base64,${FONT_800}); }
     @font-face { font-family: Hanken; font-weight: 600; src: url(data:font/ttf;base64,${FONT_600}); }
@@ -231,12 +239,14 @@ function compose(shot, image, size, real = false) {
               transform: scale(${scale}); transform-origin: 0 0; background: #eef0f0; }
     .app { position: absolute; left: 0; top: ${SCREEN.top}px; width: ${SCREEN.width}px; height: ${SCREEN.height - SCREEN.top - SCREEN.bottom}px; }
     .home { position: absolute; left: 134px; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: #1d2023; }
+    .island { position: absolute; top: ${ISLAND.top * px}px; left: ${((size.width - ISLAND.width) / 2) * px}px;
+              width: ${ISLAND.width * px}px; height: ${ISLAND.height * px}px; border-radius: ${(ISLAND.height / 2) * px}px; background: #000; }
   </style></head><body><div class="canvas">
     <h1>${shot.title}</h1>
     <p>${shot.sub}</p>
     <div class="phone">${
       real
-        ? `<img src="data:image/png;base64,${image}" style="width:100%;height:100%;display:block">`
+        ? `<img src="data:image/png;base64,${image}" style="width:100%;height:100%;display:block"><div class="island"></div>`
         : `<div class="screen">
             ${statusBar()}
             <img class="app" src="data:image/png;base64,${image}">
