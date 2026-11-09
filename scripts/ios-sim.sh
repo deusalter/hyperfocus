@@ -155,7 +155,7 @@ case "$GROUP" in
     start_log
     run_flow 01-first-run
     run_flow 02-capture-sort
-    seed_state full
+    seed_state fresh-start
     run_flow 03-focus
     seed_state full
     run_flow 04-alerts

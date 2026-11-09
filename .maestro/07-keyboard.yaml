@@ -18,14 +18,20 @@ name: Keyboard never covers the field
 - tapOn: "Connect"
 - waitForAnimationToEnd
 - takeScreenshot: 02-feed-error
+# the keyboard sits over the tab bar; dragging the page puts it away
+- swipe:
+    start: 50%, 30%
+    end: 50%, 60%
+- waitForAnimationToEnd
+- takeScreenshot: 03-keyboard-dismissed
 - tapOn: "Calendar"
 - waitForAnimationToEnd
 - tapOn: "Add something for today"
 - waitForAnimationToEnd
-- takeScreenshot: 03-calendar-add-with-keyboard
+- takeScreenshot: 04-calendar-add-with-keyboard
 - inputText: "From the calendar"
 - pressKey: Enter
 - extendedWaitUntil:
     visible: "From the calendar"
     timeout: 5000
-- takeScreenshot: 04-calendar-after-add
+- takeScreenshot: 05-calendar-after-add

@@ -6,12 +6,17 @@ name: iOS simulator
 #
 #   gh workflow run ios-simulator.yml
 #   gh workflow run ios-simulator.yml -f reuse_build=<run id>   # skip the compile
+#   gh workflow run ios-simulator.yml -f groups='["flows","small"]'  # only some devices
 
 on:
   workflow_dispatch:
     inputs:
       reuse_build:
         description: Run ID to take the compiled app from, instead of building it
+        required: false
+        default: ''
+      groups:
+        description: JSON list of device groups to drive (all of them when empty)
         required: false
         default: ''
 
@@ -78,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: [flows, large-text, small, dark-phone, store-6.9, store-6.3]
+        group: ${{ fromJSON(inputs.groups || '["flows","large-text","small","dark-phone","store-6.9","store-6.3"]') }}
     name: drive (${{ matrix.group }})
     steps:
       - uses: actions/checkout@v4

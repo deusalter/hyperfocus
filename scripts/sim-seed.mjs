@@ -2,7 +2,7 @@
 // data instead of tapping its way there. iOS keeps AsyncStorage as one JSON file of
 // key to string value, and reads a value from there whatever its size.
 //
-//   node scripts/sim-seed.mjs [full|gentle|away] > manifest.json
+//   node scripts/sim-seed.mjs [full|fresh-start|gentle|away|store-*] > manifest.json
 
 import { HISTORY, TASKS, dayKey, daysFromNow, runningSession, seed } from './seed.mjs'
 
@@ -58,6 +58,8 @@ const states = {
         },
       ],
     }),
+  // no first move written down yet, so Focus offers to help name one
+  'fresh-start': () => seed({ tasks: TASKS().map(({ firstStep, ...task }) => task) }),
   gentle: () => seed({ settings: { gentle: true } }),
   // back after nine days, with something overdue that should stay out of the way
   away: () =>
