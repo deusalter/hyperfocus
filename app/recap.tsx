@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { View, Text, Pressable } from 'react-native'
+import { View, Text, Pressable, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
@@ -129,7 +129,15 @@ export default function RecapScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
       {celebrate && <Confetti fall={420} />}
-      <View className="flex-1 items-center justify-center" style={{ padding: 20 }}>
+      {/* Centred when it fits, which is always at default sizes. At the largest text
+          sizes it scrolls, so Back home can't be pushed off the bottom. */}
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        alwaysBounceVertical={false}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+      >
         <Animated.Text
           entering={FadeIn.duration(240)}
           className="font-hk800 text-accent text-[11px]"
@@ -180,7 +188,9 @@ export default function RecapScreen() {
             <Text className="font-mono text-accent text-[24px]" style={{ letterSpacing: -0.5 }} maxFontSizeMultiplier={TITLE_SCALE}>
               +{sessionPts}
             </Text>
-            <Text className="font-hk600 text-muted text-[11px]">PTS THIS SESSION</Text>
+            <Text className="font-hk600 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
+              PTS THIS SESSION
+            </Text>
             {/* Naming the start portion once per session is the point of the
                 scoring change — the reward for beginning should be something
                 you can see, not a number folded invisibly into a total. */}
@@ -197,7 +207,9 @@ export default function RecapScreen() {
             <Text className="font-mono text-ink text-[24px]" style={{ letterSpacing: -0.5 }} maxFontSizeMultiplier={TITLE_SCALE}>
               {momentumPts}
             </Text>
-            <Text className="font-hk600 text-muted text-[11px]">MOMENTUM TODAY</Text>
+            <Text className="font-hk600 text-muted text-[11px]" maxFontSizeMultiplier={1.2}>
+              MOMENTUM TODAY
+            </Text>
           </View>
         </Animated.View>
 
@@ -269,7 +281,7 @@ export default function RecapScreen() {
             </>
           )}
         </Animated.View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
