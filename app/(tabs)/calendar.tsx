@@ -12,7 +12,7 @@ import { ChevronRight, PlusIcon, SyncIcon } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { dayKey } from '@/lib/points'
 import { MAX_TITLE, noon } from '@/lib/tasks'
-import { useColors } from '@/lib/theme'
+import { TITLE_SCALE, useColors } from '@/lib/theme'
 import { spoken } from '@/lib/speech'
 import { Task } from '@/lib/types'
 
@@ -98,11 +98,16 @@ export default function CalendarScreen() {
         keyboardDismissMode="on-drag"
         automaticallyAdjustKeyboardInsets
       >
-        <Animated.View entering={FadeInUp.duration(260)} className="flex-row justify-between items-start">
+        <Animated.View
+          entering={FadeInUp.duration(260)}
+          className="flex-row flex-wrap justify-between items-start"
+          style={{ gap: 8 }}
+        >
           <View>
             <Text
               className="font-hk800 text-ink text-[24px]"
               style={{ letterSpacing: -0.5 }}
+              maxFontSizeMultiplier={TITLE_SCALE}
               accessibilityRole="header"
             >
               Calendar
@@ -143,7 +148,7 @@ export default function CalendarScreen() {
 
         {/* selected day */}
         <Animated.View entering={FadeInUp.delay(80).duration(260)}>
-          <View className="flex-row items-baseline" style={{ gap: 8, marginTop: 18 }}>
+          <View className="flex-row flex-wrap items-baseline" style={{ columnGap: 8, marginTop: 18 }}>
             <Text
               className="font-hk800 text-ink text-[16px]"
               style={{ letterSpacing: -0.3 }}

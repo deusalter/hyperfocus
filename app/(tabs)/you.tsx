@@ -27,7 +27,7 @@ import { notificationsAllowed, requestNotifications } from '@/lib/notifications'
 import { REMINDER_HOURS } from '@/lib/reminders'
 import { FOCUS_OPTIONS } from '@/lib/session'
 import { SOUNDS, SOUND_ORDER, previewSound } from '@/lib/sound'
-import { useColors } from '@/lib/theme'
+import { TITLE_SCALE, useColors } from '@/lib/theme'
 import { SoundKind } from '@/lib/types'
 
 function SectionLabel({ children }: { children: string }) {
@@ -436,6 +436,7 @@ export default function YouScreen() {
           <Text
             className="font-hk800 text-ink text-[24px]"
             style={{ letterSpacing: -0.5 }}
+            maxFontSizeMultiplier={TITLE_SCALE}
             accessibilityRole="header"
           >
             You

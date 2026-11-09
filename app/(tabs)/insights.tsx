@@ -8,7 +8,7 @@ import { TriangleUp } from '@/components/ui/Icon'
 import { useApp } from '@/store/AppStore'
 import { addDays } from '@/lib/points'
 import { spoken } from '@/lib/speech'
-import { hexA, useColors } from '@/lib/theme'
+import { TITLE_SCALE, hexA, useColors, useLargeText } from '@/lib/theme'
 
 const CHART_H = 132
 
@@ -37,6 +37,7 @@ function Tile({ label, value, unit, a11y }: { label: string; value: string; unit
 
 export default function InsightsScreen() {
   const palette = useColors()
+  const large = useLargeText()
   const { bars, race, byDay, showedUp, companionLevel, todayKey, settings } = useApp()
   const gentle = settings.gentle
 
@@ -94,6 +95,7 @@ export default function InsightsScreen() {
           <Text
             className="font-hk800 text-ink text-[24px]"
             style={{ letterSpacing: -0.5 }}
+            maxFontSizeMultiplier={TITLE_SCALE}
             accessibilityRole="header"
           >
             Insights
@@ -106,15 +108,30 @@ export default function InsightsScreen() {
         {/* companion card */}
         <Animated.View
           entering={FadeInUp.delay(40).duration(260)}
-          className="bg-surface border border-soft flex-row items-center mt-4"
-          style={{ borderRadius: 20, padding: 16, gap: 8 }}
+          className="bg-surface border border-soft mt-4"
+          style={{
+            borderRadius: 20,
+            padding: 16,
+            gap: 8,
+            // stacked at the accessibility sizes, so the words get the card's width
+            flexDirection: large ? 'column' : 'row',
+            alignItems: large ? 'flex-start' : 'center',
+          }}
         >
           <Sprite pose="idle" level={companionLevel} scale={0.8} />
-          <View className="flex-1" accessible>
-            <Text className="font-hk700 text-muted text-[11px]" style={{ letterSpacing: 0.4 }}>
+          <View className={large ? undefined : 'flex-1'} accessible>
+            <Text
+              className="font-hk700 text-muted text-[11px]"
+              style={{ letterSpacing: 0.4 }}
+              maxFontSizeMultiplier={1.2}
+            >
               YOUR COMPANION
             </Text>
-            <Text className="font-hk800 text-ink text-[22px] mt-0.5" style={{ letterSpacing: -0.4 }}>
+            <Text
+              className="font-hk800 text-ink text-[22px] mt-0.5"
+              style={{ letterSpacing: -0.4 }}
+              maxFontSizeMultiplier={TITLE_SCALE}
+            >
               Level {companionLevel}
             </Text>
             <Text className="font-hk400 text-ink text-[13px] mt-1" style={{ lineHeight: 19 }}>

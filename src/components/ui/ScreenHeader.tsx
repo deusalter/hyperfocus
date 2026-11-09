@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router'
 import { ReactNode } from 'react'
 import { ChevronLeft, CloseIcon } from '@/components/ui/Icon'
 import { goBackOrHome } from '@/lib/nav'
+import { TITLE_SCALE } from '@/lib/theme'
 
 /**
  * Flow header: back or close control + title + optional right slot + subtitle.
@@ -39,6 +40,7 @@ export default function ScreenHeader({
         </Pressable>
         <Text
           className="font-hk800 text-ink text-[22px]"
+          maxFontSizeMultiplier={TITLE_SCALE}
           style={{ letterSpacing: -0.4 }}
           accessibilityRole="header"
         >

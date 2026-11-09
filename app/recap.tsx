@@ -10,6 +10,7 @@ import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
 import { scoreParts } from '@/lib/points'
 import { spoken } from '@/lib/speech'
+import { TITLE_SCALE } from '@/lib/theme'
 
 /** Finished things logged before asking for a review. Enough to have an opinion. */
 const REVIEW_AFTER = 5
@@ -149,6 +150,7 @@ export default function RecapScreen() {
         <Animated.Text
           entering={FadeIn.delay(140).duration(240)}
           className="font-hk800 text-ink text-[23px] mt-1 text-center"
+          maxFontSizeMultiplier={TITLE_SCALE}
           style={{ letterSpacing: -0.3 }}
           accessibilityRole="header"
         >
@@ -175,7 +177,7 @@ export default function RecapScreen() {
             accessible
             accessibilityLabel={`Plus ${lastRecap.points} points this session: ${parts.start} for starting${parts.focus > 0 ? `, ${parts.focus} focused` : ''}.`}
           >
-            <Text className="font-mono text-accent text-[24px]" style={{ letterSpacing: -0.5 }}>
+            <Text className="font-mono text-accent text-[24px]" style={{ letterSpacing: -0.5 }} maxFontSizeMultiplier={TITLE_SCALE}>
               +{sessionPts}
             </Text>
             <Text className="font-hk600 text-muted text-[11px]">PTS THIS SESSION</Text>
@@ -192,7 +194,7 @@ export default function RecapScreen() {
             accessible
             accessibilityLabel={`${todayTotals.points} points of momentum today.`}
           >
-            <Text className="font-mono text-ink text-[24px]" style={{ letterSpacing: -0.5 }}>
+            <Text className="font-mono text-ink text-[24px]" style={{ letterSpacing: -0.5 }} maxFontSizeMultiplier={TITLE_SCALE}>
               {momentumPts}
             </Text>
             <Text className="font-hk600 text-muted text-[11px]">MOMENTUM TODAY</Text>

@@ -1,4 +1,4 @@
-import { useColorScheme } from 'react-native'
+import { useColorScheme, useWindowDimensions } from 'react-native'
 import colors from './colors.json'
 
 // Every colour lives in colors.json, which tailwind.config.js reads too, so the
@@ -96,3 +96,19 @@ export const fonts = {
   mono: 'SplineSansMono_500Medium',
   mono600: 'SplineSansMono_600SemiBold',
 } as const
+
+/**
+ * Screen titles stop growing at twice their size. Body text scales all the way with
+ * the phone's text size, 3.6 times at the largest setting, but iOS's own large
+ * titles only reach about 1.8 times, and a one-word title at 3.6 times pushes
+ * whatever sits beside it off the screen.
+ */
+export const TITLE_SCALE = 2
+
+/**
+ * True at the accessibility text sizes, where side-by-side layouts stack the way
+ * iOS's own do, rather than squeezing text into a column so narrow it breaks words.
+ */
+export function useLargeText() {
+  return useWindowDimensions().fontScale >= 1.75
+}

@@ -15,7 +15,7 @@ import { useApp } from '@/store/AppStore'
 import { useStartFocus } from '@/lib/useStartFocus'
 import { AWAY_DAYS, greeting } from '@/lib/points'
 import { spoken } from '@/lib/speech'
-import { hexA, useColors } from '@/lib/theme'
+import { TITLE_SCALE, hexA, useColors, useLargeText } from '@/lib/theme'
 
 /** Growth, not a burning streak — nothing here can go out. */
 function SproutIcon() {
@@ -99,6 +99,7 @@ function StatTile({
 
 export default function HomeScreen() {
   const palette = useColors()
+  const large = useLargeText()
   const router = useRouter()
   const {
     settings,
@@ -156,7 +157,12 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* header */}
-        <Animated.View entering={FadeInUp.duration(260)} className="flex-row justify-between items-start" style={{ gap: 10 }}>
+        {/* at the accessibility sizes the pill sits under the greeting, not beside it */}
+        <Animated.View
+          entering={FadeInUp.duration(260)}
+          className="justify-between items-start"
+          style={{ gap: 10, flexDirection: large ? 'column' : 'row' }}
+        >
           <View style={{ flexShrink: 1 }}>
             <Text className="font-hk500 text-muted text-[12px]">
               {format(new Date(), 'EEEE · MMMM d')}
@@ -165,7 +171,8 @@ export default function HomeScreen() {
               className="font-hk800 text-ink text-[24px] mt-0.5"
               style={{ letterSpacing: -0.5 }}
               accessibilityRole="header"
-              numberOfLines={2}
+              maxFontSizeMultiplier={TITLE_SCALE}
+              numberOfLines={large ? 4 : 2}
             >
               {hello}
             </Text>
@@ -377,7 +384,7 @@ export default function HomeScreen() {
                 <Text
                   className="font-hk400 text-on-accent text-[12px] mt-0.5"
                   style={{ opacity: 0.85 }}
-                  numberOfLines={1}
+                  numberOfLines={large ? 3 : 1}
                 >
                   {next.title}
                 </Text>
@@ -391,7 +398,7 @@ export default function HomeScreen() {
                     <Text
                       className="font-hk600 text-on-accent text-[12px]"
                       style={{ opacity: 0.95, flexShrink: 1 }}
-                      numberOfLines={1}
+                      numberOfLines={large ? 3 : 1}
                     >
                       {next.firstStep}
                     </Text>

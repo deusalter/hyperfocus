@@ -58,14 +58,20 @@ export default function WeekStrip({
           accessibilityLabel="Previous week"
         >
           <ChevronLeft size={15} />
-          <Text className="font-hk700 text-muted text-[14px]">Prev</Text>
+          <Text className="font-hk700 text-muted text-[14px]" maxFontSizeMultiplier={1.4}>
+            Prev
+          </Text>
         </Pressable>
         {offset !== 0 ? (
           <Pressable onPress={() => onJump(0)} hitSlop={14} accessibilityRole="button">
-            <Text className="font-hk700 text-accent text-[13px]">Back to today</Text>
+            <Text className="font-hk700 text-accent text-[13px]" maxFontSizeMultiplier={1.4}>
+              Back to today
+            </Text>
           </Pressable>
         ) : (
-          <Text className="font-hk600 text-muted text-[12.5px]">This week</Text>
+          <Text className="font-hk600 text-muted text-[12.5px]" maxFontSizeMultiplier={1.4}>
+            This week
+          </Text>
         )}
         <Pressable
           onPress={() => onJump(offset + 1)}
@@ -74,7 +80,9 @@ export default function WeekStrip({
           accessibilityRole="button"
           accessibilityLabel="Next week"
         >
-          <Text className="font-hk700 text-muted text-[14px]">Next</Text>
+          <Text className="font-hk700 text-muted text-[14px]" maxFontSizeMultiplier={1.4}>
+            Next
+          </Text>
           <ChevronRight size={15} />
         </Pressable>
       </View>

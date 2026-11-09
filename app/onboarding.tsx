@@ -17,7 +17,7 @@ import Toggle from '@/components/ui/Toggle'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
 import { FOCUS_OPTIONS } from '@/lib/session'
-import { useColors } from '@/lib/theme'
+import { TITLE_SCALE, useColors } from '@/lib/theme'
 
 const STEPS = 3
 
@@ -105,6 +105,7 @@ export default function OnboardingScreen() {
                 <Sprite pose="wave" level={4} scale={1.1} />
                 <Text
                   className="font-hk800 text-ink text-[30px] mt-2.5"
+                  maxFontSizeMultiplier={TITLE_SCALE}
                   style={{ letterSpacing: -1 }}
                   accessibilityRole="header"
                 >
@@ -130,6 +131,7 @@ export default function OnboardingScreen() {
               <Animated.View entering={FadeInUp.duration(400)} style={{ width: '100%', maxWidth: 310 }}>
                 <Text
                   className="font-hk800 text-ink text-center text-[24px] mb-6"
+                  maxFontSizeMultiplier={TITLE_SCALE}
                   style={{ letterSpacing: -0.5 }}
                   accessibilityRole="header"
                 >
@@ -160,6 +162,7 @@ export default function OnboardingScreen() {
                 <Text
                   className="font-hk800 text-ink text-center text-[24px]"
                   style={{ letterSpacing: -0.5 }}
+                  maxFontSizeMultiplier={TITLE_SCALE}
                   accessibilityRole="header"
                 >
                   Set your pace

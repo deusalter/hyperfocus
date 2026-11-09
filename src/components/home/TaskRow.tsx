@@ -17,13 +17,16 @@ import PressableScale from '@/components/ui/PressableScale'
 import { Task } from '@/lib/types'
 import { useApp } from '@/store/AppStore'
 import { useStartFocus } from '@/lib/useStartFocus'
-import { useColors } from '@/lib/theme'
+import { useColors, useLargeText } from '@/lib/theme'
 
 const CHECK_DELAY_MS = 320
 
 /** One task on the Home Today list: check-off circle, title, Focus pill, category. */
 export default function TaskRow({ task }: { task: Task }) {
   const palette = useColors()
+  // at the accessibility sizes Focus moves down beside the tags, so the title gets
+  // the row's width instead of breaking words in a narrow column
+  const large = useLargeText()
   const { completeTask, updateTask, todayKey, focus } = useApp()
   const router = useRouter()
   const start = useStartFocus()
@@ -52,6 +55,22 @@ export default function TaskRow({ task }: { task: Task }) {
     fill.value = withTiming(1, SNAP)
     pending.current = setTimeout(() => completeTask(task.id), CHECK_DELAY_MS)
   }
+
+  const focusButton = (
+    <PressableScale
+      haptic
+      onPress={() => start(task.id)}
+      className="bg-accent rounded-full"
+      style={{ paddingHorizontal: 12, paddingVertical: 6 }}
+      // 26pt tall as drawn, so vertical slop carries it to 44
+      hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
+      accessibilityLabel={inSession ? `Back to ${task.title}` : `Focus on ${task.title}`}
+    >
+      <Text className="font-hk700 text-on-accent text-[12px]" maxFontSizeMultiplier={1.3}>
+        {inSession ? 'Resume' : 'Focus'}
+      </Text>
+    </PressableScale>
+  )
 
   return (
     <Animated.View
@@ -109,19 +128,7 @@ export default function TaskRow({ task }: { task: Task }) {
             {task.title}
           </Text>
         </Pressable>
-        <PressableScale
-          haptic
-          onPress={() => start(task.id)}
-          className="bg-accent rounded-full"
-          style={{ paddingHorizontal: 12, paddingVertical: 6 }}
-          // 26pt tall as drawn, so vertical slop carries it to 44
-          hitSlop={{ top: 9, bottom: 9, left: 6, right: 6 }}
-          accessibilityLabel={inSession ? `Back to ${task.title}` : `Focus on ${task.title}`}
-        >
-          <Text className="font-hk700 text-on-accent text-[12px]" maxFontSizeMultiplier={1.3}>
-            {inSession ? 'Resume' : 'Focus'}
-          </Text>
-        </PressableScale>
+        {!large && focusButton}
       </View>
       <View className="flex-row flex-wrap items-center mt-2" style={{ paddingLeft: 34, gap: 6 }}>
         <CatPicker
@@ -138,6 +145,7 @@ export default function TaskRow({ task }: { task: Task }) {
             {task.course}
           </Text>
         )}
+        {large && focusButton}
       </View>
     </Animated.View>
   )
