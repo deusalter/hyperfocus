@@ -104,12 +104,23 @@ jobs:
       - name: Install Maestro
         # The installer once finished without installing anything, and every flow
         # then failed with "command not found", so it retries and checks.
+        # Maestro's own download host has also returned 504s for a whole run, so the
+        # same release comes straight from GitHub if the installer can't get it.
         run: |
           for attempt in 1 2 3; do
             curl -fsSL "https://get.maestro.mobile.dev" | bash && [ -x "$HOME/.maestro/bin/maestro" ] && break
             echo "install attempt $attempt didn't work; trying again"
             sleep 15
           done
+          if [ ! -x "$HOME/.maestro/bin/maestro" ]; then
+            echo "falling back to the GitHub release"
+            curl -fsSL --retry 3 -o /tmp/maestro.zip \
+              "https://github.com/mobile-dev-inc/maestro/releases/latest/download/maestro.zip"
+            rm -rf "$HOME/.maestro" && mkdir -p "$HOME/.maestro"
+            unzip -q /tmp/maestro.zip -d /tmp/maestro-unzipped
+            cp -R /tmp/maestro-unzipped/maestro/. "$HOME/.maestro/"
+            chmod +x "$HOME/.maestro/bin/maestro"
+          fi
           "$HOME/.maestro/bin/maestro" --version
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Simulators available
