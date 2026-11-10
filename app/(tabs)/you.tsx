@@ -350,6 +350,130 @@ function FeedCard() {
   )
 }
 
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+
+/**
+ * The other half of Export my data. Pasting, rather than picking a file, because
+ * the export leaves through the share sheet as text and this takes it back the
+ * same way, with nothing new to install or grant.
+ */
+function RestoreRow() {
+  const palette = useColors()
+  const { importData } = useApp()
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [failed, setFailed] = useState(false)
+  const [outcome, setOutcome] = useState<string | null>(null)
+
+  const restore = () => {
+    const added = importData(draft)
+    if (!added) {
+      setFailed(true)
+      return
+    }
+    setFailed(false)
+    setDraft('')
+    setOpen(false)
+    setOutcome(
+      added.tasks + added.history === 0
+        ? 'Everything in that export is already here.'
+        : `Brought back ${[
+            added.tasks > 0 ? plural(added.tasks, 'task', 'tasks') : null,
+            added.history > 0 ? plural(added.history, 'finished thing', 'finished things') : null,
+          ]
+            .filter(Boolean)
+            .join(' and ')}.`
+    )
+  }
+
+  return (
+    <>
+      <LinkRow
+        title="Restore from an export"
+        hint="Opens a field to paste an export into"
+        onPress={() => {
+          setOpen((v) => !v)
+          setFailed(false)
+          setOutcome(null)
+        }}
+      />
+      {open && (
+        <Animated.View
+          entering={FadeIn.duration(160)}
+          style={{
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: palette.soft,
+          }}
+        >
+          <Text className="font-hk400 text-muted text-footnote">
+            Paste the text that Export my data gave you. It adds whatever isn&apos;t already here.
+            Nothing on this phone is replaced or removed.
+          </Text>
+          <TextInput
+            value={draft}
+            onChangeText={(t) => {
+              setDraft(t)
+              setFailed(false)
+            }}
+            multiline
+            autoFocus
+            autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
+            placeholder="Paste it here"
+            placeholderTextColor={palette.muted}
+            accessibilityLabel="Exported data"
+            className="bg-background border border-soft font-hk400 text-ink text-footnote mt-2.5"
+            style={{ borderRadius: 11, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10, height: 92 }}
+            // an export is thousands of characters of JSON, and growing it only
+            // makes the field harder to see around
+            maxFontSizeMultiplier={1.3}
+          />
+          {failed && (
+            <Text className="font-hk600 text-footnote mt-2" style={{ color: palette.dangerText }}>
+              That isn&apos;t a Hyperfocus export. Paste the whole thing, from the first curly bracket
+              to the last.
+            </Text>
+          )}
+          <View className="flex-row mt-2.5" style={{ gap: 8 }}>
+            <PressableScale
+              onPress={() => setOpen(false)}
+              className="items-center bg-surface border border-soft"
+              style={{ borderRadius: 11, paddingVertical: 11, paddingHorizontal: 18 }}
+            >
+              <Text className="font-hk600 text-muted text-footnote">Cancel</Text>
+            </PressableScale>
+            <PressableScale
+              onPress={restore}
+              disabled={!draft.trim()}
+              className="flex-1 items-center bg-accent"
+              style={{ borderRadius: 11, paddingVertical: 11 }}
+            >
+              <Text className="font-hk700 text-on-accent text-footnote">Restore</Text>
+            </PressableScale>
+          </View>
+        </Animated.View>
+      )}
+      {outcome && !open && (
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: palette.soft,
+          }}
+          accessibilityLiveRegion="polite"
+        >
+          <Text className="font-hk600 text-accent text-footnote">{outcome}</Text>
+        </View>
+      )}
+    </>
+  )
+}
+
 export default function YouScreen() {
   const palette = useColors()
   const router = useRouter()
@@ -616,13 +740,15 @@ export default function YouScreen() {
               hint="Shares your tasks and history as text"
               onPress={exportMyData}
             />
+            <RestoreRow />
             <LinkRow title="Reset everything" danger last onPress={confirmReset} />
           </Card>
 
           <Text className="font-hk400 text-muted text-center text-caption" style={{ marginTop: 22 }}>
             Hyperfocus{version ? ` · v${version}` : ''}
             {'\n'}
-            Everything stays on this phone. A productivity tool, not medical advice or treatment.
+            Everything stays on this phone, and in your iPhone&apos;s backup if you keep one. A
+            productivity tool, not medical advice or treatment.
           </Text>
         </Animated.View>
       </ScrollView>

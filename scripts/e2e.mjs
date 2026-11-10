@@ -579,6 +579,41 @@ await scenario('the toggle in settings takes effect', seed(), async (page) => {
   assert((await stored(page, 'hf2-settings')).gentle === true, 'gentle not saved')
 })
 
+// ---- backup ----
+
+await scenario('an export can be pasted back in, and only adds', seed({ tasks: [], history: [] }), async (page) => {
+  const backup = JSON.stringify({
+    exportedAt: new Date().toISOString(),
+    tasks: [
+      { id: 'r1', title: 'Restored thing', cat: 'sprint', bucket: 'today', createdAt: daysFromNow(-3).toISOString() },
+      { id: 'r2', title: 'Another one', cat: 'grind', bucket: 'later', createdAt: daysFromNow(-3).toISOString() },
+    ],
+    history: [
+      { id: 'rh', title: 'Old session', cat: 'grind', points: 0, minutes: 25, completedAt: daysFromNow(-2).toISOString() },
+    ],
+  })
+  await open(page, '/you')
+  await page.getByText('Restore from an export').click()
+  const field = page.getByLabel('Exported data')
+  await field.fill('definitely not an export')
+  await tap(page, 'Restore')
+  await see(page, "That isn't a Hyperfocus export")
+  assert((await stored(page, 'hf2-tasks')).length === 0, 'a bad paste changed the task list')
+  await field.fill(backup)
+  await tap(page, 'Restore')
+  await see(page, 'Brought back 2 tasks and 1 finished thing.')
+  assert((await stored(page, 'hf2-tasks')).length === 2, 'tasks were not restored')
+  assert((await stored(page, 'hf2-history')).length === 1, 'history was not restored')
+  // a second time is harmless
+  await page.getByText('Restore from an export').click()
+  await page.getByLabel('Exported data').fill(backup)
+  await tap(page, 'Restore')
+  await see(page, 'already here')
+  assert((await stored(page, 'hf2-tasks')).length === 2, 'restoring twice duplicated tasks')
+  await page.goto(BASE + '/', { waitUntil: 'load' })
+  await see(page, 'Restored thing')
+})
+
 // ---- coming back ----
 
 await scenario('coming back after a gap shows no debt', seed({

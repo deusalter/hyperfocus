@@ -50,6 +50,7 @@ import {
 import { silenceFocusSound, syncFocusSound } from '@/lib/sound'
 import { applyAppearance } from '@/lib/appearance'
 import { generateId } from '@/lib/utils'
+import { mergeBackup, parseBackup } from '@/lib/backup'
 
 const KEYS = {
   tasks: 'hf2-tasks',
@@ -181,6 +182,11 @@ interface Store {
   syncFeed: () => Promise<boolean>
   disconnectFeed: () => void
   exportData: () => string
+  /**
+   * Merge a pasted export into what's here. Only ever adds. Returns how much came
+   * in, or null if the text wasn't an export.
+   */
+  importData: (raw: string) => { tasks: number; history: number } | null
   resetAll: () => void
 }
 
@@ -728,6 +734,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     []
   )
 
+  const importData = useCallback(
+    (raw: string) => {
+      const backup = parseBackup(raw)
+      if (!backup) return null
+      const merged = mergeBackup({ tasks: tasksRef.current, history: historyRef.current }, backup)
+      patchTasks(() => merged.tasks)
+      patchHistory(() => merged.history)
+      return { tasks: merged.addedTasks, history: merged.addedHistory }
+    },
+    [patchTasks, patchHistory]
+  )
+
   const resetAll = useCallback(() => {
     AsyncStorage.multiRemove([...Object.values(KEYS), ...Object.values(V1)]).catch(() => {})
     clearAllNotifications()
@@ -973,6 +991,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       syncFeed,
       disconnectFeed,
       exportData,
+      importData,
       resetAll,
     }),
     [
@@ -1013,6 +1032,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       syncFeed,
       disconnectFeed,
       exportData,
+      importData,
       resetAll,
     ]
   )

@@ -612,6 +612,40 @@ describe('what the store asks of the device', () => {
     await waitFor(() => expect(lastCall<[number, boolean]>(syncReminders)[1]).toBe(false))
   })
 
+  it('an export can be restored, and restoring only ever adds', async () => {
+    const first = await boot({
+      'hf2-settings': SETTINGS,
+      'hf2-tasks': [task('a'), task('b')],
+      'hf2-history': [
+        { id: 'h', title: 'Earlier', cat: 'sprint', points: 18, minutes: 0, completedAt: '2026-11-01T12:00:00.000Z' },
+      ],
+    })
+    const exported = first.result.current.exportData()
+
+    // a new phone, with one thing already typed into it
+    const { result } = await boot({ 'hf2-settings': SETTINGS, 'hf2-tasks': [task('z')] })
+    let outcome: { tasks: number; history: number } | null = null
+    act(() => {
+      outcome = result.current.importData(exported)
+    })
+    expect(outcome).toEqual({ tasks: 2, history: 1 })
+    expect(result.current.tasks.map((t) => t.id).sort()).toEqual(['a', 'b', 'z'])
+    expect(result.current.history).toHaveLength(1)
+    await waitFor(async () =>
+      expect(JSON.parse((await AsyncStorage.getItem('hf2-tasks')) ?? '[]')).toHaveLength(3)
+    )
+
+    act(() => {
+      outcome = result.current.importData(exported)
+    })
+    expect(outcome).toEqual({ tasks: 0, history: 0 })
+    act(() => {
+      outcome = result.current.importData('not an export')
+    })
+    expect(outcome).toBeNull()
+    expect(result.current.tasks).toHaveLength(3)
+  })
+
   it('starts light unless told otherwise, and follows the choice', async () => {
     const { result } = await boot({ 'hf2-settings': SETTINGS })
     expect(lastCall(applyAppearance)).toEqual(['light'])
