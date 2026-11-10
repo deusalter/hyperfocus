@@ -301,7 +301,7 @@ export default function CalendarScreen() {
               <Text className="font-hk800 text-ink text-headline">Weekly debrief</Text>
               <Text className="font-hk400 text-muted text-footnote" style={{ marginTop: 2 }}>
                 {overdue.length > 0
-                  ? `${overdue.length} slipped past. Decide once, calmly.`
+                  ? `${overdue.length === 1 ? 'Something' : 'A few things'} slipped past. Decide once, calmly.`
                   : "Nothing overdue. Take a look at what's coming."}
               </Text>
             </View>

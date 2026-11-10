@@ -238,6 +238,11 @@ export default function OnboardingScreen() {
                   Built for ADHD brains. Miss a day and nothing breaks. You just pick up from
                   wherever you are.
                 </Text>
+                {/* said up front, because the first question about an app like this
+                    is what it's going to ask for */}
+                <Text className="font-hk600 text-muted text-center text-footnote mt-4" style={{ maxWidth: 300 }}>
+                  Free, with no account and no subscription.
+                </Text>
               </Animated.View>
             )}
 

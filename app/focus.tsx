@@ -406,9 +406,12 @@ export default function FocusScreen() {
             <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.4}>
               {formatClock(focus.totalSec - focusRemaining)} focused
             </Text>
+            {/* Same grey as the time beside it. This line changes every minute, and in
+                the category's colour it was the brightest thing on a screen whose
+                job is to hold nothing that isn't the task. */}
             <View className="flex-row items-center" style={{ gap: 5 }}>
-              <CatIcon cat={cat} size={12} />
-              <Text className="font-hk700 text-footnote" style={{ color: palette.cats[cat].textColor }} maxFontSizeMultiplier={1.4}>
+              <CatIcon cat={cat} size={12} color={palette.muted} />
+              <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.4}>
                 {meta.label}, +{livePts} pts
               </Text>
             </View>

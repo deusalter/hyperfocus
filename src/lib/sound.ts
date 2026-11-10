@@ -26,7 +26,14 @@ export const SOUNDS: Record<
   },
 }
 
-export const SOUND_ORDER: SoundKind[] = ['off', 'brown', 'pink', 'waves']
+/**
+ * Pink first. Pink and white noise are the ones with any measured effect on
+ * attention in ADHD, a small one, in children and teenagers doing lab tasks. Brown
+ * noise is the one people ask for by name and has no study behind it at all. All
+ * three stay, since liking a sound is reason enough to play it. The order just
+ * shouldn't put the unstudied one forward, and nothing here claims any of them helps.
+ */
+export const SOUND_ORDER: SoundKind[] = ['off', 'pink', 'brown', 'waves']
 
 const SUPPORTED = Platform.OS !== 'web'
 const FULL_VOLUME = 0.8

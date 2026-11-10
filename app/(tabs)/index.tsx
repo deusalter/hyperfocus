@@ -346,7 +346,8 @@ export default function HomeScreen() {
                   </View>
                   <View className="flex-1">
                     <Text className="font-hk700 text-ink text-subhead">
-                      {overdue.length} slipped past. That&apos;s okay.
+                      {overdue.length === 1 ? 'Something' : 'A few things'} slipped past. That&apos;s
+                  okay.
                     </Text>
                     <Text className="font-hk400 text-muted text-footnote" style={{ marginTop: 1 }}>
                       Take a calm look in your weekly debrief
@@ -445,14 +446,17 @@ export default function HomeScreen() {
               hitSlop={8}
               accessibilityRole="button"
               accessibilityState={{ expanded: laterOpen }}
-              accessibilityLabel={`Later, ${later.length} ${later.length === 1 ? 'task' : 'tasks'}`}
+              accessibilityLabel="Later, for another day"
             >
               <Text
                 className="font-hk800 text-ink text-title3"
                 style={{ letterSpacing: -0.4 }}
                 maxFontSizeMultiplier={TITLE_SCALE}
               >
-                Later <Text className="font-hk600 text-muted">{later.length}</Text>
+                {/* No count. A number beside a list of things not done yet is a
+                    reason to leave it closed, and after a semester's import it's
+                    a large one. */}
+                Later
               </Text>
               <View style={{ transform: [{ rotate: laterOpen ? '180deg' : '0deg' }] }}>
                 <ChevronDown size={18} />
