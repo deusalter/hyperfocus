@@ -210,6 +210,8 @@ case "$GROUP" in
     start_log
     seed_state full
     run_flow 14-live-activity
+    seed_state lock-expiring
+    run_flow 16-time-up
     seed_state full
     run_flow 15-widget
     # what SpringBoard offers at that point, for writing the next step against

@@ -1,0 +1,41 @@
+appId: com.deusalter.hyperfocus
+name: Time runs out with the phone locked
+---
+# Opens on a session with a little over a minute left. The store puts it on the
+# Lock Screen as soon as saved data loads, with no tap needed.
+- launchApp
+- extendedWaitUntil:
+    visible: "Session in progress.*"
+    timeout: 45000
+- pressKey: Lock
+- pressKey: Home
+- extendedWaitUntil:
+    visible: "until .*"
+    timeout: 15000
+- tapOn:
+    text: "Allow"
+    optional: true
+- takeScreenshot: 01-lock-screen-counting
+# Nothing in the app runs from here. The system redraws the activity when its
+# end time passes, and that redraw is the only thing that can put this sentence
+# on screen. "Time's up" alone wouldn't prove it: the notification says that too.
+- extendedWaitUntil:
+    visible: "Open Hyperfocus to say whether you finished."
+    timeout: 120000
+- takeScreenshot: 02-lock-screen-time-up
+- pressKey: Home
+# back in the app, the session has ended and the recap asks the question
+- extendedWaitUntil:
+    visible: "Did you finish it\\?"
+    timeout: 15000
+- takeScreenshot: 03-recap
+- tapOn: "Not yet"
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 8000
+- pressKey: Lock
+- pressKey: Home
+- extendedWaitUntil:
+    notVisible: "Open Hyperfocus to say whether you finished."
+    timeout: 8000
+- takeScreenshot: 04-lock-screen-after
