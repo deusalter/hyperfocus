@@ -14,12 +14,16 @@ const REMINDER_PREFIX = 'reminder-'
 
 if (SUPPORTED) {
   // With the app open it marks the moment itself with a haptic and the recap, so
-  // a banner on top would just be saying the same thing twice.
+  // a banner on top would just be saying the same thing twice. The sound is a
+  // different matter. A session mostly ends with the phone lying on the desk and
+  // eyes on something else, where a buzz goes unfelt and a screen changing goes
+  // unseen, and a timer nobody notices ending isn't keeping time for anyone. So
+  // the end of a session keeps its sound, at whatever the phone's ringer allows.
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
+    handleNotification: async (notification) => ({
       shouldShowBanner: false,
       shouldShowList: false,
-      shouldPlaySound: false,
+      shouldPlaySound: notification.request.identifier === SESSION_ID,
       shouldSetBadge: false,
     }),
   })

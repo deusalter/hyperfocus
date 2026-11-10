@@ -50,6 +50,7 @@ Most of the app is already checked automatically: unit and store tests, every fl
 
 **Timer alerts**
 - [ ] Start a session, lock the phone, wait it out: "Time's up" arrives with sound
+- [ ] Start a short session and leave the app open on Focus: when it runs out there's a sound as well as the recap, and no banner. With the silent switch on, no sound
 - [ ] Pausing cancels the alert, and resuming brings it back at the right time
 - [ ] +5 moves the alert later, and −5 moves it earlier
 - [ ] Force quit mid-session and reopen: the session is still running at the right time
