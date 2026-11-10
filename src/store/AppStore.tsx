@@ -51,6 +51,7 @@ import { silenceFocusSound, syncFocusSound } from '@/lib/sound'
 import { applyAppearance } from '@/lib/appearance'
 import { generateId } from '@/lib/utils'
 import { mergeBackup, parseBackup } from '@/lib/backup'
+import { syncLiveActivity, syncWidget, widgetState } from '@/lib/liveActivity'
 
 const KEYS = {
   tasks: 'hf2-tasks',
@@ -950,6 +951,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
     return () => sub.remove()
   }, [hydrated, settings.reminderHour, quietToday, todayKey, nudgeTitle, nudgeStep])
+
+  // The Lock Screen and the Home Screen widget, kept in step from here for the same
+  // reason the session's clock is: this is the one place that knows a session ended
+  // wherever the user was. Both describe how things stand, so running them again
+  // after a restart or a resume costs nothing.
+  const pausedRemaining = focus?.pausedRemaining
+  const focusTitle = focusTask?.title ?? focus?.title
+  const focusStep = focusTask?.firstStep
+  useEffect(() => {
+    if (!hydrated) return
+    syncLiveActivity(focusRef.current, { title: focusTitle, firstStep: focusStep })
+  }, [hydrated, running, endsAt, totalSec, pausedRemaining, focusTitle, focusStep])
+
+  const focusLen = settings.focusLen
+  useEffect(() => {
+    if (!hydrated) return
+    syncWidget(
+      widgetState(
+        nudgeTitle ? { title: nudgeTitle, firstStep: nudgeStep } : null,
+        focusLen,
+        focusRef.current,
+        focusTitle
+      )
+    )
+  }, [hydrated, nudgeTitle, nudgeStep, focusLen, running, endsAt, focusTitle])
 
   // memoized so consumers only re-render when state actually changes
   const value: Store = useMemo(

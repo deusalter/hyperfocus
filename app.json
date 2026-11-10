@@ -17,7 +17,8 @@
         "UIBackgroundModes": [
           "audio"
         ],
-        "RCTAsyncStorageExcludeFromBackup": false
+        "RCTAsyncStorageExcludeFromBackup": false,
+        "NSSupportsLiveActivities": true
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
@@ -57,6 +58,11 @@
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png",
         "tinted": "./assets/icon-tinted.png"
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.deusalter.hyperfocus"
+        ]
       }
     },
     "android": {
@@ -100,7 +106,8 @@
           "color": "#456a90"
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": true

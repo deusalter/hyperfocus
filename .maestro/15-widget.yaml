@@ -1,0 +1,14 @@
+appId: com.deusalter.hyperfocus
+name: The widget on the Home Screen
+---
+# The app writes what the widget shows whenever Today changes, so it has to have
+# been opened once on this data.
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 45000
+- pressKey: Home
+- waitForAnimationToEnd
+# Since iOS 18 a long press on an app's icon offers to turn it into its widget.
+- longPressOn: "Hyperfocus"
+- takeScreenshot: 01-icon-menu

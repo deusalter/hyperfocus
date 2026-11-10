@@ -5,6 +5,7 @@ import { AppProvider, useApp } from '../AppStore'
 import { syncReminders, syncSessionAlert, clearAllNotifications } from '@/lib/notifications'
 import { silenceFocusSound, syncFocusSound } from '@/lib/sound'
 import { applyAppearance } from '@/lib/appearance'
+import { syncLiveActivity, syncWidget } from '@/lib/liveActivity'
 import { dayKey } from '@/lib/points'
 import { DEFAULT_SETTINGS, Task } from '@/lib/types'
 
@@ -29,6 +30,11 @@ jest.mock('@/lib/notifications', () => ({
   requestNotifications: jest.fn(() => Promise.resolve(true)),
   syncReminders: jest.fn(() => Promise.resolve()),
   syncSessionAlert: jest.fn(() => Promise.resolve()),
+}))
+jest.mock('@/lib/liveActivity', () => ({
+  ...jest.requireActual('@/lib/liveActivity'),
+  syncLiveActivity: jest.fn(),
+  syncWidget: jest.fn(),
 }))
 jest.mock('@/lib/appearance', () => ({
   applyAppearance: jest.fn(),
@@ -644,6 +650,64 @@ describe('what the store asks of the device', () => {
     })
     expect(outcome).toBeNull()
     expect(result.current.tasks).toHaveLength(3)
+  })
+
+  it('keeps the Lock Screen in step with the session, through to its end', async () => {
+    const { result } = await boot({
+      'hf2-settings': SETTINGS,
+      'hf2-tasks': [task('a', { firstStep: 'open the doc' })],
+    })
+    // nothing running: whatever was on the Lock Screen is taken down
+    expect(lastCall<[unknown]>(syncLiveActivity)[0]).toBeNull()
+
+    act(() => result.current.startFocus('a'))
+    await waitFor(() =>
+      expect(lastCall(syncLiveActivity)).toEqual([
+        expect.objectContaining({ taskId: 'a', running: true }),
+        { title: 'Task a', firstStep: 'open the doc' },
+      ])
+    )
+
+    act(() => result.current.toggleFocusRun())
+    await waitFor(() =>
+      expect(lastCall<[{ running: boolean }]>(syncLiveActivity)[0]?.running).toBe(false)
+    )
+
+    // an edit to the first move shows up without waiting for the next pause
+    act(() => result.current.updateTask('a', { firstStep: 'find the file' }))
+    await waitFor(() =>
+      expect(lastCall<[unknown, { firstStep?: string }]>(syncLiveActivity)[1]?.firstStep).toBe('find the file')
+    )
+
+    act(() => {
+      result.current.finishFocus('stopped')
+    })
+    await waitFor(() => expect(lastCall<[unknown]>(syncLiveActivity)[0]).toBeNull())
+  })
+
+  it('tells the widget what Home would offer, and when a session is running', async () => {
+    const { result } = await boot({
+      'hf2-settings': SETTINGS,
+      'hf2-tasks': [task('a', { firstStep: 'open the doc' }), task('b')],
+    })
+    expect(lastCall(syncWidget)).toEqual([{ title: 'Task a', firstStep: 'open the doc', focusLen: 25 }])
+
+    act(() => result.current.startFocus('a'))
+    await waitFor(() =>
+      expect(lastCall<[{ sessionTitle?: string; sessionEndsAt?: number }]>(syncWidget)[0]).toMatchObject({
+        sessionTitle: 'Task a',
+        sessionEndsAt: expect.any(Number),
+      })
+    )
+
+    act(() => {
+      result.current.finishFocus('done')
+    })
+    // the finished task is gone, so the offer moves on to the next one
+    await waitFor(() => expect(lastCall(syncWidget)).toEqual([{ title: 'Task b', focusLen: 25 }]))
+
+    act(() => result.current.completeTask('b'))
+    await waitFor(() => expect(lastCall(syncWidget)).toEqual([{ focusLen: 25 }]))
   })
 
   it('starts light unless told otherwise, and follows the choice', async () => {

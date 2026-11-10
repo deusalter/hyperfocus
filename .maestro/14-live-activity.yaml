@@ -1,0 +1,50 @@
+appId: com.deusalter.hyperfocus
+name: The session on the Lock Screen
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 45000
+- tapOn: "Start one thing.*"
+# The first session is also when the system asks about notifications. Maestro's
+# iOS driver answers that prompt by itself, so this only waits for what's behind it.
+- extendedWaitUntil:
+    visible: "Focusing on"
+    timeout: 10000
+- takeScreenshot: 01-focus
+- pressKey: Lock
+# Home wakes a locked phone to its Lock Screen. It takes a second press to unlock.
+- pressKey: Home
+- extendedWaitUntil:
+    visible: "Focusing on"
+    timeout: 10000
+    optional: true
+- takeScreenshot: 02-lock-screen-running
+- pressKey: Home
+- extendedWaitUntil:
+    visible: "Pause"
+    timeout: 10000
+- tapOn: "Pause"
+- extendedWaitUntil:
+    visible: "Resume"
+    timeout: 5000
+- pressKey: Lock
+- pressKey: Home
+- extendedWaitUntil:
+    visible: "Paused"
+    timeout: 10000
+    optional: true
+- takeScreenshot: 03-lock-screen-paused
+- pressKey: Home
+- extendedWaitUntil:
+    visible: "Resume"
+    timeout: 10000
+- tapOn: "Resume"
+# under a minute in, so this stops straight away and takes the activity down
+- tapOn: "Stop for now"
+- extendedWaitUntil:
+    visible: "Start one thing.*"
+    timeout: 8000
+- pressKey: Lock
+- pressKey: Home
+- takeScreenshot: 04-lock-screen-after

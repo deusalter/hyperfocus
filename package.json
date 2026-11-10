@@ -17,6 +17,7 @@
     "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
+    "@bacons/apple-targets": "4.0.7",
     "@expo-google-fonts/hanken-grotesk": "^0.4.3",
     "@expo-google-fonts/spline-sans-mono": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",

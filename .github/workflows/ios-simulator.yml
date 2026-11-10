@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: ${{ fromJSON(inputs.groups || '["flows","large-text","small","dark-phone","store-6.9","store-6.3"]') }}
+        group: ${{ fromJSON(inputs.groups || '["flows","lock-screen","large-text","small","dark-phone","store-6.9","store-6.3"]') }}
     name: drive (${{ matrix.group }})
     steps:
       - uses: actions/checkout@v4

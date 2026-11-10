@@ -203,6 +203,20 @@ case "$GROUP" in
     finish
     ;;
 
+  lock-screen)
+    # the Live Activity on the Lock Screen and the widget on the Home Screen, which
+    # live in the widget extension and so never show up in the other groups
+    new_device hf-lock "iPhone 17 Pro" || exit 1
+    start_log
+    seed_state full
+    run_flow 14-live-activity
+    seed_state full
+    run_flow 15-widget
+    # what SpringBoard offers at that point, for writing the next step against
+    with_timeout 120 maestro --device "$UDID" hierarchy > "$OUT/a11y-springboard.json" 2> /dev/null
+    finish
+    ;;
+
   large-text)
     new_device hf-large "iPhone 17 Pro" || exit 1
     with_timeout 30 xcrun simctl ui "$UDID" content_size accessibility-extra-extra-extra-large
