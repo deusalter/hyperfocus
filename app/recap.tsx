@@ -59,6 +59,7 @@ export default function RecapScreen() {
     acknowledgeRecap,
     putBackRecapTask,
     finishRecapTask,
+    discardRecapSession,
     startFocus,
     updateSettings,
   } = useApp()
@@ -107,6 +108,12 @@ export default function RecapScreen() {
     goHome()
   }
 
+  const dontCount = () => {
+    leaving.current = true
+    discardRecapSession()
+    router.dismissTo('/')
+  }
+
   const anotherRound = () => {
     leaving.current = true
     startFocus(lastRecap.taskId)
@@ -114,22 +121,23 @@ export default function RecapScreen() {
   }
 
   const expired = lastRecap.ended === 'expired'
+  const stopped = lastRecap.ended === 'stopped'
   const taskStillThere = tasks.some((t) => t.id === lastRecap.taskId)
   const showRace = !settings.gentle
   const celebrate = showRace && ahead
 
-  const gap = Math.max(0, race.pacer - todayTotals.points)
   const title = celebrate ? 'Past a typical day.' : 'That counted.'
   const minutesLine = `${lastRecap.minutes} ${lastRecap.minutes === 1 ? 'minute' : 'minutes'} on "${lastRecap.title}".`
+  // This screen is the reward, so it only says what was gained. The distance still
+  // to go lives on Home, where it's a plan. Stated here, in the breath after a
+  // session ends, it reads as "and that still wasn't enough".
   const msg = !showRace
     ? minutesLine
-    : ahead
-      ? `${race.passed} of your last ${race.ghosts.length} days are behind you now.`
-      : race.hasField
-        ? race.passed > 0
-          ? `${race.passed} ${race.passed === 1 ? 'day' : 'days'} passed. ${gap} pts to typical.`
-          : `${gap} pts to a typical day. No hurry.`
-        : 'First points on the board. Tomorrow has something to race.'
+    : race.hasField
+      ? race.passed > 0
+        ? `${race.passed} of your last ${race.ghosts.length} days are behind you now.`
+        : 'Your runner is on the track. Starting was the hard part.'
+      : 'First points on the board. Tomorrow has something to race.'
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
@@ -148,7 +156,7 @@ export default function RecapScreen() {
           className="font-hk700 text-accent text-footnote"
           maxFontSizeMultiplier={TITLE_SCALE}
         >
-          {expired ? "Time's up" : 'Session complete'}
+          {expired ? "Time's up" : stopped ? 'Session saved' : 'Session complete'}
         </Animated.Text>
 
         <Animated.View
@@ -284,7 +292,32 @@ export default function RecapScreen() {
               >
                 <Text className="font-hk700 text-on-accent text-headline">Back home</Text>
               </PressableScale>
-              {lastRecap.task && !taskStillThere && (
+              {stopped && (
+                <>
+                  <Text
+                    className="font-hk500 text-muted text-center text-footnote"
+                    style={{ marginTop: 14 }}
+                    numberOfLines={3}
+                  >
+                    {taskStillThere
+                      ? `"${lastRecap.title}" is still on your list.`
+                      : 'Those minutes are kept.'}
+                  </Text>
+                  {/* the way back from stopping, offered after instead of asked before */}
+                  <Pressable
+                    onPress={dontCount}
+                    hitSlop={{ top: 12, bottom: 12, left: 20, right: 20 }}
+                    className="self-center mt-4"
+                    accessibilityRole="button"
+                    accessibilityHint="Takes these minutes and points back off today"
+                  >
+                    <Text className="font-hk600 text-muted text-footnote">
+                      Don&apos;t count this session
+                    </Text>
+                  </Pressable>
+                </>
+              )}
+              {!stopped && lastRecap.task && !taskStillThere && (
                 <Pressable
                   onPress={putBack}
                   hitSlop={{ top: 12, bottom: 12, left: 20, right: 20 }}

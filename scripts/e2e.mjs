@@ -262,11 +262,39 @@ await scenario('stopping in the first minute keeps the task and logs nothing', s
   const before = (await stored(page, 'hf2-history')).length
   await page.getByText('Start one thing').click()
   await see(page, 'Focusing on')
-  await tap(page, 'Stop without saving')
+  await tap(page, 'Stop for now')
   await see(page, 'Today')
   assert((await stored(page, 'hf2-history')).length === before, 'stopped session was logged')
   assert((await stored(page, 'hf2-tasks')).length === 7, 'stopping changed the task list')
   assert(!(await stored(page, 'hf2-focus')), 'session still stored after stopping')
+})
+
+const partWay = () => seed({ focus: runningSession('t1', 'Draft intro for history essay', 'grind') })
+
+await scenario('stopping part-way keeps the minutes and the task', partWay(), async (page) => {
+  await open(page, '/focus')
+  const before = (await stored(page, 'hf2-history')).length
+  await tap(page, 'Stop for now')
+  await see(page, 'Session saved')
+  await see(page, 'is still on your list')
+  const history = await stored(page, 'hf2-history')
+  assert(history.length === before + 1, 'stopped session was not kept')
+  assert(history[0].minutes === 8, `expected 8 minutes kept, got ${history[0].minutes}`)
+  assert((await stored(page, 'hf2-tasks')).some((t) => t.id === 't1'), 'stopping took the task off the list')
+  assert(!(await stored(page, 'hf2-focus')), 'session still stored after stopping')
+  await tap(page, 'Back home')
+  await see(page, 'Start one thing')
+})
+
+await scenario('a stopped session can be taken back off the record', partWay(), async (page) => {
+  await open(page, '/focus')
+  const before = (await stored(page, 'hf2-history')).length
+  await tap(page, 'Stop for now')
+  await see(page, 'Session saved')
+  await page.getByText("Don't count this session").click()
+  await see(page, 'Start one thing')
+  assert((await stored(page, 'hf2-history')).length === before, 'the session was still counted')
+  assert((await stored(page, 'hf2-tasks')).some((t) => t.id === 't1'), 'taking it back lost the task')
 })
 
 const nearlyDone = () =>

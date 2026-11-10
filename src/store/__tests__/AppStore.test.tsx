@@ -239,6 +239,53 @@ describe('finishing a session', () => {
     expect(result.current.tasks).toHaveLength(2)
     expect(result.current.focus).toBeNull()
   })
+
+  it('stopping for now keeps the minutes and the task', async () => {
+    const { result } = await started()
+    act(() => {
+      result.current.finishFocus('stopped')
+    })
+    expect(result.current.focus).toBeNull()
+    expect(result.current.tasks).toHaveLength(2)
+    expect(result.current.history).toHaveLength(1)
+    expect(result.current.lastRecap?.ended).toBe('stopped')
+    expect(result.current.recapPending).toBe(true)
+  })
+
+  it('a session stopped for now can be taken back off the record', async () => {
+    const { result } = await started()
+    act(() => {
+      result.current.finishFocus('stopped')
+    })
+    act(() => result.current.discardRecapSession())
+    expect(result.current.history).toHaveLength(0)
+    expect(result.current.tasks).toHaveLength(2)
+    expect(result.current.lastRecap).toBeNull()
+  })
+
+  it('taking a session back only removes that session', async () => {
+    const { result } = await boot({
+      'hf2-settings': SETTINGS,
+      'hf2-tasks': [task('a')],
+      'hf2-history': [
+        { id: 'old', title: 'Earlier', cat: 'sprint', points: 18, minutes: 0, completedAt: new Date().toISOString() },
+      ],
+    })
+    act(() => result.current.startFocus('a'))
+    act(() => {
+      result.current.finishFocus('stopped')
+    })
+    act(() => result.current.discardRecapSession())
+    expect(result.current.history.map((c) => c.id)).toEqual(['old'])
+  })
+
+  it('a session can be started shorter than the usual length', async () => {
+    const { result } = await boot({ 'hf2-settings': SETTINGS, 'hf2-tasks': [task('a')] })
+    act(() => result.current.startFocus('a', 5))
+    expect(result.current.focus?.totalSec).toBe(300)
+    // the usual length is untouched for next time
+    expect(result.current.settings.focusLen).toBe(25)
+  })
 })
 
 describe('starting and switching', () => {

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import {
-  Alert,
   AppState,
   View,
   Text,
@@ -23,6 +22,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
+import { format } from 'date-fns'
 import ScreenHeader from '@/components/ui/ScreenHeader'
 import PressableScale from '@/components/ui/PressableScale'
 import { SoundIcon } from '@/components/ui/Icon'
@@ -202,20 +202,18 @@ export default function FocusScreen() {
     updateSettings({ sound: SOUND_ORDER[(i + 1) % SOUND_ORDER.length] })
   }
 
-  const stop = () => {
-    // nothing much to lose in the first minute, usually a mis-tap on the wrong task
+  // Stopping part-way is the ordinary way a session ends: something comes up, or
+  // the energy runs out, and the task isn't finished. It used to throw the minutes
+  // away behind an "are you sure?", which left Done, and losing the task, as the
+  // only way to keep them. Now the minutes are kept and the recap offers the way
+  // back, for the rare time the clock was running on an empty desk.
+  const stopForNow = () => {
+    // nothing to keep in the first minute, and it's usually a mis-tap on the wrong task
     if (focus.totalSec - focusRemaining < 60) {
       abandonFocus()
       return
     }
-    Alert.alert(
-      'Stop this session?',
-      "These minutes won't count. The task stays on your list.",
-      [
-        { text: 'Keep going', style: 'cancel' },
-        { text: 'Stop', style: 'destructive', onPress: abandonFocus },
-      ]
-    )
+    finishFocus('stopped')
   }
 
   const saveStep = () => {
@@ -390,8 +388,11 @@ export default function FocusScreen() {
               >
                 {formatClock(focusRemaining)}
               </Text>
+              {/* The clock time as well as the countdown. A duration has to be turned
+                  into "when" before it can be planned around, and that conversion is
+                  the part that goes wrong. */}
               <Text className="font-hk600 text-muted text-footnote" maxFontSizeMultiplier={1.2}>
-                {focus.running ? 'left' : 'Paused'}
+                {focus.running ? `left, until ${format(focus.endsAt, 'h:mm a')}` : 'Paused'}
               </Text>
             </View>
           </Animated.View>
@@ -448,12 +449,13 @@ export default function FocusScreen() {
           </PressableScale>
         </View>
         <Pressable
-          onPress={stop}
+          onPress={stopForNow}
           hitSlop={{ top: 12, bottom: 12, left: 20, right: 20 }}
           className="mt-3"
           accessibilityRole="button"
+          accessibilityHint="Keeps the minutes you've done and leaves the task on your list"
         >
-          <Text className="font-hk500 text-muted text-footnote">Stop without saving</Text>
+          <Text className="font-hk600 text-muted text-footnote">Stop for now</Text>
         </Pressable>
       </View>
     </SafeAreaView>

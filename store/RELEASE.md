@@ -65,7 +65,8 @@ Most of the app is already checked automatically: unit and store tests, every fl
 
 **Touch and motion**
 - [ ] Triage swipe feels right, a quick flick counts, and swiping the sheet down still closes it
-- [ ] The buttons that show a system alert work: Stop without saving after a minute, starting a second session, Reset everything
+- [ ] The buttons that show a system alert work: starting a second session, Reset everything
+- [ ] Stop for now, a few minutes into a session: the recap says the minutes were saved and the task is still on Today
 - [ ] Keyboard: on You, tap Connect and the field scrolls into view. Same when adding on Calendar
 - [ ] Leave Focus with the back button, then check that task off on Home: one recap, no doubled points
 

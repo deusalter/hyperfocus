@@ -69,11 +69,16 @@ export interface Recap {
   cat: Cat
   points: number
   minutes: number
-  /** the user said it's finished, or the clock ran out and it's still their call */
-  ended: 'done' | 'expired'
+  /**
+   * The user said it's finished, the clock ran out and it's still their call, or
+   * they stopped part-way and the task plainly isn't finished.
+   */
+  ended: 'done' | 'expired' | 'stopped'
   taskId: string
   /** the task as it was, so a finished one can be put back */
   task?: Task
+  /** the history entry this session wrote, so it can be taken back */
+  entryId: string
 }
 
 /** How a session is being closed. */
@@ -151,9 +156,10 @@ interface Store {
   completeTask: (id: string) => void
   undo: () => void
 
-  startFocus: (taskId: string) => void
+  /** `minutes` overrides the usual session length for this one session */
+  startFocus: (taskId: string, minutes?: number) => void
   /** bank what the running session earned, keep its task, start on another */
-  switchFocus: (taskId: string) => void
+  switchFocus: (taskId: string, minutes?: number) => void
   toggleFocusRun: () => void
   adjustFocus: (deltaMin: number) => void
   finishFocus: (mode?: FinishMode) => Recap | null
@@ -164,6 +170,8 @@ interface Store {
   putBackRecapTask: () => void
   /** after an "expired" recap: yes, it's finished */
   finishRecapTask: () => void
+  /** after a "stopped" recap: those minutes weren't real work, don't count them */
+  discardRecapSession: () => void
 
   updateSettings: (patch: Partial<Settings>) => void
   connectFeed: (raw: string) => Promise<boolean>
@@ -491,9 +499,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const title = task?.title ?? current.title ?? 'Focus session'
       const minutes = focusedMinutes(current, now)
       const points = scoreCompletion(cat, minutes)
+      const entryId = generateId()
 
       patchHistory((prev) => [
-        { id: generateId(), title, cat, points, minutes, completedAt: completedStamp(current, now) },
+        { id: entryId, title, cat, points, minutes, completedAt: completedStamp(current, now) },
         ...prev,
       ])
       writeFocus(null)
@@ -512,6 +521,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ended: mode,
         taskId: current.taskId,
         task,
+        entryId,
       }
       setLastRecap(recap)
       setRecapPending(true)
@@ -557,12 +567,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const startFocus = useCallback(
-    (taskId: string) => {
+    (taskId: string, minutes?: number) => {
       const task = tasksRef.current.find((t) => t.id === taskId)
       if (!task) return
       setLastRecap(null)
       setRecapPending(false)
-      const session = newSession(task, settingsRef.current.focusLen, Date.now())
+      const session = newSession(task, minutes ?? settingsRef.current.focusLen, Date.now())
       writeFocus(session)
       // Asked here rather than at launch: the very first session is the moment
       // the reason for the question is obvious. The timer doesn't wait on it.
@@ -574,12 +584,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const switchFocus = useCallback(
-    (taskId: string) => {
+    (taskId: string, minutes?: number) => {
       // the alert asking about this can outlive the task it's offering to switch
       // to, and ending the running session for nothing would be the worse outcome
       if (!tasksRef.current.some((t) => t.id === taskId)) return
       finishFocus('banked')
-      startFocus(taskId)
+      startFocus(taskId, minutes)
     },
     [finishFocus, startFocus]
   )
@@ -613,6 +623,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const finishRecapTask = useCallback(() => {
     if (lastRecap) removeTask(lastRecap.taskId)
   }, [lastRecap, removeTask])
+
+  // Stopping early counts the minutes straight away and offers this on the recap,
+  // rather than asking "are you sure?" before stopping. The common case, real work
+  // cut short, then costs no extra tap, and the rare one, a clock left running on
+  // an empty desk, is one tap to take back.
+  const discardRecapSession = useCallback(() => {
+    if (!lastRecap) return
+    const { entryId } = lastRecap
+    patchHistory((prev) => prev.filter((c) => c.id !== entryId))
+    setLastRecap(null)
+    setRecapPending(false)
+  }, [lastRecap, patchHistory])
 
   // ---- calendar feed ----
 
@@ -927,6 +949,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       acknowledgeRecap,
       putBackRecapTask,
       finishRecapTask,
+      discardRecapSession,
       updateSettings,
       connectFeed,
       syncFeed,
@@ -966,6 +989,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       acknowledgeRecap,
       putBackRecapTask,
       finishRecapTask,
+      discardRecapSession,
       updateSettings,
       connectFeed,
       syncFeed,
