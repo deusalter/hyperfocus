@@ -882,22 +882,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [history, todayKey])
 
-  // Rebuilt when the hour changes, when a new day starts, and when today gets its
-  // first completion (which is what cancels today's nudge). Also on every return to
-  // the app: that's what rolls the week forward, and it picks up notifications being
-  // turned on in Settings, which nothing else would notice.
-  const activeToday = derived.todayTotals.completed > 0
-  useEffect(() => {
-    if (!hydrated) return
-    syncReminders(settings.reminderHour, activeToday)
-    const sub = AppState.addEventListener('change', (s) => {
-      if (s !== 'active') return
-      syncReminders(settings.reminderHour, activeToday)
-      syncSessionAlert(focusRef.current)
-    })
-    return () => sub.remove()
-  }, [hydrated, settings.reminderHour, activeToday, todayKey])
-
   const feedUrl = settings.feedUrl
   useEffect(() => {
     if (!hydrated || !feedUrl) return
@@ -919,6 +903,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => (focus ? tasks.find((t) => t.id === focus.taskId) ?? null : null),
     [focus, tasks]
   )
+
+  // Rebuilt when the hour changes, when a new day starts, and when today gets its
+  // first completion (which is what cancels today's nudge). Also on every return to
+  // the app: that's what rolls the week forward, and it picks up notifications being
+  // turned on in Settings, which nothing else would notice.
+  //
+  // A running session counts as having started today. A nudge to begin something,
+  // arriving while you're in the middle of something, is an interruption the app
+  // would be causing itself. And the next nudge names what Home would offer, so it
+  // is rebuilt when that changes.
+  const quietToday = derived.todayTotals.completed > 0 || running
+  const nudgeTitle = upNext[0]?.title
+  const nudgeStep = upNext[0]?.firstStep
+  useEffect(() => {
+    if (!hydrated) return
+    const sync = () =>
+      syncReminders(
+        settings.reminderHour,
+        quietToday,
+        nudgeTitle ? { title: nudgeTitle, firstStep: nudgeStep } : null
+      )
+    sync()
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s !== 'active') return
+      sync()
+      syncSessionAlert(focusRef.current)
+    })
+    return () => sub.remove()
+  }, [hydrated, settings.reminderHour, quietToday, todayKey, nudgeTitle, nudgeStep])
 
   // memoized so consumers only re-render when state actually changes
   const value: Store = useMemo(

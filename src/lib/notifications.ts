@@ -1,7 +1,7 @@
 import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import { FocusSession } from './session'
-import { planReminders } from './reminders'
+import { NudgeTask, planReminders } from './reminders'
 
 /**
  * Every notification here is local: scheduled on the device, with no server and
@@ -92,7 +92,11 @@ export async function syncSessionAlert(session: FocusSession | null): Promise<vo
 let reminderRun = 0
 
 /** Rebuild the week of nudges. See reminders.ts for why it's a week at a time. */
-export async function syncReminders(hour: number | null, activeToday: boolean): Promise<void> {
+export async function syncReminders(
+  hour: number | null,
+  activeToday: boolean,
+  next?: NudgeTask | null
+): Promise<void> {
   if (!SUPPORTED) return
   const run = ++reminderRun
   try {
@@ -106,7 +110,7 @@ export async function syncReminders(hour: number | null, activeToday: boolean): 
     const { granted } = await Notifications.getPermissionsAsync()
     if (!granted || run !== reminderRun) return
     await Promise.all(
-      planReminders(new Date(), hour, activeToday).map((r, i) =>
+      planReminders(new Date(), hour, activeToday, next).map((r, i) =>
         Notifications.scheduleNotificationAsync({
           identifier: `${REMINDER_PREFIX}${i}`,
           content: { title: r.title, body: r.body },

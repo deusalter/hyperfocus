@@ -542,7 +542,7 @@ export default function YouScreen() {
           <Card style={{ overflow: 'hidden' }}>
             <ToggleRow
               title="A daily nudge"
-              subtitle="One a day at most. Skips days you've already started, and goes quiet if you've been away a week."
+              subtitle="One a day at most, about the next thing on Today. Skips days you've already started, and goes quiet if you've been away a week."
               on={reminderOn}
               onToggle={toggleReminder}
               last={!reminderOn}

@@ -49,6 +49,32 @@ describe('planReminders', () => {
     }
   })
 
+  it('names the task it is about, and the first move when there is one', () => {
+    const plan = planReminders(at('2026-11-05T08:00:00'), 9, false, {
+      title: 'Email the counselor',
+      firstStep: 'open the thread',
+    })
+    expect(plan[0].title).toBe('Email the counselor')
+    expect(plan[0].body).toContain('open the thread')
+    expect(plan[0].at.getHours()).toBe(9)
+  })
+
+  it('names a task without a first move too', () => {
+    const plan = planReminders(at('2026-11-05T08:00:00'), 9, false, { title: 'Email the counselor' })
+    expect(plan[0].title).toBe('Email the counselor')
+    expect(plan[0].body.length).toBeGreaterThan(0)
+  })
+
+  it('only names a task in the next nudge, since later ones may outlive it', () => {
+    const plan = planReminders(at('2026-11-05T08:00:00'), 9, false, { title: 'Email the counselor' })
+    for (const later of plan.slice(1)) expect(later.title).not.toBe('Email the counselor')
+  })
+
+  it('keeps a long title to a length a banner can show', () => {
+    const plan = planReminders(at('2026-11-05T08:00:00'), 9, false, { title: 'x'.repeat(200) })
+    expect(plan[0].title.length).toBeLessThanOrEqual(80)
+  })
+
   it('crosses a month boundary correctly', () => {
     const plan = planReminders(at('2026-11-29T08:00:00'), 9, false)
     expect(plan[2].at.getMonth()).toBe(11)

@@ -594,9 +594,22 @@ describe('what the store asks of the device', () => {
       'hf2-settings': { ...SETTINGS, reminderHour: 18 },
       'hf2-tasks': [task('a')],
     })
-    expect(lastCall(syncReminders)).toEqual([18, false])
+    expect(lastCall(syncReminders)).toEqual([18, false, { title: 'Task a' }])
     act(() => result.current.completeTask('a'))
-    await waitFor(() => expect(lastCall(syncReminders)).toEqual([18, true]))
+    await waitFor(() => expect(lastCall(syncReminders)).toEqual([18, true, null]))
+  })
+
+  it('holds back today\'s nudge while a session is running', async () => {
+    const { result } = await boot({
+      'hf2-settings': { ...SETTINGS, reminderHour: 18 },
+      'hf2-tasks': [task('a', { firstStep: 'open the doc' })],
+    })
+    expect(lastCall(syncReminders)).toEqual([18, false, { title: 'Task a', firstStep: 'open the doc' }])
+    act(() => result.current.startFocus('a'))
+    await waitFor(() => expect(lastCall<[number, boolean]>(syncReminders)[1]).toBe(true))
+    // stopped before anything was banked, so today's nudge is wanted again
+    act(() => result.current.abandonFocus())
+    await waitFor(() => expect(lastCall<[number, boolean]>(syncReminders)[1]).toBe(false))
   })
 
   it('starts light unless told otherwise, and follows the choice', async () => {
