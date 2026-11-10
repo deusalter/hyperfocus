@@ -22,49 +22,50 @@ Race your past self, gently
 ## Keywords (100 bytes max)
 
 ```
-focus,brain,dump,pomodoro,planner,list,tasks,study,executive,function,procrastination,brown,noise
+focus,brain,dump,planner,list,tasks,study,homework,executive,function,procrastination,brown,noise
 ```
-97 bytes. Apple indexes each word once across the name, subtitle and this field, so none of these repeat. "Canvas" is deliberately left out: it's a trademark, and Guideline 2.3.7 warns against trademarked terms in keywords. If you pick a different name, words it no longer covers should move here.
+97 bytes. Apple indexes each word once across the name, subtitle and this field, so none of these repeat. "Canvas" and "pomodoro" are deliberately left out: both are trademarks, and Guideline 2.3.7 warns against trademarked terms in keywords. The app isn't a Pomodoro timer anyway. "Brown noise" stays because it's what people search for and the app has it, though nothing in the listing claims it helps: the only studies are of white and pink noise. If you pick a different name, words it no longer covers should move here.
 
 ## Promotional text (170 max)
 
 ```
-Miss a day and nothing breaks. Empty your head, start one thing with a tap, and race your recent days. There's no streak to lose and no backlog waiting for you.
+Free, with no account and no subscription. Miss a day and nothing breaks. Empty your head, start one thing with a tap, and race your recent days.
 ```
-160 characters. Can be changed any time without a new build.
+145 characters. Can be changed any time without a new build. It leads with the price on purpose: across 3,273 low-star reviews of 25 apps like this one, subscriptions and paywalls were the most common complaint by a wide margin, and more so in reviews that mention ADHD.
 
 ## Description
 
 ```
-Most task apps punish you. Miss a day and the streak dies, the red numbers pile up, and opening the app starts to feel like bad news. Hyperfocus goes the other way. If you miss a day, nothing breaks.
+Most task apps punish you. Miss a day and the streak dies, the red numbers pile up, and opening the app starts to feel like bad news. Hyperfocus goes the other way. If you miss a day, nothing breaks. It's free, with no account and no subscription.
 
 EMPTY YOUR HEAD
 Type whatever's rattling around, as fast as it comes. Sort it later with a swipe: Today, Later, or let it go.
 
 START ONE THING
-Choosing is its own kind of hard, so the app picks for you. One tap starts a focus session. Don't like the pick? "Not this one" offers another. Stuck anyway? Name the very first move, and it's waiting on the button next time.
+Choosing is its own kind of hard, so the app picks for you. One tap starts a focus session. Don't like the pick? "Not this one" offers another. Can't face the whole thing? "Just 5 minutes" starts a short one. Stuck anyway? Name the very first move, and it's waiting on the button next time.
 
 RACE YOUR RECENT DAYS
-Your last several active days run on the track with you, and the target is a typical day for you, never your best one. You'll pass some of them on almost any day. Points reward starting as well as minutes, so a scattered day with four small starts still adds up.
+Your last several active days run on the track with you, and the target is a typical day for you, never your best one. You'll pass some of them on almost any day, and you watch your runner do it the moment a session ends. Points reward starting as well as minutes, so a scattered day with four small starts still adds up.
 
 MADE FOR HOW YOUR ATTENTION WORKS
-• A focus timer that tells you when time's up, even from another app
+• A focus timer that shows how long is left and what time that is, and tells you when it's up, even from another app
+• Stop part-way and the minutes still count. The task stays on your list
 • Add or take off five minutes when the plan changes
-• Brown noise, pink noise and waves that mix with your own music
-• One daily nudge at most. It skips days you've already started, and goes quiet if you've been away a week
+• Pink noise, brown noise and waves that mix with your own music
+• One daily nudge at most, and it names the task. It skips days you've already started, and goes quiet if you've been away a week
 • Undo on anything quick, so an impulsive tap costs nothing
 • Gentle mode turns off every comparison
 • Dark mode for late nights, or follow your phone
 • No flashing or pulsing for attention, and everything respects Reduce Motion
 
 COMING BACK IS FREE
-After a gap there's no backlog on your front page and no debt to pay off. What slipped past waits in a calm weekly review, which opens with what you got done.
+After a gap there's no backlog on your front page and no debt to pay off. The app offers the easiest thing on your list, not the most overdue. What slipped past waits in a calm weekly review, which opens with what you got done.
 
 SCHOOLWORK COMES TO YOU
 Paste your Canvas calendar link and assignments land in Later, then join Today on the day they're due. Google and Outlook calendar links work too.
 
 YOURS, ON YOUR PHONE
-No account, no ads, no tracking. Everything stays on your device.
+No account, no ads, no tracking, no subscription. Everything stays on your device, and you can export it and restore it.
 
 Made by someone with ADHD. Hyperfocus is a productivity tool. It isn't medical advice and doesn't diagnose or treat any condition.
 ```
@@ -77,7 +78,7 @@ Upload in this order from `store/screenshots/`. The first three are what most pe
 
 | # | File | Caption | Under it |
 |---|---|---|---|
-| 1 | `01-race` | Race your past self | Made for ADHD brains. No streak to lose, and the target is a typical day. |
+| 1 | `01-race` | Race your past self | Free, with no account. No streak to lose, and the target is a typical day. |
 | 2 | `02-focus` | One tap to start | The app picks the task. The focus timer tells you when time is up. |
 | 3 | `03-dump` | Brain dump in seconds | Get it out of your head first. Sort it later. |
 | 4 | `04-triage` | Sort it with a swipe | Today, Later, or let it go. Then you only have to look at Today. |
@@ -98,7 +99,7 @@ These are the Release build itself, captured on iOS 26 simulators (iPhone 17 Pro
 | Primary category | Productivity |
 | Secondary category | Education |
 | Price | Free, no in-app purchases |
-| Age rating | Answer "None" or "No" throughout. Should come out 4+. The in-app browser only opens this app's own help and privacy pages, so it isn't unrestricted web access. |
+| Age rating | Answer "None" or "No" throughout. Should come out 4+. That includes the newer questions: Social Media (required since September 2026), and Shared Location and Dating and Relationships (in the form from 16 November 2026, due by 12 January 2027). Two answers are worth knowing the reason for. Health or Wellness Topics is None: the app organises tasks and gives no self-care or lifestyle recommendations. Contests is None: the race is against your own past days, and that question is about users competing with one another. Unrestricted Web Access is No, since the in-app browser only opens this app's own help and privacy pages. |
 | Support URL | https://deusalter.github.io/hyperfocus/support.html |
 | Marketing URL | https://deusalter.github.io/hyperfocus/ |
 | Privacy Policy URL | https://deusalter.github.io/hyperfocus/privacy.html |
@@ -110,9 +111,13 @@ These are the Release build itself, captured on iOS 26 simulators (iPhone 17 Pro
 
 App Store Connect lets you declare these per device. Only declare what you've confirmed on a real phone, using the checks in `RELEASE.md`:
 
-- Sufficient Contrast and Dark Interface: every screen is measured against AA in both themes
+- Sufficient Contrast: every screen and state is measured against AA in both themes
 - Reduced Motion: built for it
-- VoiceOver and Larger Text: built for them, and checked on the simulator, but listen through VoiceOver yourself before declaring
+- Larger Text: body text scales all the way. Controls whose text is capped (tabs, segments, the week strip) show in the Large Content Viewer on a long press, which is what Apple's criteria ask for in place of scaling. Check that on a phone before declaring
+- VoiceOver: built for it, and checked on the simulator, but listen through it yourself before declaring
+- Dark Interface: leave this one undeclared for now. Apple's criteria rule out "even temporary flashes of bright content", and the launch screen is always light, because it appears before the app can read the appearance setting. Giving the splash a dark variant would fix that for phones set to dark, at the cost of a dark splash opening onto the default light app
+- Differentiate Without Color Alone: probably true, since categories carry an icon and a word as well as a colour, but nobody has audited for it
+- Voice Control, Captions, Audio Descriptions: don't declare
 
 ## Notes for App Review
 
@@ -120,10 +125,10 @@ App Store Connect lets you declare these per device. Only declare what you've co
 Hyperfocus has no login and needs no account. All data stays on the device.
 
 To try the main flow:
-1. Finish or skip the short welcome.
-2. Tap "Start a brain dump" (or the + button), type a few things, then tap Sort.
+1. The welcome's last step asks for one task and offers to start five minutes on it. That works as a first look at a focus session, or tap Skip to go straight to Home.
+2. Tap the + button (or "Start a brain dump" on an empty Home), type a few things, then tap Sort.
 3. Swipe a card right for Today and left for Later, or use the buttons.
-4. On Home, tap "Start one thing" to begin a focus session. Done finishes the task. Letting the timer run out keeps the task and asks whether you finished.
+4. On Home, tap "Start one thing" to begin a focus session. Done finishes the task. "Stop for now" keeps the minutes and the task. Letting the timer run out keeps the task and asks whether you finished.
 
 Notifications are local only and aren't required. The app asks the first time you start a session, then schedules a "time's up" alert on the device. A daily reminder is opt-in under You > Reminders. There's no push server.
 

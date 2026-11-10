@@ -89,7 +89,7 @@ Most of the app is already checked automatically: unit and store tests, every fl
 In the new app record, paste everything from `listing.md` and upload the screenshots. Then:
 
 - **App Privacy:** Data Not Collected. It's the first question.
-- **EU:** Apple requires a trader status declaration to sell in the EU. Either complete it, or leave EU storefronts off under Pricing and Availability for now.
+- **EU:** Apple asks for a trader status declaration on every account, whether or not the app is sold in the EU. "Not a trader" is a valid answer and publishes nothing. Declaring as a trader puts the account holder's address, phone number and email on the product page, so know which you're choosing.
 - **TestFlight:** add a few friends if you want real use before launch.
 
 **Gate:** App Store Connect shows nothing missing on the version page.
@@ -104,8 +104,10 @@ Select the TestFlight build and submit for review. The review notes are in `list
 
 - **Ask for ratings** happens on its own: the app requests one once, after a good session, and only in the released app.
 - **Crash reports** arrive in App Store Connect, with no third-party SDK. They only include users who opted into sharing.
-- **Upgrade Expo** before Apple's next SDK deadline. This project is on SDK 54, which builds with Xcode 26 and satisfies today's rule. Apple has been raising the minimum every April, and Xcode 27 is out, so plan on April 2027. Expo's current SDK is 58. Do it on a branch, on a real device, since a jump that size can break native modules in ways the web build won't show.
-- **Next features worth building:** Lock Screen Live Activity for the timer, and an import to go with the export.
+- **Upgrade Expo before April 2027.** Apple announced on 9 September 2026 that from April 2027 uploads must be built with the iOS 27 SDK. This project is on SDK 54, which builds with Xcode 26: fine for the first submission, and not uploadable after that date. Updates from then on need Expo SDK 57 or later. Expo's current SDK is 58. Do it on a branch, on a real device, since a jump that size can break native modules in ways the web build won't show.
+- **Next features worth building:** a Lock Screen Live Activity for the timer and a Home Screen widget with the next task and a Start button. Both reports behind the November 2026 teardown put being invisible unless opened as the app's biggest gap. They need native Swift targets, so build them where Xcode is available.
+- **If the first upload is flagged for a missing microphone purpose string** (ITMS-90683): expo-audio links its recorder code even though the app never records. Set `"microphonePermission": "Hyperfocus doesn't record audio."` in the expo-audio plugin entry in `app.json` and rebuild.
+- **Reviewers often use an iPad.** The app is iPhone-only (`supportsTablet: false`), which is allowed and needs no iPad screenshots, but it will be run in iPhone compatibility mode on one. Nothing has driven it there yet.
 
 ## Regenerating things
 

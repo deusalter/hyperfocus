@@ -36,7 +36,7 @@ The real Release app runs on iOS simulators through `gh workflow run ios-simulat
 ```
 app/                     # Expo Router screens (file-based routing)
 ├── _layout.tsx          # Root stack, fonts, error boundary, startup gate
-├── onboarding.tsx       # 3-step first run
+├── onboarding.tsx       # First run: the idea, how it works, then one real task and five minutes on it
 ├── dump.tsx             # Brain dump (modal)
 ├── triage.tsx           # Swipe sort: Today / Later / Let go (modal)
 ├── task/[id].tsx        # Edit one task: title, first move, kind, date, list (modal)
@@ -57,6 +57,7 @@ src/
 │   ├── session.ts       # Pure session rules: remaining, adjust, credit
 │   ├── tasks.ts         # Bucketing, what to suggest next, date labels
 │   ├── feed.ts          # Calendar feeds: .ics parsing and merging
+│   ├── backup.ts        # Reading an export back in. Only ever adds
 │   ├── reminders.ts     # What the daily nudge says and when
 │   ├── notifications.ts # Local notifications
 │   ├── sound.ts         # Focus sounds
@@ -67,7 +68,7 @@ src/
     ├── Sprite.tsx       # The companion
     ├── UndoToast.tsx
     ├── WeekStrip.tsx
-    ├── home/            # RaceCard, TaskRow
+    ├── home/            # RaceCard, RaceTrack (the lane, shared with the recap), TaskRow
     └── ui/              # PressableScale, Toggle, ScreenHeader, Icon
 
 store/                   # App Store listing, release checklist, screenshots
@@ -81,7 +82,7 @@ Light editorial. Warm off-white ground (`#eef0f0`), near-black ink, one slate-bl
 
 **Motion has two rules**, both in `src/lib/motion.ts`:
 
-1. **Nothing loops.** Motion onset captures attention involuntarily — focus can't suppress it — so a looping animation re-grabs the user every cycle. Ambient motion running alongside content past 5s is also a WCAG 2.2.2 Level A failure. Celebration is a burst that ends. The companion animates while it has something to say, then holds its pose.
+1. **Nothing loops.** Motion onset captures attention involuntarily — focus can't suppress it — so a looping animation re-grabs the user every cycle. Ambient motion running alongside content past 5s is also a WCAG 2.2.2 Level A failure. Celebration is a burst that ends. The companion animates while it has something to say, then holds its pose. The one exception is its slow breathe on You and Insights, where it stands alone as the character rather than as chrome around something else. That stops under Reduce Motion.
 2. **Overshoot is an attention budget.** Visible bounce draws the eye to the motion itself, so it's spent only on earned moments, never on routine reflow.
 
 Everything degrades under Reduce Motion.
@@ -96,11 +97,18 @@ Everything degrades under Reduce Motion.
 - **Descriptive, not evaluative.** A shortfall is a distance to cover, never a verdict on the day.
 - **Undo beats "are you sure?"** Impulsive taps are a fact of life here. Quick actions take effect immediately and offer a way back, rather than adding a decision to every action to guard against a rare mistake.
 - **The clock running out doesn't mean the work did.** Only you can say a task is finished. When time's up the app keeps the task and asks.
-- **Coming back is free.** After a gap the app greets you with zero debt and one small action, because the screen shown after an absence decides whether there's another one.
+- **Stopping part-way is a normal ending.** Something comes up, or the energy runs out. Stop for now keeps the minutes and the task, and the way to take them back is offered afterwards, not asked beforehand.
+- **The reward is seen when it's earned.** The runner makes its move on the recap, the moment a session ends, and on Home it waits until Home is in front. A payoff that plays behind another screen didn't happen.
+- **A smaller yes.** Any start can be five minutes, and the welcome ends inside one. Agreeing to five minutes is a different size of decision from agreeing to twenty-five.
+- **Coming back is free.** After a gap the app greets you with zero debt and one small action, the easiest thing on the list and not the most overdue, because the screen shown after an absence decides whether there's another one.
+
+## What the evidence does and doesn't say
+
+The differences this app is built around are well measured: timing (g ≈ 0.69), steeper discounting of delayed reward (d ≈ 0.43), emotion dysregulation in adults (g ≈ 1.17), working memory. What isn't measured is whether any feature of a to-do and timer app helps. No trial of one exists, in adults or teenagers. So the design follows the measured differences where it can (time shown as a clock as well as a countdown, reward at the moment of the act, nothing that reads as a verdict) and is otherwise a set of reasoned bets. "Just 5 minutes", a five-item Today and brown noise are in that second group, and nothing here or in the listing claims they're proven. The sources, and what was and wasn't built from them, are in [`research/teardown-2026-11.md`](research/teardown-2026-11.md).
 
 ## Accessibility
 
-Text clears WCAG AA (4.5:1) throughout, in both themes, which `npm run e2e` measures on every screen from what actually renders. It deliberately stays short of maximal contrast — pure black on pure white is a documented source of visual stress, so the palette is near-black ink on warm off-white. Touch targets meet Apple's 44pt, with asymmetric `hitSlop` where controls sit close enough that uniform slop would overlap. All motion degrades under Reduce Motion, the tab bar goes solid under Reduce Transparency, and Gentle mode removes every comparison for anyone who finds even a kindly worded one stressful. Buttons, charts and the race are labelled for VoiceOver.
+Text clears WCAG AA (4.5:1) throughout, in both themes, which `npm run e2e` measures on every screen and part-way state from what actually renders. It deliberately stays short of maximal contrast — pure black on pure white is a documented source of visual stress, so the palette is near-black ink on warm off-white. Touch targets meet Apple's 44pt, with asymmetric `hitSlop` where controls sit close enough that uniform slop would overlap. Controls whose text can't grow with the phone's text size (tabs, segments, the week strip) show in the Large Content Viewer on a long press. All motion degrades under Reduce Motion, the tab bar goes solid under Reduce Transparency, and Gentle mode removes every comparison for anyone who finds even a kindly worded one stressful. Buttons, charts and the race are labelled for VoiceOver.
 
 ## Privacy
 
@@ -108,6 +116,6 @@ No accounts, no servers, no analytics. Everything lives in on-device storage. Th
 
 ## Status
 
-The full loop works: capture → triage → focus → recap → race → weekly debrief, with session alerts, a daily nudge, focus sounds, and Canvas or any calendar feed. Getting it onto the App Store is a checklist in [`store/RELEASE.md`](store/RELEASE.md).
+The full loop works: capture → triage → focus → recap → race → weekly debrief, with session alerts, a daily nudge that names the task, focus sounds, Canvas or any calendar feed, and an export that can be restored. Getting it onto the App Store is a checklist in [`store/RELEASE.md`](store/RELEASE.md).
 
-Lock Screen widgets and Live Activities are the natural next step for a timer this app wants you to trust in the background.
+A Lock Screen Live Activity for the timer and a Home Screen widget with the next task are the next step, and the biggest gap: the app does nothing for you until you remember to open it.

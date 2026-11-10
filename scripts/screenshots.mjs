@@ -76,7 +76,7 @@ const SHOTS = [
   {
     id: '01-race',
     title: 'Race your past self',
-    sub: 'Made for ADHD brains. No streak to lose, and the target is a typical day.',
+    sub: 'Free, with no account. No streak to lose, and the target is a typical day.',
     path: '/',
     state: () => seed({ history: [...today(['Laundry', 'sprint', 0], ['Reply to coach', 'sprint', 0]), ...HISTORY()] }),
   },
