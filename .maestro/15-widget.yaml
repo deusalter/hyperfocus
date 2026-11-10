@@ -28,13 +28,13 @@ name: The widget on the Home Screen
     text: "Hyperfocus"
     optional: true
 - takeScreenshot: 04-search
-# the search field now reads "Hyperfocus" as well, so the result is the second match
+# The gallery's result row isn't in the accessibility tree at all: only the search
+# field is, so there's no label to tap. It's the first row under the field.
 - tapOn:
-    text: "Hyperfocus"
-    index: 1
+    point: "40%,29%"
 - takeScreenshot: 05-preview
 - tapOn:
-    text: ".*Add Widget"
+    text: ".*Add Widget.*"
     optional: true
 - takeScreenshot: 06-added
 - tapOn:
