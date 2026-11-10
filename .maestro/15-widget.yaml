@@ -28,9 +28,10 @@ name: The widget on the Home Screen
     text: "Hyperfocus"
     optional: true
 - takeScreenshot: 04-search
+# the search field now reads "Hyperfocus" as well, so the result is the second match
 - tapOn:
     text: "Hyperfocus"
-    optional: true
+    index: 1
 - takeScreenshot: 05-preview
 - tapOn:
     text: ".*Add Widget"
@@ -39,4 +40,11 @@ name: The widget on the Home Screen
 - tapOn:
     text: "Done"
     optional: true
+- waitForAnimationToEnd
 - takeScreenshot: 07-home-with-widget
+# the widget's own words, which the app's icon doesn't carry
+- extendedWaitUntil:
+    visible: "Start one thing"
+    timeout: 8000
+    optional: true
+- takeScreenshot: 08-widget-content
