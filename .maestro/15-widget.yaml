@@ -9,6 +9,34 @@ name: The widget on the Home Screen
     timeout: 45000
 - pressKey: Home
 - waitForAnimationToEnd
-# Since iOS 18 a long press on an app's icon offers to turn it into its widget.
+# a long press on an icon puts the Home Screen into its editing mode
 - longPressOn: "Hyperfocus"
-- takeScreenshot: 01-icon-menu
+- extendedWaitUntil:
+    visible: "Edit"
+    timeout: 8000
+- takeScreenshot: 01-editing
+- tapOn: "Edit"
+- takeScreenshot: 02-edit-menu
+- tapOn:
+    text: "Add Widget"
+    optional: true
+- takeScreenshot: 03-gallery
+- tapOn:
+    text: "Search Widgets"
+    optional: true
+- inputText:
+    text: "Hyperfocus"
+    optional: true
+- takeScreenshot: 04-search
+- tapOn:
+    text: "Hyperfocus"
+    optional: true
+- takeScreenshot: 05-preview
+- tapOn:
+    text: ".*Add Widget"
+    optional: true
+- takeScreenshot: 06-added
+- tapOn:
+    text: "Done"
+    optional: true
+- takeScreenshot: 07-home-with-widget

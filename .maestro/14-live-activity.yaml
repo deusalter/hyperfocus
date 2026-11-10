@@ -15,11 +15,18 @@ name: The session on the Lock Screen
 - pressKey: Lock
 # Home wakes a locked phone to its Lock Screen. It takes a second press to unlock.
 - pressKey: Home
+# "until 6:24 PM" on its own is only ever the Live Activity. The app's own screens
+# say "left, until" and "Focusing until".
 - extendedWaitUntil:
-    visible: "Focusing on"
+    visible: "until .*"
     timeout: 10000
+- takeScreenshot: 02-lock-screen-first-time
+# The first Live Activity carries the system's own question underneath it. It isn't
+# an alert, so Maestro's driver leaves it alone and this answers it.
+- tapOn:
+    text: "Allow"
     optional: true
-- takeScreenshot: 02-lock-screen-running
+- takeScreenshot: 03-lock-screen-running
 - pressKey: Home
 - extendedWaitUntil:
     visible: "Pause"
@@ -30,21 +37,28 @@ name: The session on the Lock Screen
     timeout: 5000
 - pressKey: Lock
 - pressKey: Home
+# the app says "Paused" too, but "left" by itself is the Live Activity's
 - extendedWaitUntil:
-    visible: "Paused"
+    visible: "left"
     timeout: 10000
-    optional: true
-- takeScreenshot: 03-lock-screen-paused
+- takeScreenshot: 04-lock-screen-paused
 - pressKey: Home
 - extendedWaitUntil:
     visible: "Resume"
     timeout: 10000
 - tapOn: "Resume"
-# under a minute in, so this stops straight away and takes the activity down
-- tapOn: "Stop for now"
+- tapOn: "Done with .*"
+- extendedWaitUntil:
+    visible: "Session complete"
+    timeout: 8000
+- tapOn: "Back home"
 - extendedWaitUntil:
     visible: "Start one thing.*"
     timeout: 8000
+# a finished session leaves nothing behind on the Lock Screen
 - pressKey: Lock
 - pressKey: Home
-- takeScreenshot: 04-lock-screen-after
+- extendedWaitUntil:
+    notVisible: "until .*"
+    timeout: 8000
+- takeScreenshot: 05-lock-screen-after
