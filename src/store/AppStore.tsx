@@ -146,8 +146,11 @@ interface Store {
   feed: FeedStatus
 
   addToInbox: (title: string) => void
-  /** add directly, for when the when is already known and triage has nothing to ask */
-  addTask: (title: string, options?: NewTaskOptions) => void
+  /**
+   * Add directly, for when the when is already known and triage has nothing to
+   * ask. Returns the new task's id, or null if there was nothing to add.
+   */
+  addTask: (title: string, options?: NewTaskOptions) => string | null
   updateTask: (id: string, patch: Partial<Omit<Task, 'id' | 'createdAt'>>) => void
   removeTask: (id: string) => void
   /** remove with a way back */
@@ -424,10 +427,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addTask = useCallback(
     (title: string, options: NewTaskOptions = {}) => {
       const clean = title.trim().slice(0, MAX_TITLE)
-      if (!clean) return
+      if (!clean) return null
+      const id = generateId()
       patchTasks((prev) => [
         {
-          id: generateId(),
+          id,
           title: clean,
           cat: 'sprint',
           bucket: options.bucket ?? 'later',
@@ -436,6 +440,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         },
         ...prev,
       ])
+      return id
     },
     [patchTasks]
   )

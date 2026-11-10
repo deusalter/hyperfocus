@@ -16,7 +16,9 @@ import Sprite from '@/components/Sprite'
 import Toggle from '@/components/ui/Toggle'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
-import { FOCUS_OPTIONS } from '@/lib/session'
+import { useStartFocus } from '@/lib/useStartFocus'
+import { QUICK_START_MIN } from '@/lib/session'
+import { MAX_TITLE } from '@/lib/tasks'
 import { TITLE_SCALE, useColors } from '@/lib/theme'
 
 const STEPS = 3
@@ -150,18 +152,42 @@ function RaceScene() {
 export default function OnboardingScreen() {
   const palette = useColors()
   const router = useRouter()
-  const { settings, updateSettings } = useApp()
+  const { settings, updateSettings, addTask } = useApp()
+  const start = useStartFocus()
   const [step, setStep] = useState(0)
-  const [name, setName] = useState(settings.name)
-  const [focusLen, setFocusLen] = useState(settings.focusLen)
   const [gentle, setGentle] = useState(settings.gentle)
+  const [first, setFirst] = useState('')
+  const hasFirst = first.trim().length > 0
+  const lastStep = step >= STEPS - 1
 
   const finish = () => {
-    updateSettings({ name: name.trim(), focusLen, gentle, onboarded: true })
+    updateSettings({ gentle, onboarded: true })
     router.dismissTo('/')
   }
 
-  const next = () => (step >= STEPS - 1 ? finish() : setStep(step + 1))
+  // The welcome used to end on a settings form and then an empty Home. Most people
+  // who try an app like this open it once, so whatever it's for has to happen in
+  // that first sitting: the last step asks for one real thing and starts on it. A
+  // short session on purpose. The first points land within five minutes, and the
+  // recap offers to keep going.
+  const addFirst = () => (hasFirst ? addTask(first, { bucket: 'today' }) : null)
+
+  const startFirst = () => {
+    const id = addFirst()
+    finish()
+    if (id) start(id, QUICK_START_MIN)
+  }
+
+  const addOnly = () => {
+    addFirst()
+    finish()
+  }
+
+  const next = () => {
+    if (!lastStep) setStep(step + 1)
+    else if (hasFirst) startFirst()
+    else finish()
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
@@ -242,6 +268,24 @@ export default function OnboardingScreen() {
                     body="Everything you finish moves your runner past more of them. Starting counts as much as the minutes."
                   />
                 </View>
+                {/* Asked here, beside the sentence it's about. Whether comparison
+                    helps or stings is the one thing worth knowing before the first
+                    screen. A name and a session length can wait until they matter. */}
+                <Pressable
+                  onPress={() => setGentle((v) => !v)}
+                  className="bg-surface border border-soft flex-row items-center"
+                  style={{ gap: 12, marginTop: 24, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13 }}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: gentle }}
+                >
+                  <View className="flex-1">
+                    <Text className="font-hk700 text-ink text-body">Rather not compare?</Text>
+                    <Text className="font-hk400 text-muted text-footnote mt-0.5">
+                      Gentle mode hides the race field and day counts.
+                    </Text>
+                  </View>
+                  <Toggle on={gentle} />
+                </Pressable>
               </Animated.View>
             )}
 
@@ -253,79 +297,30 @@ export default function OnboardingScreen() {
                   maxFontSizeMultiplier={TITLE_SCALE}
                   accessibilityRole="header"
                 >
-                  Set your pace
+                  Start with one thing
                 </Text>
                 <Text className="font-hk400 text-muted text-center text-subhead mt-1.5">
-                  All optional. You can change anything later.
+                  What&apos;s one thing you&apos;ve been putting off? Small is fine.
                 </Text>
-
-                <View style={{ marginTop: 22 }}>
-                  <Text className="font-hk700 text-muted text-footnote">
-                    What should we call you?
-                  </Text>
-                  <TextInput
-                    value={name}
-                    onChangeText={setName}
-                    maxLength={40}
-                    placeholder="Your name"
-                    placeholderTextColor={palette.muted}
-                    returnKeyType="done"
-                    accessibilityLabel="Your name"
-                    className="bg-surface border border-soft font-hk400 text-ink text-body"
-                    style={{ marginTop: 7, borderRadius: 13, paddingHorizontal: 14, paddingVertical: 13 }}
-                  />
-                </View>
-
-                <View style={{ marginTop: 18 }}>
-                  <Text className="font-hk700 text-muted text-footnote">
-                    Focus session length
-                  </Text>
-                  <View className="flex-row" style={{ gap: 8, marginTop: 7 }} accessibilityRole="radiogroup">
-                    {FOCUS_OPTIONS.map((n) => {
-                      const active = focusLen === n
-                      return (
-                        <Pressable
-                          key={n}
-                          onPress={() => setFocusLen(n)}
-                          className="flex-1 items-center"
-                          style={{
-                            paddingVertical: 12,
-                            borderRadius: 12,
-                            borderWidth: 1,
-                            borderColor: active ? palette.accent : palette.soft,
-                            backgroundColor: active ? palette.accent : palette.surface,
-                          }}
-                          accessibilityRole="radio"
-                          accessibilityState={{ selected: active, checked: active }}
-                          accessibilityLabel={`${n} minutes`}
-                        >
-                          <Text
-                            className="font-hk700 text-subhead"
-                            style={{ color: active ? palette.onAccent : palette.ink }}
-                          >
-                            {n}m
-                          </Text>
-                        </Pressable>
-                      )
-                    })}
-                  </View>
-                </View>
-
-                <Pressable
-                  onPress={() => setGentle((v) => !v)}
-                  className="bg-surface border border-soft flex-row items-center"
-                  style={{ gap: 12, marginTop: 18, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13 }}
-                  accessibilityRole="switch"
-                  accessibilityState={{ checked: gentle }}
-                >
-                  <View className="flex-1">
-                    <Text className="font-hk700 text-ink text-body">Gentle mode</Text>
-                    <Text className="font-hk400 text-muted text-footnote mt-0.5">
-                      No comparisons. Hides the race field and day counts.
-                    </Text>
-                  </View>
-                  <Toggle on={gentle} />
-                </Pressable>
+                <TextInput
+                  value={first}
+                  onChangeText={setFirst}
+                  onSubmitEditing={next}
+                  autoFocus
+                  maxLength={MAX_TITLE}
+                  placeholder="Reply to that one email"
+                  placeholderTextColor={palette.muted}
+                  returnKeyType="go"
+                  accessibilityLabel="One thing you've been putting off"
+                  className="bg-surface border border-soft font-hk400 text-ink text-body"
+                  style={{ marginTop: 20, borderRadius: 13, paddingHorizontal: 14, paddingVertical: 13 }}
+                  maxFontSizeMultiplier={TITLE_SCALE}
+                />
+                <Text className="font-hk400 text-muted text-center text-footnote" style={{ marginTop: 12 }}>
+                  {hasFirst
+                    ? `${QUICK_START_MIN} minutes is enough to begin. You can keep going after.`
+                    : 'Or leave it empty and look around first.'}
+                </Text>
               </Animated.View>
             )}
           </ScrollView>
@@ -364,10 +359,25 @@ export default function OnboardingScreen() {
                 elevation: 8,
               }}
             >
-              <Text className="font-hk700 text-on-accent text-headline">
-                {step >= STEPS - 1 ? "Let's go" : 'Next'}
+              <Text className="font-hk700 text-on-accent text-headline" maxFontSizeMultiplier={TITLE_SCALE}>
+                {!lastStep ? 'Next' : hasFirst ? `Start ${QUICK_START_MIN} minutes on it` : 'Look around first'}
               </Text>
             </PressableScale>
+            {/* room is kept for it, so the button above doesn't jump when typing starts */}
+            {lastStep && (
+              <View style={{ minHeight: 34, justifyContent: 'flex-end' }}>
+                {hasFirst && (
+                  <Pressable
+                    onPress={addOnly}
+                    hitSlop={{ top: 10, bottom: 10, left: 20, right: 20 }}
+                    className="self-center"
+                    accessibilityRole="button"
+                  >
+                    <Text className="font-hk600 text-muted text-footnote">Just add it to Today</Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>

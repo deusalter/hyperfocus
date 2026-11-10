@@ -1,7 +1,7 @@
 appId: com.deusalter.hyperfocus
 name: Capture and sort
 ---
-# a fresh launch, so this also proves onboarding and the name were saved
+# a fresh launch, so this also proves the welcome was saved as finished
 - launchApp
 - extendedWaitUntil:
     visible: "Start a brain dump"

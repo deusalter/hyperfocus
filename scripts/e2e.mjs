@@ -86,22 +86,52 @@ console.log('Hyperfocus e2e')
 
 // ---- first run ----
 
-await scenario('first run walks through onboarding to an inviting home', {}, async (page) => {
+await scenario('first run ends inside a short session on a first task', {}, async (page) => {
   await open(page)
   await see(page, 'Race your past self')
   await tap(page, 'Next')
   await see(page, 'How it works')
   await tap(page, 'Next')
-  await see(page, 'Set your pace')
-  await page.getByPlaceholder('Your name').fill('Sam')
-  await tap(page, "Let's go")
-  await see(page, ', Sam')
-  await see(page, 'Start a brain dump')
+  await see(page, 'Start with one thing')
+  await page.getByLabel("One thing you've been putting off").fill('Reply to coach')
+  await tap(page, 'Start 5 minutes on it')
+  await see(page, 'Focusing on')
+  await see(page, 'Reply to coach')
   assert((await stored(page, 'hf2-settings')).onboarded === true, 'onboarded not saved')
+  assert((await stored(page, 'hf2-focus')).totalSec === 300, 'the first session was not five minutes')
+  const tasks = await stored(page, 'hf2-tasks')
+  assert(tasks.length === 1 && tasks[0].bucket === 'today', 'the first task is not on Today')
+  // leaving Focus lands on Home, not back in the welcome
+  await page.getByLabel('Back').filter({ visible: true }).first().click()
+  await see(page, 'Session in progress', 4000).catch(() => see(page, 'Focusing until'))
+  await gone(page, 'Race your past self', 1000)
   await page.reload()
   await page.waitForTimeout(800)
-  await see(page, ', Sam')
   await gone(page, 'Race your past self', 1000)
+})
+
+await scenario('a first task can be added without starting on it', {}, async (page) => {
+  await open(page)
+  await tap(page, 'Next')
+  await tap(page, 'Next')
+  await page.getByLabel("One thing you've been putting off").fill('Reply to coach')
+  await tap(page, 'Just add it to Today')
+  await see(page, 'Start one thing')
+  await see(page, 'Reply to coach')
+  assert(!(await stored(page, 'hf2-focus')), 'a session started anyway')
+})
+
+await scenario('the welcome can be finished with nothing typed', {}, async (page) => {
+  await open(page)
+  await tap(page, 'Next')
+  await see(page, 'Rather not compare?')
+  await page.getByText('Rather not compare?').click()
+  await tap(page, 'Next')
+  await tap(page, 'Look around first')
+  await see(page, 'Start a brain dump')
+  const settings = await stored(page, 'hf2-settings')
+  assert(settings.onboarded === true, 'onboarded not saved')
+  assert(settings.gentle === true, 'gentle mode chosen in the welcome was not saved')
 })
 
 await scenario('skip still lands home and stays onboarded', {}, async (page) => {

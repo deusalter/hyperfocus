@@ -279,6 +279,20 @@ describe('finishing a session', () => {
     expect(result.current.history.map((c) => c.id)).toEqual(['old'])
   })
 
+  it('adding a task hands back its id, so it can be started straight away', async () => {
+    const { result } = await boot({ 'hf2-settings': SETTINGS })
+    let id: string | null = null
+    act(() => {
+      id = result.current.addTask('Reply to coach', { bucket: 'today' })
+    })
+    expect(id).toBeTruthy()
+    act(() => result.current.startFocus(id as unknown as string, 5))
+    expect(result.current.focus?.title).toBe('Reply to coach')
+    act(() => {
+      expect(result.current.addTask('   ')).toBeNull()
+    })
+  })
+
   it('a session can be started shorter than the usual length', async () => {
     const { result } = await boot({ 'hf2-settings': SETTINGS, 'hf2-tasks': [task('a')] })
     act(() => result.current.startFocus('a', 5))
