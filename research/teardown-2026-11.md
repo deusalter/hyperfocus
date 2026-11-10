@@ -85,7 +85,7 @@ Export my data produced text and nothing could read it. **Changed:** Restore fro
 | Partial sessions get credit | Yes | Stop for now |
 | Larger Text for capped controls | Yes | Large Content Viewer on tabs, segments, week strip |
 | A cue for the first move ("when ___, I'll ___") | No | The strongest unshipped idea (d ≈ 0.99 in clinical samples, none in adult ADHD). It needs a per-task time and reminder to be more than a text field. Worth doing next |
-| Lock Screen Live Activity, Home widget | No | Both reports' top gap. Needs Swift targets and Xcode, which this Mac doesn't have |
+| Lock Screen Live Activity, Home widget | Yes, a day later | Both reports' top gap. Built in Swift without Xcode on this Mac, compiled and driven on iOS simulators through CI. Not yet on a real phone |
 | Siri and Shortcuts capture | No | Same reason. `hyperfocus://dump` already works from a Shortcut, and the support page says how |
 | Recurring tasks | No | Users expect them, and they pull the app toward daily-miss guilt. A product decision |
 | Per-task reminders | No | Conflicts with one nudge a day, which is deliberate |

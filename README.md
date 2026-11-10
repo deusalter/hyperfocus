@@ -60,6 +60,7 @@ src/
 │   ├── backup.ts        # Reading an export back in. Only ever adds
 │   ├── reminders.ts     # What the daily nudge says and when
 │   ├── notifications.ts # Local notifications
+│   ├── liveActivity.ts  # The app's side of the Lock Screen Live Activity and the widget
 │   ├── sound.ts         # Focus sounds
 │   ├── motion.ts        # The motion vocabulary (read this before animating)
 │   ├── theme.ts         # Palette, categories, fonts
@@ -71,8 +72,11 @@ src/
     ├── home/            # RaceCard, RaceTrack (the lane, shared with the recap), TaskRow
     └── ui/              # PressableScale, Toggle, ScreenHeader, Icon
 
+targets/widgets/         # The widget extension, in Swift: the Live Activity and the Home Screen widget
+modules/focus-activity/  # The native module that starts, updates and ends the Live Activity
 store/                   # App Store listing, release checklist, screenshots
 docs/                    # Published site: privacy policy and support
+research/                # The November 2026 teardown and the evidence it was checked against
 scripts/                 # End-to-end checks and the screenshot pipeline
 ```
 
@@ -99,6 +103,7 @@ Everything degrades under Reduce Motion.
 - **The clock running out doesn't mean the work did.** Only you can say a task is finished. When time's up the app keeps the task and asks.
 - **Stopping part-way is a normal ending.** Something comes up, or the energy runs out. Stop for now keeps the minutes and the task, and the way to take them back is offered afterwards, not asked beforehand.
 - **The reward is seen when it's earned.** The runner makes its move on the recap, the moment a session ends, and on Home it waits until Home is in front. A payoff that plays behind another screen didn't happen.
+- **Seen without being opened.** A running session shows on the Lock Screen and in the Dynamic Island, and a widget offers the next task. An app for people who forget things can't depend on being remembered.
 - **A smaller yes.** Any start can be five minutes, and the welcome ends inside one. Agreeing to five minutes is a different size of decision from agreeing to twenty-five.
 - **Coming back is free.** After a gap the app greets you with zero debt and one small action, the easiest thing on the list and not the most overdue, because the screen shown after an absence decides whether there's another one.
 

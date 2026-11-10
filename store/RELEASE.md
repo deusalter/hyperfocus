@@ -27,7 +27,15 @@ eas login        # free Expo account
 eas init         # writes the project ID into app.json; commit that
 ```
 
-**Gate:** `extra.eas.projectId` is in `app.json` and committed.
+Then add the team to `app.json`, under `expo.ios`:
+
+```json
+"appleTeamId": "XXXXXXXXXX"
+```
+
+It's the ten-character Team ID on https://developer.apple.com/account under Membership details. The app now has a second target, the widget extension that draws the Lock Screen Live Activity and the Home Screen widget, and it can't be signed without this. Until it's there, every prebuild prints a warning about it.
+
+**Gate:** `extra.eas.projectId` and `ios.appleTeamId` are in `app.json` and committed.
 
 ## 4. First build and TestFlight
 
@@ -38,7 +46,8 @@ eas submit --profile production --platform ios --latest
 
 When EAS asks:
 - Sign in with the Apple account from step 1 and let EAS manage credentials.
-- "Set up Push Notifications?" **No.** The app only uses local notifications and never talks to a push server.
+- "Set up Push Notifications?" **No.** The app only uses local notifications and never talks to a push server. The Live Activity is started and updated on the phone, with no push token.
+- EAS will set up a second bundle ID, `com.deusalter.hyperfocus.widgets`, and an App Group, `group.com.deusalter.hyperfocus`, which is how the app hands the widget its data. Let it manage both.
 
 The Expo Go in the App Store only runs the newest Expo SDK, and this project stays on SDK 54 for now, so TestFlight is how you get it on a phone.
 
@@ -77,6 +86,19 @@ Most of the app is already checked automatically: unit and store tests, every fl
 - [ ] Reduce Motion: the ring steps instead of sweeping, and there's no confetti
 - [ ] Reduce Transparency: the tab bar goes solid
 
+**Lock Screen and widget** (built on a simulator only, so this is their first real test)
+- [ ] Start a session and lock the phone: the task, a moving countdown and bar, and the end time are on the Lock Screen
+- [ ] On a phone with a Dynamic Island, go Home during a session: the countdown is in the island, and a long press expands it
+- [ ] Pause, then lock: it says Paused and holds. Resume: it counts again, to the new end time
+- [ ] +5 and −5 move the countdown and the "until" time
+- [ ] Let a session run out with the phone locked: the Lock Screen changes to "Time's up" by itself, and the notification arrives
+- [ ] Done, Stop for now and stopping in the first minute each take it off the Lock Screen
+- [ ] Tap it: the app opens on the Focus screen
+- [ ] Add the widget (long-press the Home Screen, +, Hyperfocus): it shows the task Home offers. Finish that task in the app, go Home: the widget has moved on to the next one
+- [ ] With nothing on Today the widget invites a brain dump, and tapping it opens one
+- [ ] Add the Lock Screen widget (long-press the Lock Screen, Customize): it shows the same task
+- [ ] Turn Live Activities off for Hyperfocus in Settings: sessions still work, with nothing on the Lock Screen
+
 **Data**
 - [ ] Connect your real Canvas feed: assignments look right and land on the right days
 - [ ] Reset everything clears tasks, reminders and sessions
@@ -105,7 +127,7 @@ Select the TestFlight build and submit for review. The review notes are in `list
 - **Ask for ratings** happens on its own: the app requests one once, after a good session, and only in the released app.
 - **Crash reports** arrive in App Store Connect, with no third-party SDK. They only include users who opted into sharing.
 - **Upgrade Expo before April 2027.** Apple announced on 9 September 2026 that from April 2027 uploads must be built with the iOS 27 SDK. This project is on SDK 54, which builds with Xcode 26: fine for the first submission, and not uploadable after that date. Updates from then on need Expo SDK 57 or later. Expo's current SDK is 58. Do it on a branch, on a real device, since a jump that size can break native modules in ways the web build won't show.
-- **Next features worth building:** a Lock Screen Live Activity for the timer and a Home Screen widget with the next task and a Start button. Both reports behind the November 2026 teardown put being invisible unless opened as the app's biggest gap. They need native Swift targets, so build them where Xcode is available.
+- **Next features worth building:** capture from Siri and Shortcuts through an App Intent (today a Shortcut can open `hyperfocus://dump`, which the support page explains), buttons on the "time's up" notification, and a Start button on the widget that begins a session without opening the app.
 - **If the first upload is flagged for a missing microphone purpose string** (ITMS-90683): expo-audio links its recorder code even though the app never records. Set `"microphonePermission": "Hyperfocus doesn't record audio."` in the expo-audio plugin entry in `app.json` and rebuild.
 - **Reviewers often use an iPad.** The app is iPhone-only (`supportsTablet: false`), which is allowed and needs no iPad screenshots, but it will be run in iPhone compatibility mode on one. Nothing has driven it there yet.
 

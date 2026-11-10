@@ -49,6 +49,8 @@ Your last several active days run on the track with you, and the target is a typ
 
 MADE FOR HOW YOUR ATTENTION WORKS
 • A focus timer that shows how long is left and what time that is, and tells you when it's up, even from another app
+• The countdown stays on your Lock Screen and in the Dynamic Island while you work
+• A widget with the next thing on your list, so you don't have to remember to open the app
 • Stop part-way and the minutes still count. The task stays on your list
 • Add or take off five minutes when the plan changes
 • Pink noise, brown noise and waves that mix with your own music
@@ -129,6 +131,8 @@ To try the main flow:
 2. Tap the + button (or "Start a brain dump" on an empty Home), type a few things, then tap Sort.
 3. Swipe a card right for Today and left for Later, or use the buttons.
 4. On Home, tap "Start one thing" to begin a focus session. Done finishes the task. "Stop for now" keeps the minutes and the task. Letting the timer run out keeps the task and asks whether you finished.
+
+Lock Screen and widget: a running session appears as a Live Activity on the Lock Screen and in the Dynamic Island. It's started and updated on the device, with no push token and no server. The Home Screen and Lock Screen widget ("Start one thing") shows the next task. The app shares that with its widget extension through an App Group, which is the only reason for that entitlement. Nothing leaves the phone.
 
 Notifications are local only and aren't required. The app asks the first time you start a session, then schedules a "time's up" alert on the device. A daily reminder is opt-in under You > Reminders. There's no push server.
 

@@ -5,8 +5,11 @@
 //   npm run screenshots -- --raw /tmp/store-raw
 // That finds <id>.png anywhere under sim-store-6.9/ and sim-store-6.3/. A frame
 // pulled from the run's swipe.mp4 makes a better 04-triage than the still: save it
-// over store-triage/04-triage.png before composing, for example
-//   ffmpeg -ss 71.8 -i swipe.mp4 -frames:v 1 -y store-triage/04-triage.png
+// over store-triage/04-triage.png before composing. The recording's timestamps are
+// uneven, so seeking to an exact time lands early. Sample it first, look, then take
+// a frame by its place in the sample:
+//   ffmpeg -ss 44 -i swipe.mp4 -vf "fps=1,scale=120:-1,tile=13x2" -frames:v 1 sheet.png
+//   ffmpeg -ss 58 -t 4 -i swipe.mp4 -vf "fps=2,select=eq(n\,4)" -frames:v 1 -y store-triage/04-triage.png
 //
 // Or from the web build, when no simulator run is handy:
 //   npx expo start --web --port 8099   (in another terminal)
