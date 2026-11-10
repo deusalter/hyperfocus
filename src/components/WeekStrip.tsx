@@ -3,6 +3,7 @@ import { addDays as dfAddDays, format, startOfWeek } from 'date-fns'
 import { ChevronLeft, ChevronRight } from '@/components/ui/Icon'
 import { dayKey } from '@/lib/points'
 import { useColors } from '@/lib/theme'
+import { largeContent } from '@/lib/a11y'
 
 export interface WeekDay {
   key: string
@@ -56,6 +57,7 @@ export default function WeekStrip({
           className="flex-row items-center"
           accessibilityRole="button"
           accessibilityLabel="Previous week"
+          {...largeContent('Previous week')}
         >
           <ChevronLeft size={15} />
           <Text className="font-hk700 text-muted text-subhead" maxFontSizeMultiplier={1.4}>
@@ -79,6 +81,7 @@ export default function WeekStrip({
           className="flex-row items-center"
           accessibilityRole="button"
           accessibilityLabel="Next week"
+          {...largeContent('Next week')}
         >
           <Text className="font-hk700 text-muted text-subhead" maxFontSizeMultiplier={1.4}>
             Next
@@ -108,6 +111,7 @@ export default function WeekStrip({
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected, disabled }}
               accessibilityLabel={`${isToday ? 'Today, ' : ''}${when}${count > 0 ? `, ${count} ${count === 1 ? 'task' : 'tasks'}` : ''}`}
+              {...largeContent(format(cell.date, 'EEE d'))}
             >
               <Text className="font-hk700 text-muted text-caption" maxFontSizeMultiplier={1.2}>
                 {cell.letter}

@@ -14,6 +14,7 @@ import { GLIDE } from '@/lib/motion'
 import Svg, { Path, Rect, Circle } from 'react-native-svg'
 import { hexA, useColors } from '@/lib/theme'
 import PressableScale from '@/components/ui/PressableScale'
+import { largeContent } from '@/lib/a11y'
 
 const H_PAD = 14
 const FAB_GAP = 60
@@ -93,6 +94,7 @@ function BarContent({
         accessibilityRole="tab"
         accessibilityState={{ selected: focused }}
         accessibilityLabel={LABELS[routeName]}
+        {...largeContent(LABELS[routeName])}
       >
         <TabGlyph name={routeName} color={color} />
         {/* the bar is a fixed height, so this caps rather than wraps; the tabs

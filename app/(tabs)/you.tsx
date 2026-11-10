@@ -28,6 +28,7 @@ import { REMINDER_HOURS } from '@/lib/reminders'
 import { FOCUS_OPTIONS } from '@/lib/session'
 import { SOUNDS, SOUND_ORDER, previewSound } from '@/lib/sound'
 import { TITLE_SCALE, useColors } from '@/lib/theme'
+import { largeContent } from '@/lib/a11y'
 import { SoundKind } from '@/lib/types'
 
 function SectionLabel({ children }: { children: string }) {
@@ -87,6 +88,7 @@ function Segments<T extends string | number>({
             accessibilityRole="radio"
             accessibilityState={{ selected: active, checked: active }}
             accessibilityLabel={o.a11y ?? o.label}
+            {...largeContent(o.a11y ?? o.label)}
           >
             <Text
               className="font-hk700 text-subhead"

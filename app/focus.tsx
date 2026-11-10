@@ -34,6 +34,7 @@ import { canAdjust, focusedMinutes, remainingSec } from '@/lib/session'
 import { goBackOrHome } from '@/lib/nav'
 import { SOUNDS, SOUND_ORDER } from '@/lib/sound'
 import { GLIDE } from '@/lib/motion'
+import { largeContent } from '@/lib/a11y'
 
 const R = 94
 const CIRCUMFERENCE = 2 * Math.PI * R
@@ -67,6 +68,7 @@ function AdjustButton({
       accessibilityRole="button"
       accessibilityLabel={a11y}
       accessibilityState={{ disabled }}
+      {...largeContent(label)}
       // 36pt as drawn, so the slop carries it to 44
       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
       className="bg-surface border border-soft items-center justify-center rounded-full"
@@ -245,6 +247,7 @@ export default function FocusScreen() {
                     ? 'Focus sound off. Double tap to turn on.'
                     : `Focus sound ${SOUNDS[sound].label}. Double tap to change.`
                 }
+                {...largeContent(sound === 'off' ? 'Sound off' : SOUNDS[sound].label)}
               >
                 <SoundIcon
                   size={15}
