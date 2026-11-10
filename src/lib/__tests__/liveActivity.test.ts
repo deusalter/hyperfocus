@@ -92,6 +92,24 @@ describe('the native side', () => {
     )
   })
 
+  // `ios/` used to be ignored at any depth, which left this module's Swift out of
+  // the repository while everything passed locally.
+  it('has its native module checked in, not caught by an ignore rule', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { execFileSync } = require('child_process')
+    const ignored = (path: string) => {
+      try {
+        execFileSync('git', ['check-ignore', '-q', path], { cwd: root })
+        return true
+      } catch {
+        return false
+      }
+    }
+    expect(ignored('modules/focus-activity/ios/FocusActivityModule.swift')).toBe(false)
+    expect(ignored('modules/focus-activity/ios/FocusActivity.podspec')).toBe(false)
+    expect(ignored('ios/Podfile')).toBe(true)
+  })
+
   it('uses one App Group everywhere', () => {
     const config = JSON.parse(read('app.json'))
     expect(config.expo.ios.entitlements['com.apple.security.application-groups']).toEqual([APP_GROUP])

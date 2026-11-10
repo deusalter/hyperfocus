@@ -14,9 +14,9 @@ expo-env.d.ts
 # EAS
 .easignore
 
-# Native builds
-ios/
-android/
+# Native builds. Anchored to the root: a native module keeps its Swift in its own ios/.
+/ios/
+/android/
 # written into the widget target by `expo prebuild`, from expo-target.config.js
 targets/*/Assets.xcassets/
 targets/*/generated.entitlements
