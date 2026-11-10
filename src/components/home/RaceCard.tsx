@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import * as Haptics from 'expo-haptics'
+import { useIsFocused } from '@react-navigation/native'
 import Sprite from '@/components/Sprite'
 import Confetti from '@/components/Confetti'
 import { useApp } from '@/store/AppStore'
@@ -49,6 +50,11 @@ export default function RaceCard({ returning = false }: { returning?: boolean })
   const { todayTotals, race, level, settings, hydrated } = useApp()
   const [trackW, setTrackW] = useState(0)
   const reduced = useReducedMotion()
+  // Home stays mounted under the Focus screen and the recap, which is where points
+  // are earned. The runner used to make its move right then, behind them, and be
+  // standing still in its new place by the time anyone came back to look. The one
+  // moment the race pays out has to be seen, so it waits for Home to be in front.
+  const onScreen = useIsFocused()
 
   const gentle = settings.gentle
   const showField = race.hasField && !gentle
@@ -74,11 +80,13 @@ export default function RaceCard({ returning = false }: { returning?: boolean })
   const x = useSharedValue(0)
   useEffect(() => {
     if (trackW <= 0 || !hydrated) return
+    // the first placement isn't a move, so it never waits
+    if (placed.current && !onScreen) return
     const target = runnerFrac * trackW - SPRITE_W / 2
     if (reduced || !placed.current) x.value = target
     else x.value = withTiming(target, { duration: 620, easing: EASE_OUT })
     placed.current = true
-  }, [runnerFrac, trackW, x, reduced, hydrated])
+  }, [runnerFrac, trackW, x, reduced, hydrated, onScreen])
   const runnerStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }))
   const trailStyle = useAnimatedStyle(() => ({
     width: Math.max(0, x.value + SPRITE_W / 2),
@@ -116,14 +124,15 @@ export default function RaceCard({ returning = false }: { returning?: boolean })
   const [moving, setMoving] = useState(false)
   const prevPts = useRef<number | null>(null)
   useEffect(() => {
-    if (!hydrated) return
+    // not noted while Home is covered, so the change is still news on the way back
+    if (!hydrated || !onScreen) return
     const prev = prevPts.current
     prevPts.current = pts
     if (prev == null || pts === prev) return
     setMoving(true)
     const t = setTimeout(() => setMoving(false), 2600)
     return () => clearTimeout(t)
-  }, [pts, hydrated])
+  }, [pts, hydrated, onScreen])
 
   // After a gap, and before anything's been done, the card names no number to
   // reach. "0 pts today" beside a typical day's total reads as a debt, on the one
