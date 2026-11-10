@@ -1,5 +1,14 @@
 import { Task } from '../types'
-import { daysBetween, dueChip, isOnToday, isOverdue, quickDates, rankForStart, splitBuckets } from '../tasks'
+import {
+  daysBetween,
+  dueChip,
+  isOnToday,
+  isOverdue,
+  quickDates,
+  rankForReturn,
+  rankForStart,
+  splitBuckets,
+} from '../tasks'
 
 const TODAY = '2026-11-05' // a Thursday
 
@@ -82,6 +91,36 @@ describe('daysBetween', () => {
     expect(daysBetween('2026-11-05', '2026-11-06')).toBe(1)
     expect(daysBetween('2026-11-05', '2026-11-02')).toBe(-3)
     expect(daysBetween('2026-03-07', '2026-03-09')).toBe(2)
+  })
+})
+
+describe('rankForReturn', () => {
+  it('offers the easiest thing first, not the most urgent', () => {
+    const ranked = rankForReturn(
+      [task({ id: 'g', cat: 'grind' }), task({ id: 'f', cat: 'fire' }), task({ id: 's', cat: 'sprint' })],
+      TODAY
+    )
+    expect(ranked.map((t) => t.id)).toEqual(['s', 'f', 'g'])
+  })
+
+  it('keeps anything overdue for last', () => {
+    const ranked = rankForReturn(
+      [
+        task({ id: 'late-quick', cat: 'sprint', due: '2026-11-01' }),
+        task({ id: 'deep', cat: 'grind' }),
+        task({ id: 'quick', cat: 'sprint' }),
+      ],
+      TODAY
+    )
+    expect(ranked.map((t) => t.id)).toEqual(['quick', 'deep', 'late-quick'])
+  })
+
+  it('prefers a task whose first move is already written down', () => {
+    const ranked = rankForReturn(
+      [task({ id: 'bare', cat: 'sprint' }), task({ id: 'planned', cat: 'sprint', firstStep: 'open the doc' })],
+      TODAY
+    )
+    expect(ranked.map((t) => t.id)).toEqual(['planned', 'bare'])
   })
 })
 

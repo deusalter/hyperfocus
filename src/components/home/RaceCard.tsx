@@ -44,7 +44,7 @@ const GENTLE_HALFWAY_PTS = 80
  * Gentle mode drops the field entirely. For some people any comparison stings,
  * however kindly it's worded, so there the runner only ever shows today's progress.
  */
-export default function RaceCard() {
+export default function RaceCard({ returning = false }: { returning?: boolean }) {
   const palette = useColors()
   const { todayTotals, race, level, settings, hydrated } = useApp()
   const [trackW, setTrackW] = useState(0)
@@ -125,10 +125,18 @@ export default function RaceCard() {
     return () => clearTimeout(t)
   }, [pts, hydrated])
 
-  const { title, detail, sub, said } = gentle ? gentleMessage(pts) : message(race, pts)
+  // After a gap, and before anything's been done, the card names no number to
+  // reach. "0 pts today" beside a typical day's total reads as a debt, on the one
+  // screen that has promised there isn't one.
+  const unhurried = returning && pts === 0
+  const { title, detail, sub, said } = gentle
+    ? gentleMessage(pts)
+    : unhurried
+      ? RETURN_MESSAGE
+      : message(race, pts)
   const pacerLevel = levelForPoints(race.pacer)
   // gentle mode's headline is already today's points
-  const showPts = !gentle && (race.hasField || pts > 0)
+  const showPts = !gentle && !unhurried && (race.hasField || pts > 0)
   const { completed, minutes } = todayTotals
   const facts = [
     completed > 0 ? `${completed} ${completed === 1 ? 'task' : 'tasks'} done` : null,
@@ -358,6 +366,11 @@ function message(race: RaceField, pts: number): Message {
     title: `${race.pacer - pts} pts to a typical day`,
     sub: 'Quiet days count too. Showing up is the part that compounds.',
   }
+}
+
+const RETURN_MESSAGE: Message = {
+  title: 'Nothing to catch up on',
+  sub: 'One small session puts a runner on the board.',
 }
 
 function gentleMessage(pts: number): Message {

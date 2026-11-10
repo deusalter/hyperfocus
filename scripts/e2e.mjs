@@ -555,6 +555,7 @@ await scenario('coming back after a gap shows no debt', seed({
   history: [{ id: 'h', title: 'Old', cat: 'sprint', points: 0, minutes: 0, completedAt: daysFromNow(-9).toISOString() }],
   tasks: [
     { id: 'o', title: 'Overdue thing', cat: 'fire', bucket: 'later', due: dayKey(daysFromNow(-5)), createdAt: daysFromNow(-20).toISOString() },
+    { id: 'u', title: 'Urgent thing', cat: 'fire', bucket: 'today', due: dayKey(daysFromNow(-2)), createdAt: daysFromNow(-30).toISOString() },
     { id: 't', title: 'Small thing', cat: 'sprint', bucket: 'today', createdAt: daysFromNow(-20).toISOString() },
   ],
 }), async (page) => {
@@ -562,6 +563,20 @@ await scenario('coming back after a gap shows no debt', seed({
   await see(page, 'Good to see you')
   await see(page, 'Start with one small thing')
   await gone(page, 'slipped past', 1000)
+  // the offer is the easy one, though the usual order would lead with what's overdue
+  const label = await page.getByLabel(/^Start with one small thing:/).first().getAttribute('aria-label')
+  assert(label.includes('Small thing'), `a return offered "${label}"`)
+  // and no number to reach before anything's been done
+  await see(page, 'Nothing to catch up on')
+  await gone(page, 'pts today', 1000)
+})
+
+await scenario('"Just 5 minutes" starts a short session and leaves the usual length alone', seed(), async (page) => {
+  await open(page)
+  await page.getByText('Just 5 minutes').click()
+  await see(page, 'Focusing on')
+  assert((await stored(page, 'hf2-focus')).totalSec === 300, 'the short start was not five minutes')
+  assert((await stored(page, 'hf2-settings')).focusLen === 25, 'the short start changed the usual length')
 })
 
 // ---- calendar feed ----

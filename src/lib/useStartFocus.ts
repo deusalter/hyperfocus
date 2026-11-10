@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router'
 import { useApp } from '@/store/AppStore'
 
 /**
- * Every "start focusing" button goes through here.
+ * Every "start focusing" button goes through here. `minutes` is for a session
+ * shorter than the usual one, and leaves the usual length alone.
  *
  * Sessions now keep running while you're elsewhere in the app, so a Focus button
  * can be tapped while one is going. Starting straight away would silently throw
@@ -20,9 +21,9 @@ export function useStartFocus() {
   running.current = focus
 
   return useCallback(
-    (taskId: string) => {
+    (taskId: string, minutes?: number) => {
       if (!focus) {
-        startFocus(taskId)
+        startFocus(taskId, minutes)
         router.push('/focus')
         return
       }
@@ -43,7 +44,7 @@ export function useStartFocus() {
           text: 'Switch',
           onPress: () => {
             if (!running.current) return
-            switchFocus(taskId)
+            switchFocus(taskId, minutes)
             router.push('/focus')
           },
         },

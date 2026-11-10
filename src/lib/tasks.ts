@@ -61,6 +61,28 @@ export function rankForStart(tasks: Task[], today: string): Task[] {
   )
 }
 
+const EASE_RANK: Record<Cat, number> = { sprint: 0, fire: 1, grind: 2 }
+
+/**
+ * The order tasks are offered in after a few days away. The usual order leads with
+ * whatever is overdue and urgent, which is the right call mid-week and the wrong
+ * one on a return: the most dreaded thing on the list is what kept the app closed.
+ * So this one leads with the cheapest thing to begin. Quick wins first, anything
+ * with its first move already written down ahead of anything without, and whatever
+ * is overdue kept for last.
+ */
+export function rankForReturn(tasks: Task[], today: string): Task[] {
+  const late = (t: Task) => (t.due && t.due < today ? 1 : 0)
+  const unplanned = (t: Task) => (t.firstStep ? 0 : 1)
+  return [...tasks].sort(
+    (a, b) =>
+      late(a) - late(b) ||
+      EASE_RANK[a.cat ?? 'sprint'] - EASE_RANK[b.cat ?? 'sprint'] ||
+      unplanned(a) - unplanned(b) ||
+      a.createdAt.localeCompare(b.createdAt)
+  )
+}
+
 /** A day key as a Date at local noon, safely away from any clock change. */
 export function noon(key: string): Date {
   return new Date(`${key}T12:00:00`)

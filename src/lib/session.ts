@@ -28,6 +28,14 @@ export const STALE_SESSION_MS = 12 * 60 * 60 * 1000
 /** The session lengths on offer. */
 export const FOCUS_OPTIONS = [15, 25, 45]
 
+/**
+ * The length of a "just five minutes" start. Short enough that saying yes costs
+ * almost nothing, which is the point: the hard part of a dreaded task is beginning
+ * it, and a small first commitment is the oldest trick for getting past that. When
+ * it runs out the recap asks whether to keep going, by which time you're in.
+ */
+export const QUICK_START_MIN = 5
+
 /** Longest a session can be stretched to. */
 const MAX_SESSION_SEC = 3 * 60 * 60
 
