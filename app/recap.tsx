@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { View, Text, Pressable, ScrollView, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated'
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import * as StoreReview from 'expo-store-review'
-import Sprite from '@/components/Sprite'
+import RaceTrack from '@/components/home/RaceTrack'
 import Confetti from '@/components/Confetti'
 import PressableScale from '@/components/ui/PressableScale'
 import { useApp } from '@/store/AppStore'
@@ -73,6 +73,19 @@ export default function RecapScreen() {
   }, [acknowledgeRecap])
 
   const sessionPts = useCountUp(lastRecap?.points ?? 0)
+
+  // The race, at the moment it pays out. The runner starts where it stood before
+  // this session and runs to where it stands now, past whichever days that took it
+  // past. Reward lands hardest when it's immediate, and the move used to happen on
+  // Home, out of sight behind this screen.
+  const after = todayTotals.points
+  const before = Math.max(0, after - (lastRecap?.points ?? 0))
+  const [arrived, setArrived] = useState(false)
+  useEffect(() => {
+    // a beat after the screen has faded in, so the start of the run is seen
+    const t = setTimeout(() => setArrived(true), 520)
+    return () => clearTimeout(t)
+  }, [])
   const momentumPts = useCountUp(todayTotals.points, 700, 500)
   const parts = scoreParts(lastRecap?.cat ?? 'sprint', lastRecap?.minutes ?? 0)
 
@@ -159,20 +172,30 @@ export default function RecapScreen() {
           {expired ? "Time's up" : stopped ? 'Session saved' : 'Session complete'}
         </Animated.Text>
 
+        {/* a picture of the sentence under it, so a screen reader hears the sentence */}
         <Animated.View
-          entering={ZoomIn.duration(260).delay(80)}
-          style={{ marginTop: 6 }}
+          entering={FadeIn.duration(240).delay(80)}
+          className="w-full"
+          style={{ marginTop: compact ? 4 : 14, paddingHorizontal: 8 }}
           importantForAccessibility="no-hide-descendants"
           accessibilityElementsHidden
         >
-          <Sprite pose="cheer" level={Math.max(level, 1)} scale={compact ? 0.8 : 1.15} />
+          <RaceTrack
+            points={arrived ? after : before}
+            scalePoints={after}
+            race={race}
+            gentle={settings.gentle}
+            level={Math.max(level, 1)}
+            // stands, runs, then cheers: cheering before the run got it backwards
+            rest={arrived ? 'cheer' : 'idle'}
+          />
         </Animated.View>
 
         <Animated.Text
           entering={FadeIn.delay(140).duration(240)}
           className="font-hk800 text-ink text-title1 text-center"
           maxFontSizeMultiplier={TITLE_SCALE}
-          style={{ letterSpacing: -0.8, marginTop: 2 }}
+          style={{ letterSpacing: -0.8, marginTop: compact ? 8 : 16 }}
           accessibilityRole="header"
         >
           {title}

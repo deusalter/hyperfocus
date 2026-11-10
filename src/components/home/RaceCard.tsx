@@ -1,36 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { View, Text } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
 import * as Haptics from 'expo-haptics'
 import { useIsFocused } from '@react-navigation/native'
-import Sprite from '@/components/Sprite'
 import Confetti from '@/components/Confetti'
+import RaceTrack from '@/components/home/RaceTrack'
 import { useApp } from '@/store/AppStore'
-import { TITLE_SCALE, hexA, useColors } from '@/lib/theme'
-import { levelForPoints, RaceField } from '@/lib/points'
-import { EASE_OUT } from '@/lib/motion'
+import { TITLE_SCALE, useColors } from '@/lib/theme'
+import { RaceField } from '@/lib/points'
 import { sentence, spoken } from '@/lib/speech'
-
-const SPRITE_SCALE = 0.68
-const GHOST_SCALE = 0.54
-const SPRITE_W = 130 * SPRITE_SCALE
-/** a sprite's feet sit this far down its box, so it can stand on the lane */
-const FEET = 0.85
-const LANE_H = 10
-const LABEL_H = 18
-const TRACK_H = 100
-const LANE_TOP = TRACK_H - LABEL_H - LANE_H
-const BEAD = 6
-/** where the pacer sits on the track — leaves room to run past it */
-const PACER_AT = 0.72
-const EDGE = 0.98
-/** Gentle mode has no target to scale against, so the runner eases along a curve. */
-const GENTLE_HALFWAY_PTS = 80
 
 /**
  * "You & your recent days" — the live race against a field of past selves.
@@ -48,8 +25,6 @@ const GENTLE_HALFWAY_PTS = 80
 export default function RaceCard({ returning = false }: { returning?: boolean }) {
   const palette = useColors()
   const { todayTotals, race, level, settings, hydrated } = useApp()
-  const [trackW, setTrackW] = useState(0)
-  const reduced = useReducedMotion()
   // Home stays mounted under the Focus screen and the recap, which is where points
   // are earned. The runner used to make its move right then, behind them, and be
   // standing still in its new place by the time anyone came back to look. The one
@@ -57,40 +32,7 @@ export default function RaceCard({ returning = false }: { returning?: boolean })
   const onScreen = useIsFocused()
 
   const gentle = settings.gentle
-  const showField = race.hasField && !gentle
   const pts = todayTotals.points
-  // Scale is anchored on the pacer, never on the best day — a record
-  // shouldn't quietly become the thing you get measured against.
-  const trackMax = Math.max(race.pacer / PACER_AT, pts * 1.12, 1)
-  const frac = (p: number) => Math.max(0, Math.min(EDGE, p / trackMax))
-
-  const runnerFrac = showField
-    ? frac(pts)
-    : gentle
-      ? Math.max(0.04, Math.min(EDGE, pts / (pts + GENTLE_HALFWAY_PTS)))
-      : pts > 0
-        ? 0.5
-        : 0.04
-  const pacerFrac = showField ? frac(race.pacer) : 0
-
-  // Everything below reacts to change, and loading saved data isn't a change.
-  // Compared against the pre-hydration zeros, every cold start with points on the
-  // board looked like a level-up: confetti and a success haptic on opening the app.
-  const placed = useRef(false)
-  const x = useSharedValue(0)
-  useEffect(() => {
-    if (trackW <= 0 || !hydrated) return
-    // the first placement isn't a move, so it never waits
-    if (placed.current && !onScreen) return
-    const target = runnerFrac * trackW - SPRITE_W / 2
-    if (reduced || !placed.current) x.value = target
-    else x.value = withTiming(target, { duration: 620, easing: EASE_OUT })
-    placed.current = true
-  }, [runnerFrac, trackW, x, reduced, hydrated, onScreen])
-  const runnerStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }))
-  const trailStyle = useAnimatedStyle(() => ({
-    width: Math.max(0, x.value + SPRITE_W / 2),
-  }))
 
   // level-up: a one-shot cheer, not an ambience
   const [burstKey, setBurstKey] = useState(0)
@@ -118,22 +60,6 @@ export default function RaceCard({ returning = false }: { returning?: boolean })
     wasAhead.current = race.ahead
   }, [race.ahead, hydrated, gentle])
 
-  // The runner sprints only while it's actually moving, then settles. A
-  // permanent 500ms run cycle is fast ambient motion in the primary card —
-  // it re-grabs the eye every loop for the whole day and says nothing new.
-  const [moving, setMoving] = useState(false)
-  const prevPts = useRef<number | null>(null)
-  useEffect(() => {
-    // not noted while Home is covered, so the change is still news on the way back
-    if (!hydrated || !onScreen) return
-    const prev = prevPts.current
-    prevPts.current = pts
-    if (prev == null || pts === prev) return
-    setMoving(true)
-    const t = setTimeout(() => setMoving(false), 2600)
-    return () => clearTimeout(t)
-  }, [pts, hydrated, onScreen])
-
   // After a gap, and before anything's been done, the card names no number to
   // reach. "0 pts today" beside a typical day's total reads as a debt, on the one
   // screen that has promised there isn't one.
@@ -143,7 +69,6 @@ export default function RaceCard({ returning = false }: { returning?: boolean })
     : unhurried
       ? RETURN_MESSAGE
       : message(race, pts)
-  const pacerLevel = levelForPoints(race.pacer)
   // gentle mode's headline is already today's points
   const showPts = !gentle && !unhurried && (race.hasField || pts > 0)
   const { completed, minutes } = todayTotals
@@ -201,110 +126,17 @@ export default function RaceCard({ returning = false }: { returning?: boolean })
         )}
       </View>
 
-      <View
-        style={{ height: TRACK_H, marginTop: 2 }}
-        onLayout={(e) => setTrackW(e.nativeEvent.layout.width)}
-      >
-        {/* the lane */}
-        <View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: LANE_TOP,
-            height: LANE_H,
-            borderRadius: LANE_H / 2,
-            backgroundColor: palette.soft,
-          }}
+      <View style={{ marginTop: 2 }}>
+        <RaceTrack
+          points={pts}
+          race={race}
+          gentle={gentle}
+          level={level}
+          live={onScreen}
+          ready={hydrated}
+          cheering={cheering}
+          rest={race.ahead && !gentle ? 'cheer' : 'idle'}
         />
-        <Animated.View
-          style={[
-            {
-              position: 'absolute',
-              left: 0,
-              top: LANE_TOP,
-              height: LANE_H,
-              borderRadius: LANE_H / 2,
-              backgroundColor: palette.accent,
-            },
-            trailStyle,
-          ]}
-        />
-
-        {/* each recent day is a bead on the lane, turning light once you pass it */}
-        {showField &&
-          trackW > 0 &&
-          race.ghosts.map((g) => (
-            <View
-              key={g.day}
-              style={{
-                position: 'absolute',
-                left: Math.max(LANE_H / 2, Math.min(trackW - LANE_H / 2, frac(g.points) * trackW)) - BEAD / 2,
-                top: LANE_TOP + (LANE_H - BEAD) / 2,
-                width: BEAD,
-                height: BEAD,
-                borderRadius: BEAD / 2,
-                backgroundColor: g.passed ? palette.onAccent : hexA(palette.muted, 0.55),
-              }}
-            />
-          ))}
-
-        {/* the pacer: a typical day, with a past self standing on it */}
-        {showField && trackW > 0 && (
-          <>
-            <View
-              style={{
-                position: 'absolute',
-                left: pacerFrac * trackW - 1,
-                top: LANE_TOP - 8,
-                height: LANE_H + 16,
-                width: 2,
-                borderRadius: 1,
-                backgroundColor: palette.muted,
-              }}
-            />
-            <View
-              style={{
-                position: 'absolute',
-                left: pacerFrac * trackW - (130 * GHOST_SCALE) / 2,
-                top: LANE_TOP - 8 - 140 * GHOST_SCALE * FEET,
-              }}
-            >
-              <Sprite ghost level={pacerLevel} scale={GHOST_SCALE} />
-            </View>
-            {/* clamped so the label can never run off the card edge */}
-            <Text
-              className="font-hk600 text-muted text-micro"
-              maxFontSizeMultiplier={1.2}
-              numberOfLines={1}
-              style={{
-                position: 'absolute',
-                left: Math.max(0, Math.min(trackW - 84, pacerFrac * trackW - 42)),
-                top: LANE_TOP + LANE_H + 4,
-                width: 84,
-                textAlign: 'center',
-              }}
-            >
-              Typical day
-            </Text>
-          </>
-        )}
-
-        {/* you */}
-        <Animated.View
-          style={[
-            { position: 'absolute', left: 0, top: LANE_TOP + 3 - 140 * SPRITE_SCALE * FEET },
-            runnerStyle,
-          ]}
-        >
-          <Sprite
-            pose={cheering ? 'cheer' : moving ? 'run' : race.ahead && !gentle ? 'cheer' : 'idle'}
-            // animates while it's saying something, then holds the pose
-            calm={!cheering && !moving}
-            level={level}
-            scale={SPRITE_SCALE}
-          />
-        </Animated.View>
       </View>
 
       <Text className="font-hk400 text-muted text-footnote" style={{ marginTop: 2 }}>

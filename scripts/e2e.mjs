@@ -942,6 +942,21 @@ for (const colorScheme of ['light', 'dark']) {
     await page.getByText('Connect', { exact: true }).last().click()
     await see(page, "doesn't look like a calendar link")
     await audit('feed error')
+    await page.getByText('Restore from an export').click()
+    await page.getByLabel('Exported data').fill('nope')
+    await tap(page, 'Restore')
+    await see(page, "That isn't a Hyperfocus export")
+    await audit('restore error')
+    await page.getByLabel('Exported data').fill('{"tasks":[],"history":[]}')
+    await tap(page, 'Restore')
+    await see(page, 'already here')
+    await audit('restore outcome')
+    await open(page, '/onboarding')
+    await tap(page, 'Next')
+    await audit('welcome, how it works')
+    await tap(page, 'Next')
+    await page.getByLabel("One thing you've been putting off").fill('Something')
+    await audit('welcome, first task')
     await open(page)
     await page.getByText('Start one thing').first().click()
     await see(page, 'Focusing on')
@@ -955,6 +970,24 @@ for (const colorScheme of ['light', 'dark']) {
     await audit('recap')
 
     assert(bad.length === 0, `\n${[...new Set(bad)].join('\n')}`)
+  }, { colorScheme })
+
+  await scenario(`a return and a stopped session clear AA, ${colorScheme}`, seed({
+    settings: { appearance: colorScheme },
+    history: [{ id: 'h', title: 'Old', cat: 'sprint', points: 0, minutes: 0, completedAt: daysFromNow(-9).toISOString() }],
+    focus: runningSession('t1', 'Draft intro for history essay', 'grind'),
+  }), async (page) => {
+    const bad = []
+    await open(page, '/focus')
+    await tap(page, 'Stop for now')
+    await see(page, 'Session saved')
+    await page.waitForTimeout(1400)
+    for (const f of await contrastFailures(page)) bad.push(`stopped recap: ${f}`)
+    await page.getByText("Don't count this session").click()
+    await see(page, 'Good to see you')
+    await page.waitForTimeout(700)
+    for (const f of await contrastFailures(page)) bad.push(`return: ${f}`)
+    assert(bad.length === 0, `\n${bad.join('\n')}`)
   }, { colorScheme })
 
   await scenario(`gentle mode clears AA, ${colorScheme}`, seed({ settings: { gentle: true }, tasks: CONTRAST_TASKS() }), async (page) => {
