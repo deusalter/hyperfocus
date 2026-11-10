@@ -179,13 +179,16 @@ export default function DebriefScreen() {
                     </View>
                   </View>
                   <View className="flex-row mt-2.5" style={{ gap: 8 }}>
+                    {/* Tinted, not filled. A filled button on every overdue row turned
+                        the list into a column of demands, each one as loud as the
+                        screen's main action would be. */}
                     <PressableScale
                       haptic
                       onPress={() => doToday(item)}
-                      className="flex-1 items-center bg-accent"
+                      className="flex-1 items-center bg-accent-soft"
                       style={{ borderRadius: 11, paddingVertical: 10 }}
                     >
-                      <Text className="font-hk700 text-on-accent text-footnote">Do today</Text>
+                      <Text className="font-hk700 text-accent text-footnote">Do today</Text>
                     </PressableScale>
                     <PressableScale
                       onPress={() => letGo(item.id)}
@@ -305,7 +308,7 @@ export default function DebriefScreen() {
 
         {stale.length > 0 && (
           <>
-            <SectionHeading color={palette.soft} label="STILL WAITING" count={stale.length} />
+            <SectionHeading color={palette.soft} label="Still waiting" count={stale.length} />
             <Text
               className="font-hk400 text-muted text-footnote"
               style={{ marginHorizontal: 2, marginTop: -4, marginBottom: 10, lineHeight: 18 }}

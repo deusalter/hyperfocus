@@ -98,7 +98,7 @@ export default function InsightsScreen() {
     weekTotal === 0
       ? 'Nothing logged this week yet. Your first finished thing starts the picture.'
       : bestDay.points > 0 && !gentle
-        ? `${bestDay.isToday ? 'Today' : bestDay.label} carried the week with ${bestDay.points} pts. Consistency beats intensity, so keep the small days coming.`
+        ? `${bestDay.isToday ? 'Today' : bestDay.label} carried the week with ${bestDay.points} pts. The small days around it count just the same.`
         : 'Every bar here is something you did. The chart only ever counts up.'
 
   const chartSummary = bars.map((b) => `${b.label} ${b.points}`).join(', ')

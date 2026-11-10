@@ -226,7 +226,10 @@ export default function TaskScreen() {
           {CATS[cat].blurb}
         </Text>
 
-        <Label>When</Label>
+        {/* "Due" and "Do it", not "When" and "Which list". Both used to read as when,
+            and a deadline next week on a task you're doing today looked like a
+            contradiction. */}
+        <Label>Due</Label>
         <View className="flex-row flex-wrap" style={{ gap: 7 }}>
           <Choice label="No date" selected={!task.due} onPress={() => setDue(undefined)} />
           {quick.map((q) => (
@@ -259,7 +262,7 @@ export default function TaskScreen() {
           </View>
         )}
 
-        <Label>Which list</Label>
+        <Label>Do it</Label>
         <View className="flex-row" style={{ gap: 8 }}>
           <View className="flex-1">
             <Choice label="Today" selected={onToday} onPress={() => moveTo('today')} />
