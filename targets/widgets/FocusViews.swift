@@ -142,6 +142,11 @@ struct FocusClock: View {
  show, and pushes whatever is beside it around. So the room is set by ordinary
  digits of the same shape, drawn but not shown, and the live ones sit on top,
  pinned to the trailing edge.
+
+ The live Text must take the room it's given and nothing else. With `.fixedSize()`
+ on it, iOS stopped painting it and everything drawn after it on the Lock Screen,
+ and the Dynamic Island didn't appear at all, while every word stayed in the
+ accessibility tree, so a test that only looks for text saw nothing wrong.
  */
 struct TimerDigits: View {
   let span: ClosedRange<Date>
@@ -165,7 +170,6 @@ struct TimerDigits: View {
           .tracking(tracking)
           .multilineTextAlignment(.trailing)
           .foregroundStyle(tint)
-          .fixedSize()
       }
   }
 }

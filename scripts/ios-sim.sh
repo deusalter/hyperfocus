@@ -155,6 +155,37 @@ run_flow() {
   rm -f "$dir/.started"
 }
 
+# changed_bytes <a.png> <b.png>: how much of the band of the Lock Screen where a
+# Live Activity sits differs between two captures.
+changed_bytes() {
+  local h w f
+  h=$(sips -g pixelHeight "$1" | awk '/pixelHeight/ {print $2}')
+  w=$(sips -g pixelWidth "$1" | awk '/pixelWidth/ {print $2}')
+  for f in "$1" "$2"; do
+    sips -s format bmp -c $((h * 28 / 100)) "$w" --cropOffset $((h * 62 / 100)) 0 "$f" --out "${f%.png}.bmp" > /dev/null 2>&1
+  done
+  cmp -l "${1%.png}.bmp" "${2%.png}.bmp" 2> /dev/null | wc -l | tr -d ' '
+  rm -f "${1%.png}.bmp" "${2%.png}.bmp"
+}
+
+# still_ticking <flow>: the countdown on the Lock Screen is really being drawn.
+# Maestro finds text through the accessibility tree, which once held a countdown
+# that iOS wasn't painting, along with everything drawn after it. Two captures a
+# few seconds apart settle it: a painted countdown has changed, and the same gap
+# while paused shows how much changes when nothing should.
+still_ticking() {
+  local dir="$OUT/$1" running paused
+  if [ ! -f "$dir/04b-lock-screen-running-later.png" ] || [ ! -f "$dir/05b-lock-screen-paused-later.png" ]; then
+    return # the flow already failed before taking them, and said so
+  fi
+  running=$(changed_bytes "$dir/04-lock-screen-running.png" "$dir/04b-lock-screen-running-later.png")
+  paused=$(changed_bytes "$dir/05-lock-screen-paused.png" "$dir/05b-lock-screen-paused-later.png")
+  log "lock screen changed by $running bytes in four seconds running, $paused paused"
+  if [ "${running:-0}" -lt 300 ] || [ "${running:-0}" -le $((${paused:-0} * 2)) ]; then
+    note "FAIL  $1: the countdown is on the Lock Screen but isn't moving ($running bytes changed running, $paused paused)"
+  fi
+}
+
 start_log() {
   xcrun simctl spawn "$UDID" log stream --level debug \
     --predicate 'process == "Hyperfocus"' > "$OUT/app.log" 2>&1 &
@@ -210,6 +241,7 @@ case "$GROUP" in
     start_log
     seed_state full
     run_flow 14-live-activity
+    still_ticking 14-live-activity
     seed_state lock-expiring
     run_flow 16-time-up
     seed_state full

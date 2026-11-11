@@ -36,6 +36,14 @@ name: The session on the Lock Screen
     text: "Allow"
     optional: true
 - takeScreenshot: 04-lock-screen-running
+# A few seconds on, for scripts/ios-sim.sh to compare with the one above. Finding
+# the words isn't proof they're painted: a countdown once sat in the accessibility
+# tree, invisible, and this flow passed. A painted countdown has moved by now.
+- extendedWaitUntil:
+    visible: "four seconds, and nothing by this name"
+    timeout: 4000
+    optional: true
+- takeScreenshot: 04b-lock-screen-running-later
 - pressKey: Home
 - extendedWaitUntil:
     visible: "Pause"
@@ -51,6 +59,12 @@ name: The session on the Lock Screen
     visible: "left"
     timeout: 10000
 - takeScreenshot: 05-lock-screen-paused
+# and the same gap while paused, where nothing should have moved
+- extendedWaitUntil:
+    visible: "four seconds, and nothing by this name"
+    timeout: 4000
+    optional: true
+- takeScreenshot: 05b-lock-screen-paused-later
 - pressKey: Home
 - extendedWaitUntil:
     visible: "Resume"
