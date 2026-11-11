@@ -690,7 +690,17 @@ describe('what the store asks of the device', () => {
       'hf2-settings': SETTINGS,
       'hf2-tasks': [task('a', { firstStep: 'open the doc' }), task('b')],
     })
-    expect(lastCall(syncWidget)).toEqual([{ title: 'Task a', firstStep: 'open the doc', focusLen: 25 }])
+    expect(lastCall(syncWidget)).toEqual([
+      expect.objectContaining({ title: 'Task a', firstStep: 'open the doc', focusLen: 25 }),
+    ])
+    // nothing done yet, so the race has nothing to compare and says so
+    expect(lastCall<[{ race: unknown }]>(syncWidget)[0].race).toEqual({
+      points: 0,
+      pacer: 0,
+      ghosts: [],
+      line: 'Nothing to race yet',
+      gentle: false,
+    })
 
     act(() => result.current.startFocus('a'))
     await waitFor(() =>
@@ -704,10 +714,14 @@ describe('what the store asks of the device', () => {
       result.current.finishFocus('done')
     })
     // the finished task is gone, so the offer moves on to the next one
-    await waitFor(() => expect(lastCall(syncWidget)).toEqual([{ title: 'Task b', focusLen: 25 }]))
+    await waitFor(() =>
+      expect(lastCall<[{ title?: string }]>(syncWidget)[0]).toMatchObject({ title: 'Task b', focusLen: 25 })
+    )
+    // and the points that session earned are on the widget's race
+    expect(lastCall<[{ race: { points: number } }]>(syncWidget)[0].race.points).toBeGreaterThan(0)
 
     act(() => result.current.completeTask('b'))
-    await waitFor(() => expect(lastCall(syncWidget)).toEqual([{ focusLen: 25 }]))
+    await waitFor(() => expect(lastCall<[{ title?: string }]>(syncWidget)[0].title).toBeUndefined())
   })
 
   it('starts light unless told otherwise, and follows the choice', async () => {

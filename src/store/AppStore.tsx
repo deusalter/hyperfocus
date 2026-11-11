@@ -51,7 +51,7 @@ import { silenceFocusSound, syncFocusSound } from '@/lib/sound'
 import { applyAppearance } from '@/lib/appearance'
 import { generateId } from '@/lib/utils'
 import { mergeBackup, parseBackup } from '@/lib/backup'
-import { syncLiveActivity, syncWidget, widgetState } from '@/lib/liveActivity'
+import { syncLiveActivity, syncWidget, widgetRace, widgetState } from '@/lib/liveActivity'
 
 const KEYS = {
   tasks: 'hf2-tasks',
@@ -965,6 +965,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [hydrated, running, endsAt, totalSec, pausedRemaining, focusTitle, focusStep])
 
   const focusLen = settings.focusLen
+  const gentle = settings.gentle
+  const raceNow = derived.race
+  const pointsNow = derived.todayTotals.points
   useEffect(() => {
     if (!hydrated) return
     syncWidget(
@@ -972,10 +975,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         nudgeTitle ? { title: nudgeTitle, firstStep: nudgeStep } : null,
         focusLen,
         focusRef.current,
-        focusTitle
+        focusTitle,
+        widgetRace(raceNow, pointsNow, gentle)
       )
     )
-  }, [hydrated, nudgeTitle, nudgeStep, focusLen, running, endsAt, focusTitle])
+  }, [hydrated, nudgeTitle, nudgeStep, focusLen, running, endsAt, focusTitle, raceNow, pointsNow, gentle])
 
   // memoized so consumers only re-render when state actually changes
   const value: Store = useMemo(

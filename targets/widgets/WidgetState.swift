@@ -8,6 +8,20 @@ let appGroup = "group.com.deusalter.hyperfocus"
 /// FocusActivity module. Every field is optional: a widget that can't read its
 /// data should show its invitation, not an error.
 struct WidgetState: Codable, Equatable {
+  /// Today's race, as Home draws it. See src/components/home/RaceTrack.tsx.
+  struct Race: Codable, Equatable {
+    var points: Int
+    /// a typical recent day, 0 when there's nothing to race yet
+    var pacer: Int
+    /// each recent active day's points
+    var ghosts: [Int]
+    /// the sentence Home's card leads with, written by the app so the wording
+    /// lives in one place
+    var line: String
+    /// Gentle mode: no field, no typical day, only today's own progress
+    var gentle: Bool?
+  }
+
   /// the task Home would offer to start
   var title: String?
   var firstStep: String?
@@ -17,6 +31,7 @@ struct WidgetState: Codable, Equatable {
   var sessionTitle: String?
   /// epoch milliseconds
   var sessionEndsAt: Double?
+  var race: Race?
 
   var sessionEnd: Date? {
     guard let ms = sessionEndsAt else { return nil }
@@ -35,7 +50,8 @@ struct WidgetState: Codable, Equatable {
   static let sample = WidgetState(
     title: "Draft intro for history essay",
     firstStep: "open the doc and type one line",
-    focusLen: 25
+    focusLen: 25,
+    race: Race(points: 69, pacer: 99, ghosts: [33, 48, 99, 117, 129, 177], line: "2 of 6 passed")
   )
 
   static func load() -> WidgetState {

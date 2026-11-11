@@ -1,6 +1,14 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { APP_GROUP, activityPayload, syncLiveActivity, syncWidget, widgetState } from '../liveActivity'
+import {
+  APP_GROUP,
+  activityPayload,
+  syncLiveActivity,
+  syncWidget,
+  widgetRace,
+  widgetState,
+} from '../liveActivity'
+import { buildRaceField, DayTotals } from '../points'
 import { FocusSession } from '../session'
 
 const NOW = 1_800_000_000_000
@@ -68,6 +76,43 @@ describe('widgetState', () => {
     expect(state.sessionTitle).toBe('Essay')
     expect(state.sessionEndsAt).toBe(NOW + 17 * MIN)
     expect(widgetState({ title: 'Email' }, 25, paused()).sessionEndsAt).toBeUndefined()
+  })
+})
+
+describe('widgetRace', () => {
+  const TODAY = '2026-11-10'
+  const day = (points: number): DayTotals => ({ points, completed: 1, minutes: 0 })
+  const byDay = new Map<string, DayTotals>([
+    ['2026-11-09', day(40)],
+    ['2026-11-08', day(100)],
+    ['2026-11-07', day(160)],
+  ])
+
+  it('sends the same race Home draws, with the headline Home leads with', () => {
+    const race = buildRaceField(byDay, TODAY, 60)
+    expect(widgetRace(race, 60, false)).toEqual({
+      points: 60,
+      pacer: 100,
+      ghosts: [40, 100, 160],
+      line: '1 of 3 passed',
+      gentle: false,
+    })
+  })
+
+  it('sends no comparison at all in gentle mode', () => {
+    const race = buildRaceField(byDay, TODAY, 60)
+    expect(widgetRace(race, 60, true)).toEqual({
+      points: 60,
+      pacer: 0,
+      ghosts: [],
+      line: '60 pts so far today',
+      gentle: true,
+    })
+  })
+
+  it('rides along with whatever else the widget shows', () => {
+    const race = widgetRace(buildRaceField(byDay, TODAY, 0), 0, false)
+    expect(widgetState({ title: 'Email' }, 25, null, undefined, race).race).toBe(race)
   })
 })
 

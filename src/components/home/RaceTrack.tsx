@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { View, Text } from 'react-native'
 import Animated, {
+  SharedValue,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -29,6 +30,45 @@ const GENTLE_HALFWAY_PTS = 80
 /** how long the runner takes to reach its new place, and how long it sprints for */
 const RUN_MS = 620
 const SPRINT_MS = 2600
+
+/**
+ * One recent day. It turns light at the moment the runner's body crosses it, read
+ * from the same value that moves the runner. Driven by the points instead, every
+ * bead a session passed lit at once as the run began, before the runner got there,
+ * and the one thing the picture is for, passing a day, never visibly happened.
+ */
+function Bead({
+  at,
+  runner,
+  passed,
+  ahead,
+}: {
+  /** the bead's centre along the lane */
+  at: number
+  /** the runner's left edge, as it moves */
+  runner: SharedValue<number>
+  passed: string
+  ahead: string
+}) {
+  const style = useAnimatedStyle(() => ({
+    backgroundColor: runner.value + SPRITE_W / 2 >= at ? passed : ahead,
+  }))
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          left: at - BEAD / 2,
+          top: LANE_TOP + (LANE_H - BEAD) / 2,
+          width: BEAD,
+          height: BEAD,
+          borderRadius: BEAD / 2,
+        },
+        style,
+      ]}
+    />
+  )
+}
 
 interface Props {
   /** where the runner stands, in today's points */
@@ -154,21 +194,16 @@ export default function RaceTrack({
         ]}
       />
 
-      {/* each recent day is a bead on the lane, turning light once you pass it */}
+      {/* each recent day is a bead on the lane, turning light as you pass it */}
       {showField &&
         trackW > 0 &&
         race.ghosts.map((g) => (
-          <View
+          <Bead
             key={g.day}
-            style={{
-              position: 'absolute',
-              left: Math.max(LANE_H / 2, Math.min(trackW - LANE_H / 2, frac(g.points) * trackW)) - BEAD / 2,
-              top: LANE_TOP + (LANE_H - BEAD) / 2,
-              width: BEAD,
-              height: BEAD,
-              borderRadius: BEAD / 2,
-              backgroundColor: points >= g.points ? palette.onAccent : hexA(palette.muted, 0.55),
-            }}
+            at={Math.max(LANE_H / 2, Math.min(trackW - LANE_H / 2, frac(g.points) * trackW))}
+            runner={x}
+            passed={palette.onAccent}
+            ahead={hexA(palette.muted, 0.55)}
           />
         ))}
 

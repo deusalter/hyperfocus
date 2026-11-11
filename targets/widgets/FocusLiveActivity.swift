@@ -2,12 +2,6 @@ import ActivityKit
 import SwiftUI
 import WidgetKit
 
-/// The Dynamic Island is always black, whatever the phone's appearance, so its
-/// colours are fixed: the dark theme's accent and ink from src/lib/colors.json.
-private let islandAccent = Color(red: 0x8f / 255, green: 0xb4 / 255, blue: 0xda / 255)
-private let islandInk = Color(red: 0xe6 / 255, green: 0xe9 / 255, blue: 0xea / 255)
-private let islandMuted = Color(red: 0xa2 / 255, green: 0xaa / 255, blue: 0xae / 255)
-
 private let focusURL = URL(string: "hyperfocus://focus")
 
 /**
@@ -18,62 +12,60 @@ private let focusURL = URL(string: "hyperfocus://focus")
  keeps the clock where the phone is looked at anyway. The countdown and the bar
  are drawn by the system from the end time, so they keep moving with the app
  asleep, and when the time runs out the system redraws this to say so.
+
+ How it looks is FocusViews.swift. This file only hands those views what
+ ActivityKit provides.
  */
 struct FocusLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: FocusAttributes.self) { context in
       FocusLockScreenView(glance: glance(context))
-        .activityBackgroundTint(Color("surface"))
-        .activitySystemActionForegroundColor(Color("ink"))
+        .activityBackgroundTint(Palette.surface)
+        .activitySystemActionForegroundColor(Palette.ink)
         .widgetURL(focusURL)
     } dynamicIsland: { context in
       let now = glance(context)
       return DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
-          VStack(alignment: .leading, spacing: 2) {
-            Text(now.status)
-              .font(.caption)
-              .fontWeight(.semibold)
-              .foregroundStyle(islandMuted)
-            Text(now.title)
-              .font(.headline)
-              .foregroundStyle(islandInk)
-              .lineLimit(2)
-          }
-          .padding(.leading, 4)
+          FocusIslandTitle(glance: now)
+            .padding(.leading, 4)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          FocusClock(glance: now, tint: islandInk, quiet: islandMuted)
+          FocusClock(glance: now, tint: Island.ink, quiet: Island.muted, size: 24)
             .padding(.trailing, 4)
         }
         DynamicIslandExpandedRegion(.bottom) {
-          if now.over {
-            Text("Open Hyperfocus to say whether you finished.")
-              .font(.footnote)
-              .foregroundStyle(islandMuted)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .padding(.horizontal, 4)
-          } else {
-            FocusBar(glance: now, tint: islandAccent, paused: islandMuted)
-              .padding(.horizontal, 4)
+          VStack(alignment: .leading, spacing: 8) {
+            if now.over {
+              Text("Open Hyperfocus to say whether you finished.")
+                .font(Typeface.ui(13))
+                .foregroundStyle(Island.muted)
+            } else {
+              FocusBar(glance: now, tint: Island.accent, paused: Island.muted)
+              if let step = now.step {
+                Text("First move: \(step)")
+                  .font(Typeface.ui(13))
+                  .foregroundStyle(Island.muted)
+                  .lineLimit(1)
+              }
+            }
           }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.horizontal, 4)
+          .padding(.top, 4)
         }
       } compactLeading: {
-        Image(systemName: now.over ? "checkmark.circle" : "timer")
-          .font(.caption)
-          .foregroundStyle(islandAccent)
+        Runner(pose: now.pose, fill: Island.accent, detail: Island.onAccent, height: 20)
+          .padding(.leading, 2)
       } compactTrailing: {
-        FocusCompactClock(glance: now, tint: islandAccent)
+        FocusCompactClock(glance: now, tint: Island.accent)
       } minimal: {
-        Image(systemName: now.over ? "checkmark.circle" : now.running ? "timer" : "pause.fill")
-          .font(.caption)
-          .foregroundStyle(islandAccent)
+        Runner(pose: now.pose, fill: Island.accent, detail: Island.onAccent, height: 20)
       }
       .widgetURL(focusURL)
-      .keylineTint(islandAccent)
+      .keylineTint(Island.accent)
     }
   }
-
 }
 
 private func glance(_ context: ActivityViewContext<FocusAttributes>) -> FocusGlance {

@@ -1,5 +1,7 @@
 import { Platform } from 'react-native'
 import { requireOptionalNativeModule } from 'expo'
+import { RaceField } from './points'
+import { raceHeadline } from './raceCopy'
 import { FocusSession, remainingSec } from './session'
 
 /**
@@ -77,6 +79,31 @@ export function syncLiveActivity(session: FocusSession | null, task?: SessionTas
   }
 }
 
+/** Today's race for the wider widget, as Home's card draws it. */
+export interface WidgetRace {
+  points: number
+  /** a typical recent day, 0 when there's nothing to race yet */
+  pacer: number
+  /** each recent active day's points */
+  ghosts: number[]
+  /** the headline Home's card leads with */
+  line: string
+  /** no field and no typical day, only today's own progress */
+  gentle: boolean
+}
+
+export function widgetRace(race: RaceField, points: number, gentle: boolean): WidgetRace {
+  return {
+    points,
+    // Gentle mode means no comparisons anywhere, and that includes the Home Screen.
+    // The numbers aren't sent at all, so nothing can draw them by mistake.
+    pacer: gentle ? 0 : race.pacer,
+    ghosts: gentle ? [] : race.ghosts.map((g) => g.points),
+    line: raceHeadline(race, points, gentle),
+    gentle,
+  }
+}
+
 /** What the widget draws from. Mirrors `WidgetState` in targets/widgets/WidgetState.swift. */
 export interface WidgetState {
   /** the task Home would offer to start */
@@ -88,15 +115,18 @@ export interface WidgetState {
   sessionTitle?: string
   /** epoch ms */
   sessionEndsAt?: number
+  race?: WidgetRace
 }
 
 export function widgetState(
   next: SessionTask | null | undefined,
   focusLen: number,
   session: FocusSession | null,
-  sessionTitle?: string
+  sessionTitle?: string,
+  race?: WidgetRace
 ): WidgetState {
   const state: WidgetState = { focusLen }
+  if (race) state.race = race
   if (next?.title) state.title = next.title
   const step = next?.firstStep?.trim()
   if (step) state.firstStep = step
