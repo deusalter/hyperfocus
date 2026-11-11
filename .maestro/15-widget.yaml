@@ -42,19 +42,18 @@ name: The widget on the Home Screen
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: 07-home-with-widget
-# The widget's own words, which the app's icon doesn't carry. It only has a task
-# to show if the app's data reached it through the App Group.
+# The widget's own words, and the task the app wrote for it. The task only gets
+# there through the App Group, so seeing it is the proof that path works.
 - extendedWaitUntil:
     visible: "Start one thing"
-    timeout: 8000
-    optional: true
+    timeout: 10000
+- assertVisible: "Draft intro for history essay"
 - takeScreenshot: 08-widget-content
 # a tap on it goes back into the app
 - tapOn:
-    text: "Draft intro for history essay"
-    optional: true
+    point: "20%,15%"
 - extendedWaitUntil:
     visible: "Not this one"
-    timeout: 8000
+    timeout: 10000
     optional: true
 - takeScreenshot: 09-after-tap

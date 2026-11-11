@@ -76,9 +76,10 @@ const states = {
       ],
     }),
   // A session with long enough left to launch and lock the phone, and little
-  // enough that waiting it out doesn't take the whole job.
+  // enough that waiting it out doesn't take the whole job. Eighty seconds wasn't
+  // enough on a slow runner: the app opened straight onto the recap.
   'lock-expiring': () =>
-    seed({ focus: runningSession('t3', 'Clear the desk', 'sprint', { leftMs: 80 * 1000 }) }),
+    seed({ focus: runningSession('t3', 'Clear the desk', 'sprint', { leftMs: 150 * 1000 }) }),
 }
 
 const data = states[kind]()

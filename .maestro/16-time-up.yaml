@@ -1,7 +1,7 @@
 appId: com.deusalter.hyperfocus
 name: Time runs out with the phone locked
 ---
-# Opens on a session with a little over a minute left. The store puts it on the
+# Opens on a session with a couple of minutes left. The store puts it on the
 # Lock Screen as soon as saved data loads, with no tap needed.
 - launchApp
 - extendedWaitUntil:
@@ -21,7 +21,7 @@ name: Time runs out with the phone locked
 # on screen. "Time's up" alone wouldn't prove it: the notification says that too.
 - extendedWaitUntil:
     visible: "Open Hyperfocus to say whether you finished."
-    timeout: 120000
+    timeout: 240000
 - takeScreenshot: 02-lock-screen-time-up
 - pressKey: Home
 # back in the app, the session has ended and the recap asks the question

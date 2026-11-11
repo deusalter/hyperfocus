@@ -12,6 +12,15 @@ name: The session on the Lock Screen
     visible: "Focusing on"
     timeout: 10000
 - takeScreenshot: 01-focus
+# on the Home Screen, a phone with a Dynamic Island carries the countdown there
+- pressKey: Home
+- waitForAnimationToEnd
+- takeScreenshot: 02-dynamic-island
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: "Focusing on"
+    timeout: 10000
 - pressKey: Lock
 # Home wakes a locked phone to its Lock Screen. It takes a second press to unlock.
 - pressKey: Home
@@ -20,13 +29,13 @@ name: The session on the Lock Screen
 - extendedWaitUntil:
     visible: "until .*"
     timeout: 10000
-- takeScreenshot: 02-lock-screen-first-time
+- takeScreenshot: 03-lock-screen-first-time
 # The first Live Activity carries the system's own question underneath it. It isn't
 # an alert, so Maestro's driver leaves it alone and this answers it.
 - tapOn:
     text: "Allow"
     optional: true
-- takeScreenshot: 03-lock-screen-running
+- takeScreenshot: 04-lock-screen-running
 - pressKey: Home
 - extendedWaitUntil:
     visible: "Pause"
@@ -41,7 +50,7 @@ name: The session on the Lock Screen
 - extendedWaitUntil:
     visible: "left"
     timeout: 10000
-- takeScreenshot: 04-lock-screen-paused
+- takeScreenshot: 05-lock-screen-paused
 - pressKey: Home
 - extendedWaitUntil:
     visible: "Resume"
@@ -61,4 +70,4 @@ name: The session on the Lock Screen
 - extendedWaitUntil:
     notVisible: "until .*"
     timeout: 8000
-- takeScreenshot: 05-lock-screen-after
+- takeScreenshot: 06-lock-screen-after
