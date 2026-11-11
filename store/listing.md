@@ -104,6 +104,8 @@ These are the Release build itself, captured on iOS 26 simulators (iPhone 17 Pro
 | Price | Free, no in-app purchases |
 | Age rating | Answer "None" or "No" throughout. Should come out 4+. That includes the newer questions: Social Media (required since September 2026), and Shared Location and Dating and Relationships (in the form from 16 November 2026, due by 12 January 2027). Two answers are worth knowing the reason for. Health or Wellness Topics is None: the app organises tasks and gives no self-care or lifestyle recommendations. Contests is None: the race is against your own past days, and that question is about users competing with one another. Unrestricted Web Access is No, since the in-app browser only opens this app's own help and privacy pages. |
 | Support URL | https://deusalter.github.io/hyperfocus/support.html |
+| Support contact | The support and privacy pages give abhinavnamboori@gmail.com, which is what Guideline 1.5 asks for: a way to reach the developer that doesn't need an account. Neither page links anywhere outside the site, so the in-app browser stays on the app's own pages. |
+| App Review contact | App Store Connect asks separately for a name, phone number and email for the reviewers. Only they see it. |
 | Marketing URL | https://deusalter.github.io/hyperfocus/ |
 | Privacy Policy URL | https://deusalter.github.io/hyperfocus/privacy.html |
 | App Privacy | **Data Not Collected.** Nothing leaves the device except a calendar request the user opts into, which goes straight to that calendar's host and never to the developer. |

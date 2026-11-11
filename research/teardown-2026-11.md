@@ -108,5 +108,5 @@ Not used anywhere, on purpose: "RSD" (not a validated construct), any claim that
 ## Still open
 
 - **Red on overdue dates.** `DueTag` and the debrief state a past date in a warm red, a choice the code documents. The research leans against it (adults with ADHD report more perceived criticism). Left alone as a deliberate choice.
-- **The support page has no direct contact**, only GitHub Issues, which needs an account. App Review guideline 1.5 asks for an easy way to reach the developer. This is the one likely rejection found.
+- **The support page had no direct contact**, only GitHub Issues, which needs an account. App Review guideline 1.5 asks for an easy way to reach the developer, and this was the one likely rejection found. Fixed on 11 November: the support and privacy pages give an email address.
 - **Nothing here has run on a physical iPhone.** The session-end sound, the Large Content Viewer and the reworded notifications are all device-only behaviour.
