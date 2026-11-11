@@ -183,6 +183,14 @@ const SHOTS = [
     sub: 'Quiet days are allowed. Days you showed up only ever count up.',
     path: '/insights',
   },
+  {
+    // The Lock Screen belongs to iOS, so there's no web version of this one: it
+    // only exists when a simulator run has captured it.
+    id: '08-lock-screen',
+    title: 'On your Lock Screen',
+    sub: 'The countdown keeps going with the app closed, and tells you when time is up.',
+    nativeOnly: true,
+  },
 ]
 
 const font = (rel) =>
@@ -282,6 +290,10 @@ async function capture(shot) {
 }
 
 for (const shot of SHOTS) {
+  if (shot.nativeOnly && !SIZES.every((size) => rawCapture(shot, size))) {
+    console.log('left', shot.id, 'as it was: it needs a capture from the simulator run')
+    continue
+  }
   // the web render is only needed if some size has no real capture
   const web = SIZES.every((size) => rawCapture(shot, size)) ? null : await capture(shot)
   for (const size of SIZES) {

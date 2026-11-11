@@ -297,6 +297,8 @@ case "$GROUP" in
     run_flow store-race
     seed_state store-focus
     run_flow store-focus
+    seed_state store-focus
+    run_flow store-lock
     seed_state store-dump
     run_flow store-dump
     seed_state full

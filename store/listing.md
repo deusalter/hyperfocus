@@ -87,6 +87,7 @@ Upload in this order from `store/screenshots/`. The first three are what most pe
 | 5 | `05-recap` | Starting counts | Every start earns points, so a scattered day still adds up. |
 | 6 | `06-calendar` | Assignments, no typing | Connect your school's calendar link and what's due shows up on its day. |
 | 7 | `07-insights` | See what your week held | Quiet days are allowed. Days you showed up only ever count up. |
+| 8 | `08-lock-screen` | On your Lock Screen | The countdown keeps going with the app closed, and tells you when time is up. |
 
 - `6.3-inch` (1206 × 2622) goes in **iPhone with Dynamic Island (medium)**, the one required size.
 - `6.9-inch` (1320 × 2868) goes in **iPhone with Dynamic Island (large)**.

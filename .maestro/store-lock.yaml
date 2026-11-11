@@ -1,0 +1,23 @@
+appId: com.deusalter.hyperfocus
+name: Store shot, Lock Screen
+---
+# Opens on a running session, which the store puts on the Lock Screen by itself.
+- launchApp
+- extendedWaitUntil:
+    visible: "Session in progress.*"
+    timeout: 60000
+- pressKey: Lock
+- pressKey: Home
+- extendedWaitUntil:
+    visible: "until .*"
+    timeout: 15000
+# the system's own question sits under the first Live Activity a phone ever shows
+- tapOn:
+    text: "Always Allow|Allow"
+    optional: true
+# time for the card to close up around what's left
+- extendedWaitUntil:
+    visible: "three seconds, and nothing by this name"
+    timeout: 3000
+    optional: true
+- takeScreenshot: 08-lock-screen
