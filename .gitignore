@@ -43,3 +43,6 @@ yarn-error.log*
 
 # macOS
 .DS_Store
+
+# drawn by scripts/widget-preview.sh
+widget-preview-out/
