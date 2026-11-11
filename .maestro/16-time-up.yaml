@@ -12,8 +12,9 @@ name: Time runs out with the phone locked
 - extendedWaitUntil:
     visible: "until .*"
     timeout: 15000
+# asked as "Allow" the first time and "Always Allow" after that
 - tapOn:
-    text: "Allow"
+    text: "Always Allow|Allow"
     optional: true
 - takeScreenshot: 01-lock-screen-counting
 # Nothing in the app runs from here. The system redraws the activity when its

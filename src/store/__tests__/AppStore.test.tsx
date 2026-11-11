@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { act, renderHook, waitFor } from '@testing-library/react-native'
+import { AppState } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AppProvider, useApp } from '../AppStore'
 import { syncReminders, syncSessionAlert, clearAllNotifications } from '@/lib/notifications'
@@ -45,6 +46,12 @@ jest.mock('@/lib/sound', () => ({
 }))
 
 const MIN = 60 * 1000
+
+/** React Native's test double leaves this unset, and the app is in front unless a test says otherwise. */
+const appState = (state: 'active' | 'background') => {
+  ;(AppState as unknown as { currentState: string }).currentState = state
+}
+beforeEach(() => appState('active'))
 const wrapper = ({ children }: { children: ReactNode }) => <AppProvider>{children}</AppProvider>
 
 const task = (id: string, overrides: Partial<Task> = {}): Task => ({
@@ -683,6 +690,31 @@ describe('what the store asks of the device', () => {
       result.current.finishFocus('stopped')
     })
     await waitFor(() => expect(lastCall<[unknown]>(syncLiveActivity)[0]).toBeNull())
+  })
+
+  it('leaves a run-out session on the Lock Screen until the app is opened', async () => {
+    const { result } = await boot({ 'hf2-settings': SETTINGS, 'hf2-tasks': [task('a')] })
+    act(() => result.current.startFocus('a'))
+    await waitFor(() => expect(lastCall<[unknown]>(syncLiveActivity)[0]).not.toBeNull())
+    const before = (syncLiveActivity as jest.Mock).mock.calls.length
+
+    // the phone is locked, and the clock runs out with the app still awake behind it
+    appState('background')
+    act(() => {
+      result.current.finishFocus('expired')
+    })
+    await waitFor(() => expect(result.current.focus).toBeNull())
+    // nothing took the activity down: it's showing "Time's up" by itself
+    expect((syncLiveActivity as jest.Mock).mock.calls.length).toBe(before)
+
+    // back in the app
+    appState('active')
+    act(() => {
+      for (const [event, handler] of (AppState.addEventListener as jest.Mock).mock.calls) {
+        if (event === 'change') handler('active')
+      }
+    })
+    expect(lastCall<[unknown]>(syncLiveActivity)[0]).toBeNull()
   })
 
   it('tells the widget what Home would offer, and when a session is running', async () => {

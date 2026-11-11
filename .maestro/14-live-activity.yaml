@@ -33,7 +33,7 @@ name: The session on the Lock Screen
 # The first Live Activity carries the system's own question underneath it. It isn't
 # an alert, so Maestro's driver leaves it alone and this answers it.
 - tapOn:
-    text: "Allow"
+    text: "Always Allow|Allow"
     optional: true
 - takeScreenshot: 04-lock-screen-running
 # A few seconds on, for scripts/ios-sim.sh to compare with the one above. Finding

@@ -961,7 +961,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const focusStep = focusTask?.firstStep
   useEffect(() => {
     if (!hydrated) return
-    syncLiveActivity(focusRef.current, { title: focusTitle, firstStep: focusStep })
+    const sync = () => {
+      // A session that runs out while the app is in the background leaves its
+      // activity where it is. The system has already redrawn it to say time's up,
+      // and that's the thing to find on the Lock Screen: taken down at once, all
+      // that's left is a notification that scrolls away. Whether the app was still
+      // awake at that moment is luck, so without this the Lock Screen did one thing
+      // or the other. It comes down when the app is next in front, which is also
+      // when the recap asks the question it was pointing at.
+      if (!focusRef.current && AppState.currentState !== 'active') return
+      syncLiveActivity(focusRef.current, { title: focusTitle, firstStep: focusStep })
+    }
+    sync()
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') sync()
+    })
+    return () => sub.remove()
   }, [hydrated, running, endsAt, totalSec, pausedRemaining, focusTitle, focusStep])
 
   const focusLen = settings.focusLen
