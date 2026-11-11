@@ -45,6 +45,9 @@ jobs:
         run: npx expo prebuild --platform ios --no-install
       - name: Install pods
         run: cd ios && pod install
+      # Signed to run locally, which needs no Apple account or team. It used to be
+      # left unsigned, but an unsigned build carries no entitlements, so the app and
+      # its widget couldn't share their App Group and the widget always came up empty.
       - name: Compile
         run: |
           set -o pipefail
@@ -56,7 +59,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath ios/build \
             ONLY_ACTIVE_ARCH=YES ARCHS=arm64 \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY=- \
             COMPILER_INDEX_STORE_ENABLE=NO \
             | tee xcodebuild.log | grep -E "^(\*\*|error:|warning: unable|.*: error:)|Compiling Hyperfocus" || true
           test -d ios/build/Build/Products/Release-iphonesimulator/Hyperfocus.app

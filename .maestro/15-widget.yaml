@@ -42,9 +42,19 @@ name: The widget on the Home Screen
     optional: true
 - waitForAnimationToEnd
 - takeScreenshot: 07-home-with-widget
-# the widget's own words, which the app's icon doesn't carry
+# The widget's own words, which the app's icon doesn't carry. It only has a task
+# to show if the app's data reached it through the App Group.
 - extendedWaitUntil:
     visible: "Start one thing"
     timeout: 8000
     optional: true
 - takeScreenshot: 08-widget-content
+# a tap on it goes back into the app
+- tapOn:
+    text: "Draft intro for history essay"
+    optional: true
+- extendedWaitUntil:
+    visible: "Not this one"
+    timeout: 8000
+    optional: true
+- takeScreenshot: 09-after-tap
