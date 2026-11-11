@@ -384,16 +384,16 @@ describe('undo', () => {
     try {
       act(() => result.current.letGo('a'))
       act(() => {
-        jest.advanceTimersByTime(3000)
+        jest.advanceTimersByTime(5000)
       })
       act(() => result.current.letGo('b'))
       act(() => {
-        jest.advanceTimersByTime(3000)
+        jest.advanceTimersByTime(5000)
       })
-      // 6s after the first, but only 3s after the second: the timer restarted
+      // 10s after the first, but only 5s after the second: the timer restarted
       expect(result.current.undoOffer).not.toBeNull()
       act(() => {
-        jest.advanceTimersByTime(2100)
+        jest.advanceTimersByTime(3100)
       })
       expect(result.current.undoOffer).toBeNull()
     } finally {

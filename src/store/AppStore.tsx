@@ -102,8 +102,14 @@ export interface FeedStatus {
 
 const FEED_IDLE: FeedStatus = { syncing: false, error: null, added: null, moved: 0 }
 
-/** How long a way back is on offer. */
-const UNDO_MS = 5000
+/**
+ * How long a way back is on offer. Eight seconds, up from five. Undo is what this
+ * app has in place of "are you sure?", so it has to still be there after the
+ * moment it takes to notice a wrong tap, look down and reach for it. Five seconds
+ * was short enough that a test driver on a slow machine found the button and then
+ * missed it, tapping what had been underneath.
+ */
+const UNDO_MS = 8000
 
 interface NewTaskOptions {
   due?: string

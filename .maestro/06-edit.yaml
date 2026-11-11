@@ -25,7 +25,7 @@ name: Editing a task
     timeout: 5000
 - takeScreenshot: 02-row-with-date
 - tapOn: "Mark Clear the desk done"
-# the toast stays five seconds, so no stops between it and Undo
+# the toast stays eight seconds, so no stops between it and Undo
 - tapOn: "Undo"
 - extendedWaitUntil:
     visible: "Clear the desk"
